@@ -1,0 +1,2033 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>IOI 2026 · run 4 · Arbiter-gated refinement (5-round budget)</title>
+<style>
+  :root{
+    --surface:#fcfcfb; --panel:#fff; --ink:#0b0b0b; --ink2:#52514e;
+    --ink3:#8a8884; --grid:#e6e5e1; --line:#dedcd6;
+    /* Reserved meanings, used nowhere else */
+    --full:#1d5aa8;    /* judge gave full marks */
+    --part:#9ab8dd;    /* partial score */
+    --warn:#4a4844;    /* verifier disagreed with the judge */
+    --sub-ok:#1e7a45;  /* submitted AND judged full marks */
+    --sub-no:#c9740c;  /* submitted but short of full marks */
+    --ghost:#b0aea9;   /* a score from a round that was never submitted */
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--surface);color:var(--ink);
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    /* Every font-size in this file is one of ~60 individually hand-tuned px
+       values sized to fit a specific fixed-width cell (the fan grid's
+       octagons/boxes especially) -- rewriting them one at a time risks
+       breaking those layouts. zoom scales the whole rendered page (fonts,
+       paddings, gaps, cell widths) together after layout, so every
+       proportion survives untouched, just bigger. */
+    zoom:1.15}
+  header{padding:60px 30px 26px;border-bottom:1px solid var(--line);
+    max-width:880px;margin:0 auto;text-align:center}
+  /* Academic project-page header: a centered column -- title, then authors,
+     then the score card -- rather than the title-left / card-right strip it
+     used to be. The intro/sub prose below stays left-aligned for readability. */
+  .htop{margin-bottom:22px}
+  .htitle{min-width:0}
+  h1{margin:0 0 16px;font-size:32px;font-weight:650;letter-spacing:-.015em;
+    line-height:1.25;display:flex;align-items:center;justify-content:center;
+    gap:13px}
+  /* Paper/Code/Artifact buttons, in the style of the meta-harness header: a
+     centered row of bordered pills that light up in the accent colour on
+     hover. */
+  .links{display:flex;justify-content:center;flex-wrap:wrap;gap:11px;
+    margin-top:16px}
+  .links a{display:inline-flex;align-items:center;gap:6px;padding:6px 15px;
+    border:1px solid var(--line);border-radius:7px;color:var(--ink);
+    text-decoration:none;font-size:13.5px;font-weight:600;
+    transition:border-color .12s,color .12s}
+  .links a:hover{border-color:var(--full);color:var(--full)}
+  .links a.disabled{opacity:.4;pointer-events:none}
+  h1 img{height:44px;width:auto;border-radius:6px}
+  .sub{color:var(--ink);font-size:14.5px;line-height:1.55;text-align:left}
+  /* matches the paper's \author block: the two labs in superscript order,
+     the corresponding/senior cluster in bold same as in the paper. */
+  .authors{font-size:16px;color:var(--ink2);margin:0 auto}
+  .authors sup{font-size:11px;line-height:0}
+  .authors .aff{font-size:13.5px;color:var(--ink3);margin-top:7px}
+  .authors .aff code{font-size:12.5px;background:none;color:inherit;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  /* #top is now empty (the contest-total badge moved into the Day grid); keep
+     the rule so the header spacing stays consistent if it is ever repopulated. */
+  .top{display:flex;justify-content:center}
+  /* contest-total badge leading the Day 1 / Day 2 grid */
+  #body .card.grand{margin:0 auto 18px;width:fit-content;text-align:center}
+  .intro{font-size:14.5px;color:var(--ink);line-height:1.55;margin:2px 0 10px}
+  .wrap{padding:18px 30px 70px;max-width:880px;margin:0 auto}
+  /* Sections in the style of an academic project page (see meta-harness): a
+     plain serif-weight heading, no number and no rule beneath it, and generous
+     space separating one section from the next. */
+  section{margin:40px 0 0}
+  section:first-child{margin-top:24px}
+  .sec-h{margin:0 0 12px;font-size:24px;font-weight:650;letter-spacing:-.01em;
+    line-height:1.25;display:flex;align-items:center;gap:10px}
+  .sec-h img{height:30px;width:auto;border-radius:5px}
+  .sec-lead{font-size:14.5px;color:var(--ink2);line-height:1.6;margin:0 0 16px}
+  /* sticky left-side section nav (mirrors meta-harness): fixed, vertically
+     centred, fades in after a little scroll, highlights the active section, and
+     hides on narrow screens where there is no room beside the centred column. */
+  .section-nav{position:fixed;left:16px;top:50%;transform:translateY(-50%);
+    width:132px;font-size:11.5px;z-index:30;opacity:0;pointer-events:none;
+    transition:opacity .25s}
+  .section-nav.visible{opacity:1;pointer-events:auto}
+  .section-nav a{display:block;padding:3px 9px;color:var(--ink3);
+    text-decoration:none;border-left:2px solid transparent;line-height:1.35;
+    transition:color .12s,border-color .12s}
+  .section-nav a:hover{color:var(--ink)}
+  .section-nav a.active{color:var(--ink);border-left-color:var(--full);
+    font-weight:600}
+  @media (max-width:1280px){.section-nav{display:none}}
+  /* citation block: a monospace BibTeX card with a copy button in the corner */
+  .cite{position:relative;background:#faf9f7;border:1px solid var(--line);
+    border-radius:10px;padding:34px 20px 16px;margin:0 auto;
+    width:fit-content;max-width:100%}
+  /* thin full-width divider above the BibTeX section, like meta-harness */
+  .sec-rule{border:none;border-top:1px solid var(--line);margin:44px 0 0}
+  #citation{text-align:center}
+  #citation .sec-h{justify-content:center}
+  .cite pre{margin:0;padding:0;background:none;border:none;border-radius:0;
+    max-height:none;font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace;
+    color:#26251f;white-space:pre;overflow-x:auto;text-align:left}
+  .cite-copy{position:absolute;top:11px;right:11px;border:1px solid var(--line);
+    background:var(--panel);border-radius:6px;cursor:pointer;font-size:11px;
+    font-weight:600;color:var(--ink2);padding:4px 10px;transition:all .12s}
+  .cite-copy:hover{border-color:var(--ink3);color:var(--ink)}
+  .cite-copy.done{color:var(--sub-ok);border-color:#bcdcc7;background:#eef7f1}
+  /* Result figure: an inline SVG chart sitting directly on the page (no card or
+     border), with a caption underneath, in the style of the meta-harness plots. */
+  .figure{margin:0 40px 26px;position:relative}
+  .figure svg{display:block;width:100%;height:auto}
+  .figcap{font-size:12.5px;color:var(--ink2);line-height:1.55;margin-top:6px}
+  .figcap b{color:var(--ink)}
+  /* hover interactivity for the chart data points */
+  .figure .hit{fill:transparent;cursor:pointer}
+  .figure .dot,.figure .tdot circle{transition:r .12s}
+  .figure .dot.hi{r:5.5}
+  .figure .tdot circle.hi{r:5}
+  .figure .tstar use{transition:transform .12s}
+  .figure .colhi{transition:fill-opacity .12s,x .12s,width .12s}
+  .figtip{position:absolute;pointer-events:none;opacity:0;z-index:3;
+    background:var(--panel);border:1px solid var(--line);border-radius:7px;
+    box-shadow:0 3px 12px rgba(11,11,11,.14);padding:8px 11px;font-size:11.5px;
+    line-height:1.55;color:var(--ink);transform:translate(-50%,-118%);
+    transition:opacity .1s;white-space:nowrap}
+  .figtip.on{opacity:1}
+  .figtip .tt-r{font-weight:700;margin-bottom:3px}
+  .figtip .tt-row{display:flex;align-items:center;gap:6px}
+  .figtip .tt-row .sw{width:16px;height:0;border-top-width:2px;border-top-style:solid;flex:none}
+  .figtip .tt-s{color:var(--full);font-weight:650}
+  .figtip .tt-u{color:var(--ink2)}
+  .figtip b{font-variant-numeric:tabular-nums}
+  /* teaser figure directly under the title, wider and with no card border so it
+     reads as the page's opening hero rather than one more boxed result. */
+  .teaser{margin:6px 0 30px}
+  .teaser svg{display:block;width:100%;height:auto}
+  .teaser .figcap{text-align:center;max-width:680px;margin:8px auto 0}
+  /* results table, styled after the vals.ai leaderboard: clean rows with subtle
+     zebra striping, a provider logo beside each model, roomy cells, grouped
+     headers, and a highlighted "ours" row. */
+  .rtbl-wrap{margin:0 0 12px;overflow-x:auto;border:1px solid var(--line);
+    border-radius:12px;background:var(--panel)}
+  table.rtbl{border-collapse:collapse;font-size:12.5px;width:100%;
+    font-variant-numeric:tabular-nums;color:var(--ink)}
+  table.rtbl th,table.rtbl td{padding:9px 12px;text-align:center;white-space:nowrap}
+  table.rtbl thead th{font-weight:650;color:var(--ink2);font-size:11px}
+  table.rtbl thead tr.groups th{font-size:11.5px;color:var(--ink);
+    padding-bottom:6px}
+  table.rtbl thead tr.groups .grp{border-bottom:2px solid var(--line)}
+  table.rtbl thead tr.cols th{font-size:10px;color:var(--ink3);font-weight:600;
+    text-transform:uppercase;letter-spacing:.03em;padding-top:4px}
+  table.rtbl thead{border-bottom:1px solid var(--ink)}
+  table.rtbl .mdl{text-align:left;font-weight:600}
+  /* provider logo + model name */
+  table.rtbl .mdl .m{display:inline-flex;align-items:center;gap:8px}
+  table.rtbl .mdl .m img{width:19px;height:19px;object-fit:contain;flex:none;
+    border-radius:4px}
+  table.rtbl .par{color:var(--ink3);text-align:right;font-weight:500}
+  /* faint vertical group separators */
+  table.rtbl .sep{border-left:1px solid var(--grid)}
+  table.rtbl .sepd{border-left:1px solid var(--line)}
+  /* zebra striping over the data rows */
+  table.rtbl tbody tr:nth-child(even of :not(.band)){background:#faf9f7}
+  table.rtbl tbody tr:not(.band):hover{background:#f2f5fa}
+  table.rtbl .band td{background:#efeee9;font-weight:700;color:var(--ink2);
+    font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;
+    text-align:left;padding:5px 12px}
+  table.rtbl b{font-weight:750;color:var(--full)}
+  table.rtbl u{text-decoration:underline;text-decoration-color:var(--ink3);
+    text-underline-offset:2px;text-decoration-thickness:1px}
+  table.rtbl tr.ours{background:rgba(29,90,168,.08) !important;
+    box-shadow:inset 3px 0 0 var(--full)}
+  table.rtbl tr.ours .mdl{color:var(--full);font-weight:700}
+  .rtbl-cap{font-size:12.5px;color:var(--ink2);line-height:1.55;margin:10px 0 26px}
+  .rtbl-cap b{color:var(--ink)}
+
+  /* headline: both days plus the combined 600-point total */
+  /* Sits beside the title now, in the header's own blank right-hand space,
+     rather than stacked above the problem grid. */
+  .top{flex:none}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:11px;
+    padding:13px 16px;min-width:190px}
+  .card .lab{font-size:11px;color:var(--ink3);text-transform:uppercase;
+    letter-spacing:.05em;font-weight:650}
+  .card .big{font-size:26px;font-weight:680;font-variant-numeric:tabular-nums;
+    line-height:1.15;margin-top:3px}
+  .card .big small{font-size:13px;font-weight:400;color:var(--ink3)}
+  .card .det{font-size:11.5px;color:var(--ink2);margin-top:2px}
+  .card.grand{background:#0b0b0b;color:#fff;border-color:#0b0b0b}
+  .card.grand .lab,.card.grand .det{color:#b9b7b1}
+  .card.grand .big small{color:#8a8884}
+  .card.grand .big{display:flex;align-items:center;gap:7px}
+  .card.grand .medal{width:24px;height:24px;flex:none}
+  .legend{display:flex;flex-wrap:wrap;gap:13px;margin:20px 0 0;
+    padding-top:18px;border-top:1px solid var(--line);font-size:12px;
+    color:var(--ink2);align-items:center}
+  /* Legend samples are the real 40x40 shape at its real size -- not a wider
+     illustrative stand-in -- so they show the same abbreviated label the grid
+     itself shows (a spelled-out word doesn't fit a true circle any better
+     here than it does there); the row's own prose carries the full meaning. */
+  .legend .lgrow{display:inline-flex;align-items:center;gap:7px}
+  .legend .lgn{display:inline-flex;width:44px;justify-content:center;font-size:10.5px}
+  .legend .lgn .box,.legend .lgn .oct{width:40px;height:40px;flex:none;
+    flex-direction:column;align-items:center;justify-content:center;
+    gap:0;padding:1px 2px;font-size:9px;line-height:1.25;overflow:hidden}
+  .legend .lgn .box{border-radius:50%}
+  .legend .lgn .oct{display:flex;padding:3px;--c:6px}
+  .legend .lgn .oct-in{--c:4.5px;flex:1;flex-direction:column;align-items:center;
+    justify-content:center;gap:0;padding:1px 2px;font-size:9px;line-height:1.25}
+  .legend .lgn .lb{font-size:10px}
+  .legend .lgn .sc{font-size:8.5px}
+  .legend .lgn .lb .full{display:none}
+  .legend .lgw{display:inline-flex;width:44px;justify-content:center}
+
+  /* One shared 2-column grid: cells are filled row by row (two day headers,
+     then each problem pair). column-gap separates the days, row-gap the
+     problems; align-items:stretch makes both cards in a row equal height so
+     the columns stay aligned and end level. */
+  .days{display:grid;grid-template-columns:1fr 1fr;column-gap:24px;row-gap:11px;
+    align-items:stretch;min-width:0}
+  @media (max-width:1500px){.days{grid-template-columns:1fr}}
+  .dayh{display:flex;align-items:baseline;gap:11px;
+    padding:6px 0 7px;border-bottom:2px solid var(--ink);
+    position:sticky;top:0;background:var(--surface);z-index:5}
+  .dayh .n{font-size:21px;font-weight:680}
+  .dayh .s{margin-left:auto;font-size:22px;font-weight:680;
+    font-variant-numeric:tabular-nums}
+  .dayh .s small{font-size:14px;font-weight:400;color:var(--ink3)}
+  .task{background:var(--panel);border:1px solid var(--line);border-radius:11px;
+    padding:15px 17px}
+  .thead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .tname{font-size:14.5px;font-weight:620}
+  .tscorewrap{margin-left:auto;display:flex;align-items:center;gap:7px}
+  .tscore{font-variant-numeric:tabular-nums;font-size:15px;font-weight:650}
+  .tscore small{font-weight:400;color:var(--ink3);font-size:12px}
+  /* the merged, judge-submitted answer for a whole problem -- distinct from
+     any single trajectory, so it gets its own small icon next to the score
+     (same code icon used everywhere else a program can be opened) rather
+     than living inside the subtask fan. */
+  .mfin{display:inline-flex;align-items:center;cursor:pointer;flex:none}
+  .mfin img{width:16px;height:16px;opacity:.72;transition:opacity .12s}
+  .mfin:hover img{opacity:1}
+  .mpieces{display:flex;flex-direction:column;gap:8px}
+  .mp{border:1px solid var(--grid);border-radius:8px;padding:8px 10px;
+    background:#faf9f7}
+  /* .nd is shared with the fan diagram's single-line trajectory nodes, whose
+     fixed 21px/flex-row layout has nothing to do with this card -- reset it
+     back to a plain block so a long "judged" line (or trajectory source, or
+     anything else) wraps and grows the card instead of being squashed into
+     one row. */
+  .mp.nd{height:auto;display:block;cursor:pointer;transition:box-shadow .12s,border-color .12s}
+  .mp.nd:hover{box-shadow:0 1px 5px rgba(11,11,11,.07);border-color:var(--ink3)}
+  .mp-t{font-size:12px;font-weight:650;display:flex;justify-content:space-between;gap:8px}
+  .mp-pts{color:var(--ink3);font-weight:400;font-variant-numeric:tabular-nums}
+  .mp-j{font-size:11px;color:var(--ink2);margin-top:3px;line-height:1.5}
+  .mp-src{font-size:10.5px;color:var(--ink3);margin-top:5px;
+    font-family:ui-monospace,Menlo,monospace;display:flex;align-items:center;gap:6px}
+  /* Appending the icon after the text and pushing it with margin-left:auto
+     -- rather than centering or floating it -- pins it to the card's right
+     edge regardless of how long "trajectory #N · round R" runs. */
+  .mp-src .ci{margin-left:auto}
+  .mp-src .ci-ic{width:15px;height:15px;opacity:.8}
+  /* the E[max of k draws] arithmetic behind a file's expected-score number,
+     shown so it can be checked rather than taken on faith. */
+  .evtab{width:100%;border-collapse:collapse;margin:10px 0;font-size:11px;
+    font-variant-numeric:tabular-nums}
+  .evtab th{text-align:right;font-weight:650;color:var(--ink3);
+    font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;
+    padding:0 0 4px;border-bottom:1px solid var(--grid)}
+  .evtab th:first-child,.evtab td:first-child{text-align:left}
+  .evtab td{text-align:right;padding:3px 0;border-bottom:1px solid var(--grid)}
+  .evtab tr:last-child td{border-bottom:none}
+  .evtab .evtot td{border-top:1.5px solid var(--ink);border-bottom:none;
+    padding-top:5px;color:var(--ink2)}
+  /* shown at the top of a trajectory/code view only when it was reached by
+     clicking out of a final-submission drawer -- otherwise that drawer is
+     only reachable again by closing and reopening from the score badge. */
+  .mback{display:inline-flex;align-items:center;gap:5px;color:var(--full);
+    font-size:11.5px;font-weight:600;cursor:pointer;margin-bottom:12px}
+  .mback:hover{text-decoration:underline}
+
+  /* Subtasks as a grid of tiles. Colour is the outcome: green once the subtask
+     is solved, amber while it is not -- so a task's remaining upside is visible
+     at a glance rather than having to read a column of numbers. */
+  /* Subtask number centered above the shape, score inside it, and the round
+     it was accepted centered below in small plain text -- three lines, all
+     centered on the same axis, so the column only has to be as wide as the
+     score badge in the middle. */
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,66px);
+    justify-content:start;gap:5px 3px;margin-top:11px}
+  .tcell{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .tn{font-size:10px;font-weight:650;color:var(--ink2);white-space:nowrap}
+  .tcell.ok .tn{color:var(--sub-ok)}
+  /* Fixed size, not fit-content: every score badge in the grid lines up the
+     same regardless of whether it says "5/5" or "60/60". */
+  .tile{border:1px solid var(--line);border-radius:7px;
+    width:58px;height:30px;flex:none;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;background:var(--panel);
+    transition:box-shadow .12s,border-color .12s}
+  .tile:hover{box-shadow:0 1px 5px rgba(11,11,11,.07)}
+  .tile.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+  .tile .tv{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;
+    line-height:1;letter-spacing:-.02em;white-space:nowrap}
+  .tile .tv small{font-size:10px;font-weight:400}
+  .tile.ok{background:#eef7f1;border-color:#bcdcc7}
+  .tile.ok .tv{color:var(--sub-ok)}
+  .tile.no{background:#fdf6ec;border-color:#e8d3b0}
+  .tile.no .tv{color:var(--sub-no)}
+  /* Round at which Arbiter and the judge first agreed the code was correct --
+     plain small text, not colour-coded, so it doesn't compete with the
+     score badge for attention. */
+  .tac{font-size:8.5px;font-weight:400;color:var(--ink);white-space:nowrap;
+    overflow:hidden;text-overflow:ellipsis;max-width:66px}
+  /* the opened subtask's 50 trajectories, below the grid */
+  #gdz{margin-top:4px}
+  #gdz:empty{display:none}
+  .drop{background:var(--panel);border:1px solid var(--line);border-radius:11px;
+    padding:14px 18px 16px;margin-top:2px}
+  .drophead{display:flex;align-items:center;gap:9px;font-size:13px;
+    flex-wrap:wrap;margin-bottom:6px;padding-bottom:8px;border-bottom:1px solid var(--grid)}
+  .drophead .stname{font-size:14px;font-weight:650}
+  .dropx{margin-left:auto;border:0;background:#f4f3f0;border-radius:6px;
+    cursor:pointer;font-size:12px;color:var(--ink2);padding:2px 8px}
+  .dropx:hover{background:#eceae5}
+  .stname{font-weight:620}
+  .pid{color:var(--ink3);font-size:11px;font-variant-numeric:tabular-nums}
+  .pill{padding:1px 7px;border-radius:20px;font-size:10.5px;font-weight:650}
+  .pill.ok{background:#eaf5ee;color:var(--sub-ok)}
+  .pill.no{background:#fdf4e8;color:var(--sub-no)}
+  .stsc{margin-left:auto;font-variant-numeric:tabular-nums;font-weight:650}
+  .stsc small{color:var(--ink3);font-weight:400}
+  .caret{width:9px;color:var(--ink3);font-size:10px}
+  .flagsm{font-size:9px;padding:1px 4px;border-radius:3px;background:#f2f1ee;
+    color:var(--ink2);font-weight:700}
+
+  .fan{margin:10px 0 4px 2px;overflow-x:auto;padding-bottom:4px}
+  .fan::-webkit-scrollbar{height:8px}
+  .fan::-webkit-scrollbar-thumb{background:#dedcd6;border-radius:4px}
+  /* The two panels of twenty-five trajectories stack in a single column: the
+     centred content column is only 880px, too narrow to fit both side by side
+     (each panel needs ~540px), so side-by-side would squish and overflow. */
+  .fangrid{display:grid;grid-template-columns:1fr;gap:18px;margin-top:8px}
+  /* Square nodes: the verdict abbreviated on the first line, the score on the
+     second. At this size the full spelling would not fit, and the short code is
+     what makes 300 nodes scannable anyway. */
+  .fan.sq{overflow-x:visible;margin:0}
+  /* Fixed-width columns, not 1fr: a round's shape is a constant 40px whether
+     the panel has room to spare or not, so trajectories pack to the left and
+     read as a chain instead of stretching to fill whatever width happens to
+     be free. Circle and octagon share this size -- they take turns being the
+     shape in a given cell, so a size mismatch between them would read as a
+     mistake rather than as two states of the same thing. */
+  .fan.sq .axis,.fan.sq .path{grid-template-columns:22px var(--cols) minmax(110px,1fr);
+    column-gap:24px;justify-content:start}
+  .fan.sq .path{height:52px;align-items:start}
+  .fan.sq .nd{height:52px;flex-direction:column;justify-content:flex-start;
+    gap:1px}
+  /* Sit the row number on the shape, not on the row: the link line below it
+     is not part of what the number labels. */
+  .fan.sq .rid{height:40px;display:flex;align-items:center;justify-content:flex-end}
+  .fan.sq .nd .oct{width:100%;height:40px;flex:none}
+  /* A box is a round in progress, not what got submitted -- round, not square,
+     so the one shape (the octagon) that actually ended the trajectory reads as
+     the odd one out at a glance across 50 rows. */
+  .fan.sq .nd .box{width:40px;height:40px;flex:none;align-self:center;
+    border-radius:50%;overflow:hidden}
+  .fan.sq .box{flex-direction:column;align-items:center;justify-content:center;
+    gap:0;padding:1px 2px;font-size:9px;line-height:1.25;text-align:center}
+  .fan.sq .box .lb{font-size:10px}
+  .fan.sq .box .sc{font-size:8.5px}
+  .fan.sq .lb,.fan.sq .sc{width:100%;text-align:center}
+  /* The verdict is the thing being scanned across 300 nodes, so it gets the
+     larger type; the score reads as its subtitle. */
+  .fan.sq .lb{font-size:12px;letter-spacing:-.02em}
+  .fan.sq .sc{font-size:10px}
+  /* The octagon is inline-block by default, which mis-measures once it has to
+     fill the node's height; make it a flex box and grow the corner cut to
+     match the bigger shape. */
+  .fan.sq .oct{--c:6px;display:flex;padding:3px}
+  .fan.sq .nd{position:relative}
+  .fan.sq .oct-in{--c:4.5px;flex:1;flex-direction:column;align-items:center;
+    justify-content:center;gap:0;padding:1px 2px;font-size:9px;line-height:1.25}
+  .fan.sq .lb .full{display:none}   /* no room for the long spelling */
+  /* Pure black: the row number is how a trajectory is referred to, so it should
+     read as a label rather than as faint scaffolding. */
+  .fan.sq .rid{font-size:8.5px;padding-right:2px;color:#000;font-weight:600}
+  .fan.sq .axis{font-size:9px;margin-bottom:2px}
+  .fan.sq .axis span{padding-left:0;text-align:center}
+  /* The shape sits at the top of the node (the [Code] link is below it), so
+     the arrow lands at the shape's own mid-height (half of 40px), not the
+     node's. Positioned with left:calc(100% + Npx) rather than a negative
+     right offset plus a translateX -- those two stack, which is what made an
+     earlier version of this overshoot the 24px gutter and lands ON the next
+     circle. left:calc(100% + ...) is one unambiguous number per shape: 7px
+     clearance, then an 8px shaft, then the head starting exactly where the
+     shaft ends (7+8=15) and extending ~3px more -- 18px into a 24px gutter,
+     comfortably short of the next circle at 24px. */
+  .fan.sq .nd.cont::after{content:"";position:absolute;left:calc(100% + 7px);
+    top:20px;width:8px;height:1.5px;background:#cfcdc8;transform:translateY(-50%);
+    z-index:2}
+  .fan.sq .nd.cont::before{content:"";position:absolute;left:calc(100% + 15px);
+    top:20px;border:3px solid transparent;border-left-color:#cfcdc8;z-index:2;
+    transform:translateY(-50%)}
+  /* Packing the shapes to a fixed width instead of stretching them (see
+     above) leaves real blank space after any chain shorter than the widest
+     one -- exactly where the ending now goes, in the trailing grid column
+     reserved for it, instead of being dropped for lack of room. */
+  .fan.sq .end{font-size:9px;padding-left:0;padding-top:11px;
+    white-space:normal;line-height:1.35;align-self:start}
+  /* A line of its own under each square, always visible: R0's opens the seed
+     program, every later one the code that round submitted. */
+  .fan.sq .ci{order:2;width:100%;justify-content:center;margin:0}
+  .fan.sq .ci-ic{width:10px;height:10px}
+  .axis{display:grid;grid-template-columns:40px var(--cols) minmax(132px,1fr);
+    font-size:10px;color:var(--ink3);margin-bottom:4px;column-gap:13px}
+  .axis span{text-align:left;padding-left:4px}   /* matches .ci's margin so the
+                                                    label sits over [Code] */
+  /* the row-number column and the ending column carry no round label */
+  .axis span:first-child,.axis span:last-child{text-align:center;padding-left:0}
+  .paths{display:flex;flex-direction:column;gap:4px}
+  .path{display:grid;grid-template-columns:40px var(--cols) minmax(132px,1fr);
+    align-items:center;height:21px;column-gap:13px}
+  .rid{font-size:9.5px;color:var(--ink3);font-variant-numeric:tabular-nums;
+    text-align:right;padding-right:9px}
+  /* The trajectory that actually banked the subtask's points -- accepted by the
+     verifier and full marks from the judge. One or two rows out of fifty, so
+     its own number gets a highlight rather than the whole row being washed in
+     colour behind everything else on it. On the span, not .rid itself: .rid
+     is a 40px-tall flex box (centering the number beside the shape), and a
+     background on that would stretch into a tall bar instead of a tight badge
+     hugging just the text. */
+  .rid .win{color:#fff;background:var(--sub-ok);border-radius:4px;
+    padding:1px 4px;font-weight:700;line-height:1.5}
+  .fan.sq .rid .win{padding:1px 3px}
+  /* One round of a trajectory. Nodes are a fixed width so the columns line up
+     across all 50 rows, and the arrow belongs to the node it leaves -- a round
+     that was never generated draws nothing at all, rather than a grey stub that
+     looks like a step that happened. */
+  .nd{position:relative;height:21px;display:flex;align-items:center;
+    justify-content:flex-start;gap:2px}
+  /* the box takes what the code icon leaves, so columns stay the same width */
+  .nd .box,.nd .oct{flex:1;min-width:0}
+  /* Opens the program this round submitted and the completion behind it. */
+  /* Sits clear of the arrow that lands in the gap to its left, so neither
+     covers the other. */
+  .ci{flex:0 0 auto;z-index:2;cursor:pointer;user-select:none;
+    margin-left:4px;white-space:nowrap;display:inline-flex;align-items:center}
+  .ci-ic{display:block;width:12px;height:12px;opacity:.72;transition:opacity .12s}
+  .ci:hover .ci-ic,.ci.sel .ci-ic{opacity:1}
+  .box{position:relative;z-index:1;display:inline-flex;align-items:baseline;
+    justify-content:center;gap:3px;padding:1px 4px;border-radius:4px;
+    border:1px solid;background:var(--panel);font-size:9.5px;white-space:nowrap;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;line-height:1.4;
+    box-sizing:border-box}
+  /* the arrow into the next round, drawn only when there is one */
+  /* The arrow lives entirely inside the 13px column gap: the shaft spans the
+     first 7px and the head's 3px triangle ends at 10px, leaving the [Code] link
+     that starts the next column untouched. */
+  .nd.cont::after{content:"";position:absolute;right:-11px;top:50%;width:7px;
+    height:1.5px;background:#cfcdc8;transform:translateY(-50%)}
+  .nd.cont::before{content:"";position:absolute;right:-11px;top:50%;
+    border:3px solid transparent;border-left-color:#cfcdc8;
+    transform:translate(7px,-50%)}
+  .box .lb{font-weight:700;letter-spacing:.02em}
+  .box .sc{font-variant-numeric:tabular-nums;font-weight:600}
+  /* Only the submitted round carries a fill; every other round is a white box so
+     the one that spent the submission stands out on its own. The verdict is told
+     apart by the colour of its type instead. */
+  .box{background:var(--panel)}
+  .box.WA{border-color:#c8d4e4}
+  .box.WA .lb{color:#1d4e8f}          /* wrong answer   -- deep blue */
+  .box.TLE,.box.MLE{border-color:#e6d5a8}
+  .box.TLE .lb,.box.MLE .lb{color:#a37a00}   /* over the limit -- amber */
+  .box.RE{border-color:#dccbe8}
+  .box.RE .lb{color:#6b3fa0}          /* runtime error  -- purple */
+  .box.CE{border-color:#cfcdc8}
+  .box.CE .lb{color:#111}             /* compile error  -- black */
+  .box.none{border-color:#e8e6e1}
+  .box.none .lb{color:#b0aea9}
+  .box.pend{border-color:#cfd8e0;border-style:dashed}
+  .box.pend .lb{color:#6b7d8c}
+  .box.pend .sc{color:#8fa0ad}
+  .box .sc{color:var(--ghost);font-weight:500}
+  .box .sc.na{color:#cfcdc8;font-weight:400}
+  .nd:hover .box,.nd:hover .oct{filter:brightness(.97)}
+  .nd.sel .box{outline:2px solid var(--ink);outline-offset:1.5px}
+  .nd.sel .oct{outline:2px solid var(--ink);outline-offset:2px}
+  .nd.bad .box{outline:1.5px dashed var(--warn);outline-offset:1.5px}
+  /* submitted round: octagon, green when the judge gave full marks */
+  .oct{--c:5px;position:relative;z-index:1;display:inline-block;padding:1.5px;
+    background:var(--bd);box-sizing:border-box;
+    clip-path:polygon(var(--c) 0,calc(100% - var(--c)) 0,100% var(--c),
+      100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,var(--c) 100%,
+      0 calc(100% - var(--c)),0 var(--c))}
+  .oct-in{--c:4px;display:flex;align-items:baseline;justify-content:center;
+    gap:3px;padding:1px 4px;background:var(--bg);font-size:9.5px;
+    white-space:nowrap;box-sizing:border-box;
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;line-height:1.4;
+    clip-path:polygon(var(--c) 0,calc(100% - var(--c)) 0,100% var(--c),
+      100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,var(--c) 100%,
+      0 calc(100% - var(--c)),0 var(--c))}
+  .oct-in .lb{font-weight:700;letter-spacing:.02em}
+  .oct-in .sc{font-variant-numeric:tabular-nums;font-weight:700}
+  .oct.ok{--bd:var(--sub-ok);--bg:#eaf5ee}
+  .oct.ok .lb,.oct.ok .sc{color:var(--sub-ok)}
+  .oct.no{--bd:var(--sub-no);--bg:#fdf4e8}
+  .oct.no .lb,.oct.no .sc{color:var(--sub-no)}
+  .end{font-size:9.5px;padding-left:10px;white-space:nowrap;color:var(--ink3);
+    font-variant-numeric:tabular-nums}
+  .end b{font-weight:650}
+  .end.win b{color:var(--sub-ok)}
+  .end.fa b{color:var(--sub-no)}
+  .submitted.ok{color:var(--sub-ok);font-weight:700}
+  .submitted.no{color:var(--sub-no);font-weight:700}
+  .waiting{background:#f7f6f4;border:1px solid var(--line);border-radius:9px;
+    padding:14px 16px;font-size:12.5px;color:var(--ink2);margin-bottom:16px}
+
+  /* drawer */
+  #scrim{position:fixed;inset:0;background:rgba(11,11,11,.28);opacity:0;
+    pointer-events:none;transition:opacity .16s;z-index:40}
+  #scrim.on{opacity:1;pointer-events:auto}
+  #drawer{position:fixed;top:0;right:0;bottom:0;width:min(780px,93vw);
+    background:var(--panel);border-left:1px solid var(--line);z-index:50;
+    transform:translateX(100%);transition:transform .18s cubic-bezier(.4,0,.2,1);
+    display:flex;flex-direction:column;box-shadow:-8px 0 28px rgba(11,11,11,.09)}
+  #drawer.on{transform:none}
+  .dh{padding:16px 20px 13px;border-bottom:1px solid var(--line);flex:none;
+    position:relative}
+  .dh h2{margin:0 0 5px;font-size:15px;font-weight:650}
+  .dh .meta{font-size:11.5px;color:var(--ink2);display:flex;flex-wrap:wrap;gap:12px}
+  .dh .meta b{color:var(--ink)}
+  .x{position:absolute;top:13px;right:16px;width:26px;height:26px;border:0;
+    background:#f4f3f0;border-radius:7px;cursor:pointer;font-size:15px;
+    color:var(--ink2);line-height:1}
+  .x:hover{background:#eceae5}
+  .db{overflow-y:auto;padding:14px 20px 40px;flex:1}
+  .turn{border:1px solid var(--line);border-radius:9px;margin-bottom:10px;
+    overflow:hidden}
+  .th{display:flex;align-items:center;gap:8px;padding:7px 11px;
+    background:#faf9f7;font-size:11.5px;border-bottom:1px solid var(--grid)}
+  /* Leftmost, ahead of even the ASSISTANT/TOOL badge: this is the number a
+     reader counts by, so it reads first. 1-based -- the raw event index is an
+     implementation detail nobody scanning the transcript should have to
+     translate in their head. */
+  .th .stepno{color:var(--ink3);font-size:10px;font-weight:700;
+    font-variant-numeric:tabular-nums}
+  .th .k{font-weight:700;font-size:10px;letter-spacing:.04em;padding:1px 6px;
+    border-radius:4px}
+  .k.asst{background:#eef4fc;color:var(--full)}
+  .k.tool{background:#f2f6ee;color:#4a6b39}
+  .th .nm{font-family:ui-monospace,Menlo,monospace;color:var(--ink2);font-size:10.5px}
+  .tb{padding:9px 11px}
+  .seg{margin-bottom:9px}
+  .seg:last-child{margin-bottom:0}
+  .seg h4{margin:0 0 4px;font-size:10px;font-weight:700;color:var(--ink3);
+    letter-spacing:.05em;text-transform:uppercase;display:flex;gap:7px;
+    align-items:center;cursor:pointer}
+  .seg h4 .tw{color:var(--ink3);font-size:9px}
+  pre{margin:0;padding:8px 10px;background:#faf9f7;border:1px solid var(--grid);
+    border-radius:6px;font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;
+    white-space:pre-wrap;word-break:break-word;max-height:340px;overflow:auto;
+    color:#26251f}
+  pre.reason{background:#fbfaf8;color:var(--ink2)}
+  pre.res{background:#f6f8f4;border-color:#dfe6d9}
+  pre.code{background:#f6f7f4;border-color:#dfe0d9}
+  .empty{color:var(--ink3);font-size:12px;padding:24px 4px;line-height:1.7}
+  /* message/reasoning are prose written by the model -- render the markdown
+     instead of dumping it as an escaped blob in a monospace <pre>. */
+  .md{font-size:12px;line-height:1.65;color:var(--ink)}
+  .md.reason{color:var(--ink2)}
+  .md p{margin:0 0 8px}
+  .md p:last-child{margin-bottom:0}
+  .md ul,.md ol{margin:0 0 8px;padding-left:19px}
+  .md ul:last-child,.md ol:last-child{margin-bottom:0}
+  .md li{margin-bottom:2px}
+  .md code{background:#f2f1ee;border-radius:3px;padding:1px 4px;
+    font:11px ui-monospace,SFMono-Regular,Menlo,monospace}
+  .md pre{margin:8px 0}
+  .md h3,.md h4,.md h5,.md h6{margin:11px 0 5px;font-size:11px;font-weight:700;
+    color:var(--ink3);text-transform:uppercase;letter-spacing:.05em}
+  .md :first-child{margin-top:0}
+  /* syntax highlighting for execute_code/execute_command args -- reuses the
+     page's own semantic colours (blue=neutral, green=ok, amber=warn) instead
+     of a generic code-theme palette. */
+  .c-kw{color:var(--full);font-weight:600}
+  .c-str{color:var(--sub-ok)}
+  .c-num{color:var(--sub-no)}
+  .c-cm{color:var(--ink3);font-style:italic}
+  .vq{background:#faf9f7;border:1px solid var(--grid);border-radius:7px;
+    padding:9px 11px;margin-top:12px;font-size:11.5px;color:var(--ink2);
+    line-height:1.6}
+  .vq b{color:var(--ink);font-size:10px;text-transform:uppercase;
+    letter-spacing:.05em;display:block;margin-bottom:4px}
+  /* the two verdicts (judge, arbiter) are the reason this drawer got opened --
+     give them the same weight as the headline stat cards up top, not the same
+     quiet grey box as everything else in here. */
+  .vpanel{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+  .vcard{border:1px solid var(--line);border-radius:11px;
+    padding:13px 16px 15px;background:var(--panel)}
+  .vcard-h{font-size:10.5px;font-weight:700;color:var(--ink3);
+    text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+  .vcard-v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums;
+    letter-spacing:-.01em;line-height:1.2;color:var(--ink)}
+  .vcard-v small{font-size:13px;font-weight:400;color:var(--ink3);
+    margin-left:2px}
+  .vcard.ok{background:#eef7f1;border-color:#bcdcc7}
+  .vcard.ok .vcard-v{color:var(--sub-ok)}
+  .vcard.no{background:#fdf6ec;border-color:#e8d3b0}
+  .vcard.no .vcard-v{color:var(--sub-no)}
+  .vcard .seg{margin-top:12px}
+</style>
+<nav class="section-nav" id="sectionNav">
+  <a href="#verifier">Agentic Verifier</a>
+  <a href="#training">Training Details</a>
+  <a href="#results">Benchmark Results</a>
+  <a href="#refinement">IOI Refinement</a>
+  <a href="#artifacts">IOI Artifacts</a>
+  <a href="#citation">BibTeX</a>
+</nav>
+<header>
+ <div class="htop">
+  <div class="htitle">
+   <h1>Arbiter: An Agentic Verifier for Competitive Programming Beyond Score</h1>
+   <div class="authors">Zheye Deng<sup>1,2</sup>, Sha Li<sup>2</sup>, Changlong Yu<sup>2</sup>, Xin Liu<sup>2</sup>,
+     Qin Lu<sup>2</sup>, Priyanka Nigam<sup>2</sup>, Yangqiu Song<sup>1</sup>
+     <div class="aff"><sup>1</sup>HKUST &nbsp; <sup>2</sup>Amazon</div>
+   </div>
+   <div class="links">
+     <a href="#" class="disabled">Paper</a>
+     <a href="#" class="disabled">Code</a>
+     <a href="https://github.com/horizon-llm/IOI2026" target="_blank" rel="noopener">Artifact</a>
+   </div>
+  </div>
+ </div>
+ <div class="top" id="top"></div>
+</header>
+<div class="wrap">
+
+  <div class="figure teaser interactive">
+    <svg viewBox="0 0 900 330" role="img"
+         aria-label="Contest score as a function of samples drawn per subtask, with and without the verifier">
+      <!-- hover column highlight (positioned by JS) -->
+      <rect class="colhi" x="0" y="26" width="0" height="248" fill="var(--full)"
+        fill-opacity="0" rx="3"/>
+      <!-- horizontal gridlines, score 150..400 -->
+      <g stroke="rgba(11,11,11,.06)" stroke-width="1">
+        <line x1="60" y1="26"    x2="840" y2="26"/>
+        <line x1="60" y1="75.6"  x2="840" y2="75.6"/>
+        <line x1="60" y1="125.2" x2="840" y2="125.2"/>
+        <line x1="60" y1="174.8" x2="840" y2="174.8"/>
+        <line x1="60" y1="224.4" x2="840" y2="224.4"/>
+        <line x1="60" y1="274"   x2="840" y2="274"/>
+      </g>
+      <g fill="#9a988f" font-size="12" font-family="inherit" text-anchor="end">
+        <text x="50" y="30">400</text>
+        <text x="50" y="79.6">350</text>
+        <text x="50" y="129.2">300</text>
+        <text x="50" y="178.8">250</text>
+        <text x="50" y="228.4">200</text>
+        <text x="50" y="278">150</text>
+      </g>
+      <!-- gold-medal score threshold (361.12) -->
+      <line x1="60" y1="64.6" x2="840" y2="64.6" stroke="#c9a227"
+        stroke-width="1.25" stroke-dasharray="4 4"/>
+      <image href="figs/gold-medal.png" x="64" y="45" width="22" height="22"/>
+      <text x="91" y="60" fill="#a8851d" font-size="11" font-weight="600"
+        font-family="inherit" text-anchor="start">gold medal · 361</text>
+      <!-- faint area under the verifier curve -->
+      <path d="M60,177.4 L504.1,77.3 L672,58.8 L840,51.0 L840,274 L60,274 Z"
+        fill="var(--full)" fill-opacity=".05"/>
+      <!-- WITHOUT verifier: gpt-oss score@k (dashed, muted) -->
+      <polyline fill="none" stroke="#b6b3ab" stroke-width="2"
+        stroke-dasharray="6 4" stroke-linejoin="round" stroke-linecap="round"
+        points="60,228.3 504.1,119.7 672,78.6 840,51.5"/>
+      <g class="tdot" fill="#fff" stroke="#b6b3ab" stroke-width="2">
+        <circle cx="60"    cy="228.3" r="3.5"/>
+        <circle cx="504.1" cy="119.7" r="3.5"/>
+        <circle cx="672"   cy="78.6"  r="3.5"/>
+        <circle cx="840"   cy="51.5"  r="3.5"/>
+      </g>
+      <!-- five-pointed star marker for our method (mirrors meta-harness, which
+           stars its own results and leaves baselines as dots) -->
+      <defs>
+        <path id="star" fill="var(--full)" stroke="#fff" stroke-width="1"
+          stroke-linejoin="round"
+          d="M0,-8 L2.35,-2.47 L8.36,-2.47 L3.5,1.06 L5.36,6.47
+             L0,3.2 L-5.36,6.47 L-3.5,1.06 L-8.36,-2.47 L-2.35,-2.47 Z"/>
+      </defs>
+      <!-- WITH verifier: Arbiter-gated refinement (solid, accent) -->
+      <polyline fill="none" stroke="var(--full)" stroke-width="2.5"
+        stroke-linejoin="round" stroke-linecap="round"
+        points="60,177.4 504.1,77.3 672,58.8 840,51.0"/>
+      <g class="tstar">
+        <use href="#star" data-x="60"    transform="translate(60 177.4)"/>
+        <use href="#star" data-x="504.1" transform="translate(504.1 77.3)"/>
+        <use href="#star" data-x="672"   transform="translate(672 58.8)"/>
+        <use href="#star" data-x="840"   transform="translate(840 51)"/>
+      </g>
+      <!-- legend, tucked into the empty lower-right area below the curves -->
+      <g font-size="12.5" font-family="inherit">
+        <line x1="560" y1="234" x2="588" y2="234" stroke="var(--full)" stroke-width="2.5"/>
+        <use href="#star" transform="translate(574 234) scale(0.72)"/>
+        <text x="596" y="238" fill="var(--ink)">with Arbiter</text>
+        <line x1="560" y1="256" x2="588" y2="256" stroke="#b6b3ab" stroke-width="2" stroke-dasharray="6 4"/>
+        <circle cx="574" cy="256" r="3.5" fill="#fff" stroke="#b6b3ab" stroke-width="2"/>
+        <text x="596" y="260" fill="var(--ink2)">no verifier (score@k)</text>
+      </g>
+      <!-- x labels -->
+      <g fill="#9a988f" font-size="12" font-family="inherit" text-anchor="middle">
+        <text x="60"    y="296">8</text>
+        <text x="504.1" y="296">50</text>
+        <text x="672"   y="296">100</text>
+        <text x="840"   y="296">200</text>
+      </g>
+      <!-- axis titles -->
+      <text x="450" y="320" fill="#7d7b73" font-size="12.5"
+        font-family="inherit" text-anchor="middle">samples per subtask (k)</text>
+      <text x="18" y="150" fill="#7d7b73" font-size="12.5"
+        font-family="inherit" text-anchor="middle"
+        transform="rotate(-90 18 150)">contest score (/600)</text>
+      <!-- interactive hit-targets (one per k), data drives the tooltip -->
+      <g class="hits">
+        <rect class="hit" x="0"   y="26" width="282" height="248"
+          data-x="60"    data-title="k = 8"   data-a="247.42" data-b="196.06"/>
+        <rect class="hit" x="282" y="26" width="306" height="248"
+          data-x="504.1" data-title="k = 50"  data-a="348.34" data-b="305.59"/>
+        <rect class="hit" x="588" y="26" width="168" height="248"
+          data-x="672"   data-title="k = 100" data-a="366.92" data-b="346.95"/>
+        <rect class="hit" x="756" y="26" width="144" height="248"
+          data-x="840"   data-title="k = 200" data-a="374.83" data-b="374.27"/>
+      </g>
+    </svg>
+    <div class="figtip" id="figtip-teaser"></div>
+    <div class="figcap"><b>gpt-oss-120b, refined against Arbiter, clears the IOI
+    2026 gold-medal line.</b> Contest score (/600) versus <b>k</b>, the candidates
+    drawn per subtask — Arbiter-gated refinement beats plain score@k at every
+    budget, and the gap is widest where samples are scarce. Hover for exact
+    values.</div>
+  </div>
+
+  <section id="verifier">
+    <h2 class="sec-h">Agentic Verifier</h2>
+    <div class="sec-lead">A judge can tell you a solution is wrong. It can't tell
+    you <i>why</i> — showing the failing input would leak the secret tests that
+    make it trustworthy, and every ranker, majority vote, or LLM-as-judge
+    inherits that same blind spot: a verdict, never a witness. <b>Arbiter</b>
+    (<span style="color:var(--ink3)"><b>A</b>gentic <b>R</b>einforcement-learned
+    <b>B</b>ug-finding <b>I</b>nteractive <b>T</b>est <b>E</b>xamine<b>R</b></span>)
+    is a verifier trained to do both — read a problem and one candidate solution,
+    decide Accept or Reject, and on rejection hand back a concrete input that
+    breaks the code, not just a score.</div>
+  </section>
+
+  <section id="training">
+    <h2 class="sec-h">Training Details</h2>
+    <div class="sec-lead">TODO: describe how Arbiter was trained — the base
+    model, the reinforcement-learning setup that rewards finding a valid
+    counterexample, the data it was trained on, and the compute budget.</div>
+  </section>
+
+  <section id="results">
+    <h2 class="sec-h">Benchmark Results</h2>
+    <div class="sec-lead">This page reports an empirical test of what that
+    capability is worth: whether Arbiter-gated refinement, revising against a
+    verifier's counterexample rather than a scalar reward, is by itself
+    sufficient for competitive programming. <b>gpt-oss-120b</b> attempts every
+    IOI 2026 subtask and revises against <b>Arbiter</b>'s feedback round by
+    round, under a <b>5-round budget</b>, until a trajectory is
+    <b style="color:var(--stop)">Accepted</b> and submitted. That refinement
+    loop alone clears IOI 2026's gold-medal score line.</div>
+
+    <div class="rtbl-wrap">
+      <table class="rtbl">
+        <thead>
+          <tr class="groups">
+            <th rowspan="3" class="mdl">Model</th>
+            <th colspan="4" class="grp sepd">UOJ-Bench (Hacking)</th>
+            <th colspan="4" class="grp sepd">USACO-Judge</th>
+            <th rowspan="3" class="sepd">Overall<br>Hack Succ.</th>
+          </tr>
+          <tr>
+            <th colspan="2" class="sepd">✓ Label Acc.</th>
+            <th colspan="2" class="sep">⛊ Hack Succ.</th>
+            <th colspan="2" class="sepd">✓ Label Acc.</th>
+            <th colspan="2" class="sep">⛊ Hack Succ.</th>
+          </tr>
+          <tr class="cols">
+            <th class="sepd">Easy</th><th>Hard</th>
+            <th class="sep">Easy</th><th>Hard</th>
+            <th class="sepd">Easy</th><th>Hard</th>
+            <th class="sep">Easy</th><th>Hard</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="band"><td colspan="10">⚡ Non-agentic · single-shot</td></tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/models/qwen.png" alt="">Qwen3.6-35B-A3B</span></td>
+            <td class="sepd">86.85</td><td>87.56</td>
+            <td class="sep">16.70</td><td>10.85</td>
+            <td class="sepd">66.42</td><td>64.55</td>
+            <td class="sep">32.04</td><td>21.65</td>
+            <td class="sepd">16.20</td>
+          </tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/models/openai.png" alt="">GPT-OSS-120B</span></td>
+            <td class="sepd">79.12</td><td>77.05</td>
+            <td class="sep">29.09</td><td>20.07</td>
+            <td class="sepd">60.74</td><td>66.88</td>
+            <td class="sep">33.89</td><td>36.84</td>
+            <td class="sepd">26.72</td>
+          </tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/models/deepseek.png" alt="">DeepSeek-V4-Flash-Preview</span></td>
+            <td class="sepd">73.49</td><td>73.08</td>
+            <td class="sep">33.49</td><td>22.03</td>
+            <td class="sepd">74.89</td><td>68.64</td>
+            <td class="sep">55.00</td><td>41.52</td>
+            <td class="sepd">31.44</td>
+          </tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/models/qwen.png" alt="">Qwen3.5-397B-A17B</span></td>
+            <td class="sepd"><u>88.87</u></td><td><u>88.33</u></td>
+            <td class="sep">41.68</td><td>30.78</td>
+            <td class="sepd">85.31</td><td>74.23</td>
+            <td class="sep">77.31</td><td>58.88</td>
+            <td class="sepd">42.97</td>
+          </tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/models/zhipu.png" alt="">GLM-5.2</span></td>
+            <td class="sepd">80.17</td><td>76.77</td>
+            <td class="sep">65.34</td><td>57.33</td>
+            <td class="sepd">94.07</td><td>80.63</td>
+            <td class="sep">91.16</td><td><b>79.03</b></td>
+            <td class="sepd">66.47</td>
+          </tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/models/kimi.png" alt="">Kimi-K2.5</span></td>
+            <td class="sepd">72.44</td><td>68.66</td>
+            <td class="sep">46.76</td><td>30.95</td>
+            <td class="sepd">83.33</td><td>72.86</td>
+            <td class="sep">70.56</td><td>57.24</td>
+            <td class="sepd">43.30</td>
+          </tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/models/deepseek.png" alt="">DeepSeek-V4-Pro-Preview</span></td>
+            <td class="sepd">76.06</td><td>75.45</td>
+            <td class="sep">51.15</td><td>38.94</td>
+            <td class="sepd">90.74</td><td>82.86</td>
+            <td class="sep">84.85</td><td>70.95</td>
+            <td class="sepd">52.16</td>
+          </tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/models/claude.png" alt="">Claude-Opus-4.8</span></td>
+            <td class="sepd">84.97</td><td>75.72</td>
+            <td class="sep"><u>77.04</u></td><td><u>67.06</u></td>
+            <td class="sepd"><b><u>94.81</u></b></td><td>82.38</td>
+            <td class="sep"><b><u>94.48</u></b></td><td><u>87.61</u></td>
+            <td class="sepd"><u>75.86</u></td>
+          </tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/models/openai.png" alt="">GPT-5.5</span></td>
+            <td class="sepd"><b>91.86</b></td><td><b>89.85</b></td>
+            <td class="sep"><b>78.71</b></td><td><b>77.01</b></td>
+            <td class="sepd"><b>94.44</b></td><td><b>90.79</b></td>
+            <td class="sep"><b>90.66</b></td><td><b>91.97</b></td>
+            <td class="sepd"><b>81.59</b></td>
+          </tr>
+          <tr class="band"><td colspan="10">⚙ Agentic · tool-using</td></tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/models/qwen.png" alt="">Qwen3.6-35B-A3B</span></td>
+            <td class="sepd">71.82</td><td>67.43</td>
+            <td class="sep">41.34</td><td>31.47</td>
+            <td class="sepd">85.56</td><td>65.34</td>
+            <td class="sep">79.44</td><td>45.88</td>
+            <td class="sepd">40.79</td>
+          </tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/models/deepseek.png" alt="">DeepSeek-V4-Flash-Preview</span></td>
+            <td class="sepd">65.55</td><td>63.18</td>
+            <td class="sep">56.37</td><td><b>49.35</b></td>
+            <td class="sepd"><b>96.30</b></td><td>77.62</td>
+            <td class="sep">92.78</td><td>65.27</td>
+            <td class="sepd">57.92</td>
+          </tr>
+          <tr class="ours">
+            <td class="mdl"><span class="m"><img src="figs/coding.png" alt="">Arbiter (Ours)</span></td>
+            <td class="sepd"><b>87.55</b></td><td><b>83.39</b></td>
+            <td class="sep"><b>61.48</b></td><td><b>50.66</b></td>
+            <td class="sepd"><b>94.17</b></td><td><u>84.48</u></td>
+            <td class="sep"><b>96.64</b></td><td><b>79.38</b></td>
+            <td class="sepd"><b>62.91</b></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="rtbl-cap"><b>Results on UOJ-Bench (Hacking) and USACO-Judge</b>,
+    reported by difficulty split (Easy / Hard) and grouped by inference mode:
+    non-agentic (⚡, single-shot) versus agentic (⚙, tool-using). <b>Bold</b> =
+    best in column, <u>underline</u> = runner-up. Arbiter (35B) matches or beats
+    models up to ~45× larger.</div>
+  </section>
+
+  <section id="refinement">
+    <h2 class="sec-h">IOI Refinement</h2>
+    <div class="sec-lead">On IOI 2026 itself, gpt-oss-120b revises each candidate
+    against Arbiter's counterexample under a 5-round budget. Capping refinement
+    at round <b>R</b> shows how quickly the verifier's feedback pays off.</div>
+
+    <div class="figure interactive">
+      <svg viewBox="0 0 900 330" role="img"
+           aria-label="Contest score and average submissions as refinement proceeds round by round">
+        <!-- hover column highlight (positioned by JS) -->
+        <rect class="colhi" x="0" y="26" width="0" height="248" fill="var(--full)"
+          fill-opacity="0" rx="3"/>
+        <!-- horizontal gridlines, score 200..400 -->
+        <g stroke="rgba(11,11,11,.06)" stroke-width="1">
+          <line x1="60" y1="26"  x2="840" y2="26"/>
+          <line x1="60" y1="88"  x2="840" y2="88"/>
+          <line x1="60" y1="150" x2="840" y2="150"/>
+          <line x1="60" y1="212" x2="840" y2="212"/>
+          <line x1="60" y1="274" x2="840" y2="274"/>
+        </g>
+        <!-- left y labels: contest score (accent) -->
+        <g fill="var(--full)" font-size="12" font-family="inherit" text-anchor="end">
+          <text x="50" y="30">400</text>
+          <text x="50" y="92">350</text>
+          <text x="50" y="154">300</text>
+          <text x="50" y="216">250</text>
+          <text x="50" y="278">200</text>
+        </g>
+        <!-- right y labels: avg submissions per subtask (muted) -->
+        <g fill="#9a988f" font-size="12" font-family="inherit" text-anchor="start">
+          <text x="850" y="30">36</text>
+          <text x="850" y="92">32</text>
+          <text x="850" y="154">28</text>
+          <text x="850" y="216">24</text>
+          <text x="850" y="278">20</text>
+        </g>
+        <!-- gold-medal score threshold (361.12) -->
+        <line x1="60" y1="74.2" x2="840" y2="74.2" stroke="#c9a227"
+          stroke-width="1.25" stroke-dasharray="4 4"/>
+        <image href="figs/gold-medal.png" x="64" y="55" width="22" height="22"/>
+        <text x="91" y="70" fill="#a8851d" font-size="11" font-weight="600"
+          font-family="inherit" text-anchor="start">gold medal · 361</text>
+        <!-- faint area under the score curve -->
+        <path d="M60,238.0 L216,91.7 L372,91.7 L528,91.7 L684,55.8 L840,55.8 L840,274 L60,274 Z"
+          fill="var(--full)" fill-opacity=".05"/>
+
+        <!-- avg submissions per subtask (right axis, dashed muted) -->
+        <polyline fill="none" stroke="#b6b3ab" stroke-width="2"
+          stroke-dasharray="6 4" stroke-linejoin="round" stroke-linecap="round"
+          points="60,209.4 216,144.0 372,123.2 528,109.5 684,98.5 840,88.8"/>
+        <g fill="#fff" stroke="#b6b3ab" stroke-width="2">
+          <circle class="dot" cx="60"  cy="209.4" r="3.5"/>
+          <circle class="dot" cx="216" cy="144.0" r="3.5"/>
+          <circle class="dot" cx="372" cy="123.2" r="3.5"/>
+          <circle class="dot" cx="528" cy="109.5" r="3.5"/>
+          <circle class="dot" cx="684" cy="98.5"  r="3.5"/>
+          <circle class="dot" cx="840" cy="88.8"  r="3.5"/>
+        </g>
+
+        <!-- refinement curve: contest score after capping at round R -->
+        <polyline fill="none" stroke="var(--full)" stroke-width="2.5"
+          stroke-linejoin="round" stroke-linecap="round"
+          points="60,238.0 216,91.7 372,91.7 528,91.7 684,55.8 840,55.8"/>
+        <g fill="var(--full)">
+          <circle class="dot" cx="60"  cy="238.0" r="4"/>
+          <circle class="dot" cx="216" cy="91.7"  r="4"/>
+          <circle class="dot" cx="372" cy="91.7"  r="4"/>
+          <circle class="dot" cx="528" cy="91.7"  r="4"/>
+          <circle class="dot" cx="684" cy="55.8"  r="4"/>
+          <circle class="dot" cx="840" cy="55.8"  r="4"/>
+        </g>
+
+        <!-- interactive hit-targets: one per round, full column height. -->
+        <g class="hits">
+          <rect class="hit" data-r="0" data-x="60"  data-score="229" data-subs="24.2" x="0"   y="26" width="138" height="248"/>
+          <rect class="hit" data-r="1" data-x="216" data-score="347" data-subs="28.4" x="138" y="26" width="156" height="248"/>
+          <rect class="hit" data-r="2" data-x="372" data-score="347" data-subs="29.7" x="294" y="26" width="156" height="248"/>
+          <rect class="hit" data-r="3" data-x="528" data-score="347" data-subs="30.6" x="450" y="26" width="156" height="248"/>
+          <rect class="hit" data-r="4" data-x="684" data-score="376" data-subs="31.3" x="606" y="26" width="156" height="248"/>
+          <rect class="hit" data-r="5" data-x="840" data-score="376" data-subs="32.0" x="762" y="26" width="138" height="248"/>
+        </g>
+
+        <!-- legend, tucked into the empty lower area -->
+        <g font-size="12.5" font-family="inherit">
+          <line x1="330" y1="240" x2="358" y2="240" stroke="var(--full)" stroke-width="2.5"/>
+          <text x="366" y="244" fill="var(--ink)">contest score</text>
+          <line x1="490" y1="240" x2="518" y2="240" stroke="#b6b3ab" stroke-width="2" stroke-dasharray="6 4"/>
+          <text x="526" y="244" fill="var(--ink2)">avg submissions</text>
+        </g>
+
+        <!-- x labels: refinement round -->
+        <g fill="#9a988f" font-size="12" font-family="inherit" text-anchor="middle">
+          <text x="60"  y="296">R0</text>
+          <text x="216" y="296">R1</text>
+          <text x="372" y="296">R2</text>
+          <text x="528" y="296">R3</text>
+          <text x="684" y="296">R4</text>
+          <text x="840" y="296">R5</text>
+        </g>
+        <!-- axis titles -->
+        <text x="450" y="320" fill="#7d7b73" font-size="12.5"
+          font-family="inherit" text-anchor="middle">refinement round</text>
+        <text x="18" y="150" fill="var(--full)" font-size="12.5"
+          font-family="inherit" text-anchor="middle"
+          transform="rotate(-90 18 150)">contest score (/600)</text>
+        <text x="884" y="150" fill="#7d7b73" font-size="12.5"
+          font-family="inherit" text-anchor="middle"
+          transform="rotate(90 884 150)">avg submissions / subtask</text>
+      </svg>
+      <div class="figtip" id="figtip"></div>
+      <div class="figcap"><b>One round of refinement does most of the work.</b>
+      Capping Arbiter-gated refinement at round <b>R</b>: score jumps
+      <b>229 → 347</b> (clearing gold) from a single counterexample, reaching
+      <b>376</b> by R5 — while judge submissions grow only gently (24 → 32), so
+      the gain is bought cheaply.</div>
+    </div>
+  </section>
+
+  <section id="artifacts">
+    <h2 class="sec-h"><img src="figs/ioi_social.jpg" alt="IOI logo">IOI Artifacts</h2>
+    <div class="sec-lead">Every score above is backed by its raw data. Click a
+    subtask to open its fan of 50 trajectories, then any node for the verifier's
+    full turn-by-turn review, or the <img src="figs/coding.png" alt="code icon"
+    style="width:12px;height:12px;vertical-align:-1px"> icon for the program that
+    round submitted and the reasoning that wrote it. The badge beside a problem's
+    score opens its merged final submission.</div>
+    <div id="body"></div>
+    <div class="legend">
+    <span>Each row is one trajectory; each column a round. A node shows the
+      <b>verifier's verdict</b> and the judge's score <b>in that subtask's
+      points</b>. The <img src="figs/coding.png" alt="code icon" style="width:12px;height:12px;
+      vertical-align:-1px"> under each square opens the program that round submitted, together
+      with the reasoning that wrote it.</span>
+    <span class="lgrow"><span class="lgn"><span class="oct ok"><span class="oct-in"><span class="lb"><span class="ab">AC</span><span class="full">Accepted</span></span><span class="sc">25/25</span></span></span></span>
+      <b>octagon</b> = the one round this trajectory submitted &middot;
+      <b style="color:var(--sub-ok)">green</b> = full marks</span>
+    <span class="lgrow"><span class="lgn"><span class="oct no"><span class="oct-in"><span class="lb"><span class="ab">AC</span><span class="full">Accepted</span></span><span class="sc">2/25</span></span></span></span>
+      <b style="color:var(--sub-no)">orange</b> = submitted but short — the
+      verifier approved code the judge did not</span>
+    <span class="lgrow"><span class="lgn"><span class="box WA"><span class="lb"><span class="ab">WA</span><span class="full">Wrong Answer</span></span><span class="sc">0/25</span></span></span>
+      circle, grey score = still refining, <b>nothing submitted</b> that round</span>
+    <span class="lgrow"><span class="lgn"><span class="box WA" style="outline:1.5px dashed var(--warn);outline-offset:1.5px"><span class="lb"><span class="ab">WA</span><span class="full">Wrong Answer</span></span><span class="sc">25/25</span></span></span>
+      already worth full marks, sent round again anyway</span>
+    <span class="lgrow"><span class="lgn"><span class="box none"><span class="lb"><span class="ab">--</span><span class="full">not reviewed</span></span><span class="sc na">--</span></span></span>
+      the round exists but no verdict was recorded</span>
+    <span class="lgrow"><span class="lgw"><span class="rid"><span class="win">#2</span></span></span>
+      <b>green row number</b> = this trajectory solved the subtask (accepted
+      <i>and</i> full marks)</span>
+    <span>row ending: <b>SUBMITTED</b> spent its one submission &middot;
+      <b>early stopped</b> another trajectory had already solved the subtask &middot;
+      <b>round-5 fallback</b> ran the whole budget without being accepted</span>
+    </div>
+  </section>
+
+  <hr class="sec-rule">
+  <section id="citation">
+    <h2 class="sec-h">BibTeX</h2>
+    <div class="cite">
+      <button class="cite-copy" id="citeCopy">Copy</button>
+      <pre id="citeBib">@misc{deng2026arbiter,
+  author       = {Zheye Deng and Sha Li and Changlong Yu and Xin Liu and
+                  Qin Lu and Priyanka Nigam and Yangqiu Song},
+  title        = {Arbiter: An Agentic Verifier for Competitive Programming Beyond Score},
+  year         = {2026},
+  howpublished = {HKUST and Amazon},
+  note         = {https://github.com/horizon-llm/IOI2026}
+}</pre>
+    </div>
+  </section>
+</div>
+<div id="scrim"></div>
+<aside id="drawer" aria-hidden="true">
+  <div class="dh"><button class="x" id="dx" title="close">&times;</button>
+    <h2 id="dt">—</h2><div class="meta" id="dm"></div></div>
+  <div class="db" id="dbody"></div>
+</aside>
+<script>
+// Where the /turns, /code, /merge payloads come from. Empty string = same
+// origin via serve.py's live endpoints (local dev). Set to a bucket base URL
+// (e.g. "https://pub-xxxx.r2.dev") to read the pre-generated static tree that
+// build_static.py emits under api/ -- used when the page is on GitHub Pages and
+// the data lives on object storage. STATIC=true switches the URL shape from
+// serve.py's "?query" endpoints to build_static.py's nested file paths.
+const DATA_BASE="https://pub-3dad286e1f464e758760e4a8dbff2214.r2.dev";  // R2 public URL
+const STATIC=DATA_BASE!=="";
+const apiURL={
+  turns:c=>STATIC?`${DATA_BASE}/api/turns/${c.day}/${c.pid}/${c.rid}/${c.round}.json`
+                 :`/turns?day=${c.day}&pid=${c.pid}&rid=${c.rid}&round=${c.round}`,
+  code :c=>STATIC?`${DATA_BASE}/api/code/${c.day}/${c.pid}/${c.rid}/${c.round}.json`
+                 :`/code?day=${c.day}&pid=${c.pid}&rid=${c.rid}&round=${c.round}`,
+  merge:c=>STATIC?`${DATA_BASE}/api/merge/${c.day}/${c.p}.json`
+                 :`/merge?day=${c.day}&p=${c.p}`,
+};
+
+const ABBR={'Accepted':'AC','Wrong Answer':'WA','Time Limit Exceeded':'TLE',
+  'Memory Limit Exceeded':'MLE','Runtime Error':'RE','Compile Error':'CE'};
+const CAP=5;                     // this replay's shortened round budget
+const DAYNAME={1:'Day 1',2:'Day 2'};
+// Which problems have a merged final submission on disk (merge_final_submission/
+// day{N}/p{M}/) -- checked when deciding whether to show the badge next to a
+// problem's score. Extend as more days/problems get merged.
+const MERGED_SUBMISSIONS={1:[1,2,3],2:[1,2,3]};
+let DATA={};
+// currentMerge: the {day,p} of the final-submission view currently (or most
+// recently) open. mergeBack: set to that same {day,p} only while the drawer
+// is showing a trajectory reached BY CLICKING OUT of that view, so a "back"
+// link can return to it; cleared whenever navigation starts from the main
+// page's own fan instead.
+let currentMerge=null, mergeBack=null;
+
+// A trajectory under the budget: stop at the first Accepted, else it is treated
+// as submitting whatever round CAP holds.
+function walk(c){
+  const rs=c.rounds.filter(r=>r.r<=CAP);
+  let stopAt=null,reason='budget';
+  // How the chain ended is decided by why the run stopped it, not by what its
+  // last review said. A chain dropped because a sibling solved the subtask
+  // never spent its submission even if that round's verdict was Accepted, so
+  // reading the label first would report a submission that never happened.
+  if(c.stop_reason==='subtask_solved') reason='released';
+  else if(c.stop_reason==='still_running'||c.stop_reason===undefined)
+    reason='running';
+  else for(const r of rs){
+    if(r.label==='Accepted'){stopAt=r.r;reason='accepted';break;}
+  }
+  if(stopAt===null) stopAt=rs.length?rs[rs.length-1].r:0;
+  const shown=rs.filter(r=>r.r<=stopAt);
+  const last=shown.length?shown[shown.length-1]:null;
+  return {shown,stopAt,reason,score:last?last.score:null};
+}
+// UOJ reports out of 100; this subtask is worth `points`.
+const toPoints=(uoj,points)=>uoj==null?null:(uoj===100?points:uoj);
+
+function subScore(s){
+  const w=s.chains.map(walk);
+  // A subtask contained in a wider one is solved when the wider one is: the
+  // exporter resolves that from the implication table and marks it here, so no
+  // containment rule lives in this page.
+  const solved=w.some(x=>x.score===100)||!!s.implied_by;
+  return {w,solved,
+    got:solved?s.points:Math.max(0,...w.map(x=>x.score===100?s.points:(x.score??0)))};
+}
+
+function pathRow(c,points,pid,last,day){
+  const w=walk(c),cells=[];
+  const hi=(last===undefined?CAP:last);
+  for(let r=0;r<=hi;r++){
+    const d=w.shown.find(x=>x.r===r);
+    // A round this trajectory never reached gets an empty cell with no
+    // connector: drawing one would imply a step that did not happen.
+    if(!d){cells.push('<div class="nd"></div>');continue;}
+    const s=d.score, pv=toPoints(s,points);
+    const ab=ABBR[d.label]??(d.label?'??':'--');
+    // Accepted marks a submission only when the chain actually stopped on it;
+    // a released chain spent nothing, so its rounds stay plain boxes.
+    const isStop=d.label==='Accepted'&&w.reason==='accepted'&&r===w.stopAt;
+    const queued=d.pending===true;              // submitted, judge still working
+    const full=s===100;
+    let bad='',why='';
+    if(s!==null&&isStop&&!full){
+      // A false accept needs no marker: the octagon is already orange rather
+      // than green, and its score says how far short it fell.
+      bad=' bad';
+      why=' · FALSE ACCEPT — submission spent short of full marks';
+    }else if(s!==null&&d.label&&!isStop&&full){
+      // The dashed outline already says it: this code was worth full marks and
+      // the verifier sent it round again.
+      bad=' bad';
+      why=' · MISSED — already full marks, but refinement continued';
+    }
+    const tip=isStop
+      ? `round ${r} · Arbiter said ACCEPTED — trajectory ends and SUBMITS · judge ${s===null?'no score':s+'/100 on UOJ = '+pv+'/'+points}${why}`
+      : queued
+        ? `round ${r} · submitted, waiting for the judge${d.label?' · verifier said '+d.label:' · not reviewed yet'}`
+        : `round ${r} · verifier said ${d.label??'nothing'} · not submitted — score shown for context only: ${s===null?'never judged':s+'/100 on UOJ = '+pv+'/'+points}${why}`;
+    const stxt=queued?'…':(pv===null?'--':`${pv}/${points}`);
+    // Both spellings ride along; the layout decides which one shows.
+    const lbl=a=>`<span class="lb"><span class="ab">${a}</span><span class="full">${
+      queued&&ab==='--'?'submitting…':(d.label??'not reviewed')}</span></span>`;
+    const inner=isStop
+      ? `<span class="oct ${full?'ok':'no'}"><span class="oct-in">${lbl(ab)}<span class="sc">${stxt}</span></span></span>`
+      : `<span class="box ${queued?'pend':(ab==='--'?'none':ab)}">${
+          lbl(queued&&ab==='--'?'···':ab)}<span class="sc${s===null&&!queued?' na':''}">${stxt}</span></span>`;
+    // The program this round submitted, and the completion that wrote it, sit
+    // behind their own icon: clicking the box asks what the verifier thought,
+    // clicking the icon asks what the model actually produced.
+    const ico=`<span class="ci" data-code="1" data-day="${day}" data-pid="${pid}"
+      data-rid="${c.rid}" data-round="${r}" data-label="${d.label??''}"
+      data-score="${s===null?'':s}" data-pts="${points}"
+      title="round ${r} · the C++ it submitted, with the reasoning that produced it"><img class="ci-ic" src="figs/coding.png" alt="code"></span>`;
+    cells.push(`<div class="nd${r<w.stopAt?' cont':''}${bad}${isStop?' stop':''}"
+      data-day="${day}" data-pid="${pid}" data-rid="${c.rid}" data-round="${r}"
+      data-label="${d.label??''}" data-score="${s===null?'':s}" data-pts="${points}"
+      title="${tip} · click for the full trajectory">${ico}${inner}</div>`);
+  }
+  const pv=toPoints(w.score,points);
+  let end,cls='';
+  if(w.reason==='accepted'){
+    // The one submission the protocol allows.
+    end = w.score===100
+      ? `<span class="submitted ok">SUBMITTED</span> · full marks <b>+${points}</b>`
+      : `<span class="submitted no">SUBMITTED</span> · <b>${pv}</b>/${points}`;
+    cls = w.score===100 ? 'win' : 'fa';
+  }
+  else if(w.reason==='released') end='early stopped';
+  else if(w.reason==='running') end='still refining';
+  else if(w.score===null) end='not judged';
+  // Reached the round cap without ever being accepted, so the protocol submits
+  // whatever it ended on. Anything else was never submitted at all -- a score
+  // shown for such a round came from batch judging and is not an outcome.
+  else if(w.stopAt>=CAP) end=`round-${CAP} fallback · <b>${pv}</b>/${points}`;
+  else end='not submitted';
+  const won=w.reason==='accepted'&&w.score===100;
+  return `<div class="path${won?' won':''}"${won?' title="this trajectory solved the subtask: '
+    +'Arbiter accepted it and the judge gave full marks"':''}><div class="rid">${won?`<span class="win">#${c.rid}</span>`:`#${c.rid}`}</div>${cells.join('')}
+    <div class="end ${cls}">${end}</div></div>`;
+}
+
+function subtaskTile(s,day,ti,si){
+  const {w,solved,got}=subScore(s);
+  // Earliest round where Arbiter said Accepted AND the judge gave full marks --
+  // both have to agree for the subtask to be banked.
+  const first=w.map((x,i)=>({x,rid:s.chains[i].rid}))
+               .filter(o=>o.x.reason==='accepted'&&o.x.score===100)
+               .sort((a,b)=>a.x.stopAt-b.x.stopAt)[0];
+  const fa=w.filter(x=>x.reason==='accepted'&&x.score!==100).length;
+  // Credited through containment: the round is the one the wider subtask was
+  // solved at, and the label says which subtask carried it.
+  const im=s.implied_by;
+  const ac=first?`AC&nbsp;@&nbsp;R${first.x.stopAt}`
+    :(im&&im.round!=null?`AC&nbsp;@&nbsp;R${im.round}&nbsp;(${im.label})`:'&nbsp;');
+  const acTip=first?`Arbiter and the judge first agreed at round ${first.x.stopAt}`
+    :(im?`solved through ${im.label}: ${im.reason} — credited at the round ${im.label} was solved (r${im.round})`:'');
+  // S<n> labels the shape from above, the round it was accepted labels it
+  // from below -- the shape itself only has to hold the score.
+  return `<div class="tcell ${solved?'ok':'no'}">
+    <div class="tn">S${si+1}</div>
+    <div class="tile ${solved?'ok':'no'}" data-day="${day}" data-ti="${ti}"
+        data-si="${si}" data-pid="${s.pid}"
+        title="subtask ${s.pid}${fa?` · ${fa} false accepts`:''}${im?` · implied by ${im.label}`:''} — click for its 50 trajectories">
+      <div class="tv">${got}<small>/${s.points}</small></div>
+    </div>
+    <div class="tac"${acTip?` title="${acTip}"`:''}>${ac}</div>
+  </div>`;
+}
+
+// Arbiter's verdict vs. the judge's real score, over every round of every
+// trajectory reviewed across the given subtasks (not just the accepted ones)
+// -- standard binary-classifier stats, "AC" as the positive class. Takes a
+// list so the same function covers one subtask's fan and a whole problem's
+// tiles (subtaskTag's caller passes [s]; the task header passes t.subtasks).
+function arbiterStats(subtasks){
+  let tp=0,fp=0,fn=0,tn=0;
+  subtasks.forEach(s=>s.chains.forEach(c=>c.rounds.forEach(r=>{
+    if(r.r>CAP||r.score==null||r.label==null) return;
+    const pred=r.label==='Accepted', actual=r.score===100;
+    if(pred&&actual) tp++;
+    else if(pred&&!actual) fp++;
+    else if(!pred&&actual) fn++;
+    else tn++;
+  })));
+  const tot=tp+fp+fn+tn;
+  return {tp,fp,fn,tn,tot,
+    accuracy:tot?(tp+tn)/tot:null,
+    precision:(tp+fp)?tp/(tp+fp):null,
+    recall:(tp+fn)?tp/(tp+fn):null};
+}
+
+// The 50 trajectories of whichever tile is open, rendered under the grid so the
+// tiles keep their layout.
+function fanFor(s,day,where){
+  const {w,solved,got}=subScore(s);
+  // Always the full budget's worth of columns, even when no trajectory here got
+  // that far: sizing to the deepest round reached would give every subtask its
+  // own column width, so nodes would jump around as you open one after another.
+  const last=CAP;
+  const first=w.map((x,i)=>({x,rid:s.chains[i].rid})).filter(o=>o.x.score===100)
+              .sort((a,b)=>a.x.stopAt-b.x.stopAt)[0];
+  const as=arbiterStats([s]);
+  return `<div class="drop">
+    <div class="drophead">
+      <span class="stname">${where||subtaskTag(day,s.pid)}</span>
+      ${solved?'<span class="pill ok">Solved</span>':'<span class="pill no">Unsolved</span>'}
+      ${first?`<span class="pid">First solved at R${first.x.stopAt} by #${first.rid}</span>`:''}
+      ${/* Say so plainly: none of the 50 trajectories below solved this one --
+            it is credited because a wider subtask was solved. */''}
+      ${!first&&s.implied_by?`<span class="pid" title="${esc(s.implied_by.reason||'')}">Solved
+        through <b>${s.implied_by.label}</b> at R${s.implied_by.round} — no trajectory
+        below solved it directly</span>`:''}
+      <span class="flagsm" title="over every round reviewed for this subtask (${as.tot}
+        total): ${as.tp} true accepts, ${as.fp} false accepts, ${as.fn} missed accepts,
+        ${as.tn} true rejects">Arbiter accuracy = ${fp3(as.accuracy)}, Precision(AC) =
+        ${fp3(as.precision)}, Recall(AC) = ${fp3(as.recall)}</span>
+      <span class="pid">${got}/${s.points} points</span>
+      <button class="dropx">close</button></div>
+    ${/* Two panels of twenty-five, so all 50 trajectories are on screen together
+          instead of running for two screenfuls. Every panel repeats the round
+          axis: a node's column has to be readable without scrolling back. */''}
+    <div class="fangrid">${[...Array(2)].map((_,col)=>`
+      <div class="fan sq" style="--cols:repeat(${last+1},40px)">
+        <div class="axis"><span></span>${[...Array(last+1)].map((_,r)=>`<span>R${r}</span>`).join('')}<span></span></div>
+        <div class="paths">${s.chains.slice(col*25,col*25+25)
+          .map(c=>pathRow(c,s.points,s.pid,last,day)).join('')}</div>
+      </div>`).join('')}</div></div>`;
+}
+
+// Summing each subtask's own best-ever-recorded score answers "what's
+// achievable in principle from the trajectory pool" -- for most problems
+// that coincides with what actually gets submitted, but not when the real
+// submission strategy runs into a limited budget it can't spend with
+// certainty (see day2 Problem 4's strategy.json). final_score, when a task
+// carries one, is that strategy's own real expected/achieved score, and
+// overrides the naive per-subtask sum so the totals stay honest about it.
+function dayScore(d){
+  let tot=0,ns=0,nt=0;
+  d.tasks.forEach(t=>{
+    let taskTot=0;
+    t.subtasks.forEach(s=>{
+      const r=subScore(s); taskTot+=r.got; ns+=r.solved; nt++;
+    });
+    tot+=t.final_score??taskTot;
+  });
+  return {tot,ns,nt};
+}
+
+function render(){
+  const days=Object.keys(DATA).map(Number).sort();
+  let grand=0,gsolved=0,gtotal=0;
+  // Each day's own total/solved count is already the .dayh line right above
+  // its task list -- a per-day card up here would just say it again.
+  days.forEach(n=>{
+    const s=dayScore(DATA[n]);
+    grand+=s.tot; gsolved+=s.ns; gtotal+=s.nt;
+  });
+  const grandDisp=Number.isInteger(grand)?grand.toFixed(0):grand.toFixed(2);
+  // Contest-total badge now leads the Day 1 / Day 2 grid instead of sitting up
+  // under the authors, so it reads as the header of the artifacts scoreboard.
+  document.getElementById('top').innerHTML='';
+  const grandCard=`<div class="card grand"><div class="lab">Contest total</div>
+      <div class="big"><img class="medal" src="figs/gold-medal.png" alt="gold medal">${grandDisp}<small>/${days.length*300}</small></div>
+      <div class="det">${gsolved}/${gtotal} subtasks · Rank 17</div></div>`;
+
+  // One shared 2-column grid, filled row by row: first the two day headers,
+  // then each problem-row (P1|P4, P2|P5, ...). Grid rows force the paired
+  // cards to equal height, so the two days stay aligned and end level even
+  // when their problems have different subtask counts.
+  const taskCard=(t,n,ti)=>{
+    let sc=0;
+    t.subtasks.forEach(x=>{const r=subScore(x);sc+=r.got;});
+    sc=t.final_score??sc;
+    const scDisp=Number.isInteger(sc)?sc.toFixed(0):sc.toFixed(2);
+    const p=ti+1, hasFinal=(MERGED_SUBMISSIONS[n]||[]).includes(p);
+    return `<div class="task">
+      <div class="thead"><span class="tname">${t.label} · ${t.name}</span>
+        <span class="tscorewrap"><span class="tscore">${scDisp}<small>/100</small></span>${hasFinal?`<span class="mfin" data-day="${n}" data-p="${p}"
+          title="final submission for this problem -- merged from per-subtask solutions"><img src="figs/coding.png" alt="final submission"></span>`:''}</span></div>
+      <div class="tiles">${t.subtasks.map((x,si)=>subtaskTile(x,n,ti,si)).join('')}</div>
+      </div>`;
+  };
+  const headerRow=days.map(n=>{
+    const s=dayScore(DATA[n]);
+    const sDisp=Number.isInteger(s.tot)?s.tot.toFixed(0):s.tot.toFixed(2);
+    return `<div class="dayh">
+      <span class="n">${DAYNAME[n]??'Day '+n}</span>
+      <span class="s">${sDisp}<small>/300</small></span></div>`;
+  }).join('');
+  const maxTasks=Math.max(...days.map(n=>DATA[n].tasks.length));
+  let taskRows='';
+  for(let ti=0;ti<maxTasks;ti++){
+    taskRows+=days.map(n=>{
+      const t=DATA[n].tasks[ti];
+      return t?taskCard(t,n,ti):'<div></div>';
+    }).join('');
+  }
+  document.getElementById('body').innerHTML =
+    grandCard + '<div class="days">' + headerRow + taskRows +
+    '</div><div id="gdz"></div>';
+
+  // One tile open per task: clicking another swaps the drop zone's contents,
+  // clicking the same one closes it.
+  // One tile open at a time across the whole page; its fan renders full width
+  // below both days.
+  const gdz=document.getElementById('gdz');
+  document.querySelectorAll('.tile').forEach(tile=>tile.onclick=()=>{
+    const {day,ti,si}=tile.dataset;
+    const was=tile.classList.contains('on');
+    document.querySelectorAll('.tile.on').forEach(x=>x.classList.remove('on'));
+    if(was){ gdz.innerHTML=''; return; }
+    tile.classList.add('on');
+    const task=DATA[+day].tasks[+ti];
+    gdz.innerHTML=fanFor(task.subtasks[+si],+day,
+      `Day ${day} · ${task.label} · ${task.name} · Subtask ${+si+1}`);
+    gdz.querySelector('.dropx').onclick=e=>{
+      e.stopPropagation(); tile.classList.remove('on'); gdz.innerHTML='';
+    };
+    gdz.scrollIntoView({block:'nearest',behavior:'smooth'});
+  });
+}
+
+// ---- trajectory drawer ----
+const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const kb=n=>n>=1024?`${(n/1024).toFixed(1)} KB`:`${n} B`;
+const ktok=n=>`${(n/1000).toFixed(1)}K`;
+const fp3=n=>n==null?'--':n.toFixed(2);
+const backLinkHtml=()=>mergeBack?`<div class="mback" data-day="${mergeBack.day}"
+  data-p="${mergeBack.p}">&larr; back to Day ${mergeBack.day} · Problem ${mergeBack.p} final submission</div>`:'';
+
+// The UOJ problem id (pid) means nothing to a reader outside this run; show
+// the subtask's position within its problem instead (1-based, matching the
+// order it fans out in on the main grid).
+function subtaskNum(day,pid){
+  const d=DATA[day];
+  if(d) for(const t of d.tasks){
+    const idx=t.subtasks.findIndex(s=>s.pid===String(pid));
+    if(idx!==-1) return idx+1;
+  }
+  return null;
+}
+const subtaskTag=(day,pid)=>{const n=subtaskNum(day,pid);return n?`Subtask ${n}`:`subtask ${pid}`;};
+// Same idea, but for the problem a subtask belongs to -- the drawer titles
+// were dropping this, showing "Subtask 2" with no way to tell it's Problem 6.
+function problemTag(day,pid){
+  const d=DATA[day];
+  if(d) for(const t of d.tasks){
+    if(t.subtasks.some(s=>s.pid===String(pid))) return `${t.label} · ${t.name}`;
+  }
+  return null;
+}
+const drawerTag=(day,pid)=>{
+  const p=problemTag(day,pid);
+  return (p?p+' · ':'')+subtaskTag(day,pid);
+};
+
+function seg(title,body,cls,open){
+  if(!body) return '';
+  return `<div class="seg"><h4 data-tw><span class="tw">${open?'▾':'▸'}</span>${title}
+    <span style="color:var(--ink3);font-weight:400;text-transform:none;letter-spacing:0">${kb(body.length)}</span></h4>
+    <pre class="${cls||''}"${open?'':' hidden'}>${esc(body)}</pre></div>`;
+}
+
+// Same shell as seg(), but the body is rendered as markdown HTML instead of
+// dumped verbatim into a <pre> -- for the model's own prose (message/reasoning).
+function mdseg(title,body,cls,open){
+  if(!body) return '';
+  return `<div class="seg"><h4 data-tw><span class="tw">${open?'▾':'▸'}</span>${title}
+    <span style="color:var(--ink3);font-weight:400;text-transform:none;letter-spacing:0">${kb(body.length)}</span></h4>
+    <div class="md ${cls||''}"${open?'':' hidden'}>${mdToHtml(body)}</div></div>`;
+}
+
+// Same shell again, but for a tool call's code argument -- syntax-highlighted
+// instead of JSON-dumped, since `{"code": "..."}` hides the one thing worth
+// reading.
+function codeSeg(title,code,lang,open){
+  if(!code) return '';
+  const hi=lang==='python'?pyHi(code):lang==='bash'?shHi(code):lang==='cpp'?cppHi(code):esc(code);
+  return `<div class="seg"><h4 data-tw><span class="tw">${open?'▾':'▸'}</span>${title}
+    <span style="color:var(--ink3);font-weight:400;text-transform:none;letter-spacing:0">${kb(code.length)}</span></h4>
+    <pre class="code"${open?'':' hidden'}>${hi}</pre></div>`;
+}
+
+const PY_KW=new Set(['False','None','True','and','as','assert','async','await',
+  'break','class','continue','def','del','elif','else','except','finally',
+  'for','from','global','if','import','in','is','lambda','nonlocal','not',
+  'or','pass','raise','return','try','while','with','yield','print','self']);
+const SH_KW=new Set(['if','then','else','elif','fi','for','while','do','done',
+  'case','esac','function','return','export','local','echo','cd','set','in']);
+
+// A single regex pass: comments, strings, numbers, identifiers get wrapped in
+// colour spans; everything else passes through escaped and untouched. Not a
+// real tokenizer (f-strings/nested quotes aren't perfect) but close enough
+// for skimming a verification script at a glance.
+function codeHi(code,kwset){
+  const re=/(#[^\n]*)|('''[\s\S]*?'''|"""[\s\S]*?"""|'(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*")|(\b\d+(?:\.\d+)?\b)|(\b[A-Za-z_][A-Za-z0-9_]*\b)/g;
+  let out='',last=0,m;
+  while((m=re.exec(code))){
+    out+=esc(code.slice(last,m.index));
+    if(m[1]) out+=`<span class="c-cm">${esc(m[1])}</span>`;
+    else if(m[2]) out+=`<span class="c-str">${esc(m[2])}</span>`;
+    else if(m[3]) out+=`<span class="c-num">${esc(m[3])}</span>`;
+    else if(m[4]) out+= kwset.has(m[4]) ? `<span class="c-kw">${esc(m[4])}</span>` : esc(m[4]);
+    last=re.lastIndex;
+  }
+  return out+esc(code.slice(last));
+}
+const pyHi=code=>codeHi(code,PY_KW);
+const shHi=code=>codeHi(code,SH_KW);
+
+const CPP_KW=new Set(['alignas','alignof','and','asm','auto','bool','break','case',
+  'catch','char','char16_t','char32_t','class','const','constexpr','const_cast',
+  'continue','decltype','default','delete','do','double','dynamic_cast','else',
+  'enum','explicit','export','extern','false','float','for','friend','goto',
+  'if','inline','int','long','mutable','namespace','new','noexcept','nullptr',
+  'operator','private','protected','public','register','reinterpret_cast',
+  'return','short','signed','sizeof','static','static_assert','static_cast',
+  'struct','switch','template','this','throw','true','try','typedef','typeid',
+  'typename','union','unsigned','using','virtual','void','volatile','wchar_t',
+  'while','int64_t','int32_t','uint64_t','uint32_t','size_t','ll','pair',
+  'vector','string','map','set']);
+
+// Same shape as codeHi, but // and /* */ comments and a #directive lane in
+// place of Python/bash's single #-comment rule.
+function cppHi(code){
+  const re=/(\/\/[^\n]*|\/\*[\s\S]*?\*\/)|(#\s*\w+)|('(?:\\.|[^'\\\n])*'|"(?:\\.|[^"\\\n])*")|(\b\d+(?:\.\d+)?[uUlLfF]*\b)|(\b[A-Za-z_][A-Za-z0-9_]*\b)/g;
+  let out='',last=0,m;
+  while((m=re.exec(code))){
+    out+=esc(code.slice(last,m.index));
+    if(m[1]) out+=`<span class="c-cm">${esc(m[1])}</span>`;
+    else if(m[2]) out+=`<span class="c-kw">${esc(m[2])}</span>`;
+    else if(m[3]) out+=`<span class="c-str">${esc(m[3])}</span>`;
+    else if(m[4]) out+=`<span class="c-num">${esc(m[4])}</span>`;
+    else if(m[5]) out+= CPP_KW.has(m[5]) ? `<span class="c-kw">${esc(m[5])}</span>` : esc(m[5]);
+    last=re.lastIndex;
+  }
+  return out+esc(code.slice(last));
+}
+
+// Minimal, dependency-free markdown -> HTML: fenced/inline code, bold/italic,
+// bullet/numbered lists, headings, paragraphs. Escapes first and only ever
+// re-inserts markup around already-escaped text, so model-authored content
+// can't break out of the drawer's HTML.
+function mdInline(s){
+  s=esc(s);
+  s=s.replace(/`([^`]+)`/g,(_,c)=>`<code>${c}</code>`);
+  s=s.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
+  s=s.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g,'<i>$1</i>');
+  s=s.replace(/(?<!_)_([^_\n]+)_(?!_)/g,'<i>$1</i>');
+  return s;
+}
+function mdToHtml(text){
+  if(!text) return '';
+  const lines=text.split('\n');
+  let html='',inCode=false,codeLines=[],codeLang='',listBuf=[],listType=null,paraBuf=[];
+  const flushList=()=>{
+    if(!listBuf.length) return;
+    const tag=listType==='ol'?'ol':'ul';
+    html+=`<${tag}>${listBuf.map(li=>`<li>${mdInline(li)}</li>`).join('')}</${tag}>`;
+    listBuf=[];listType=null;
+  };
+  const flushPara=()=>{
+    if(!paraBuf.length) return;
+    html+=`<p>${mdInline(paraBuf.join(' '))}</p>`;
+    paraBuf=[];
+  };
+  for(const line of lines){
+    const fence=line.match(/^```(\w*)\s*$/);
+    if(fence){
+      if(!inCode){flushPara();flushList();inCode=true;codeLang=fence[1]||'';codeLines=[];}
+      else{
+        const code=codeLines.join('\n');
+        html+=`<pre>${codeLang==='python'||codeLang==='py'?pyHi(code):esc(code)}</pre>`;
+        inCode=false;
+      }
+      continue;
+    }
+    if(inCode){codeLines.push(line);continue;}
+    const h=line.match(/^(#{1,4})\s+(.*)$/);
+    if(h){flushPara();flushList();html+=`<h${h[1].length+2}>${mdInline(h[2])}</h${h[1].length+2}>`;continue;}
+    const ol=line.match(/^\s*\d+\.\s+(.*)$/);
+    const ul=line.match(/^\s*[-*]\s+(.*)$/);
+    if(ol){flushPara();if(listType!=='ol'){flushList();listType='ol';}listBuf.push(ol[1]);continue;}
+    if(ul){flushPara();if(listType!=='ul'){flushList();listType='ul';}listBuf.push(ul[1]);continue;}
+    if(line.trim()===''){flushPara();flushList();continue;}
+    paraBuf.push(line.trim());
+  }
+  flushPara();flushList();
+  if(inCode) html+=`<pre>${esc(codeLines.join('\n'))}</pre>`;
+  return html;
+}
+
+// The only two tools in this dataset are execute_code ({code}) and
+// execute_command ({command}) -- render those as highlighted code instead of
+// a JSON dump of a single-key object. Anything else falls back to JSON.
+// submit_hack's own arguments are the same three things the "Our Verifier"
+// panel already shows for a stored review (label/verdict/counterexample_code)
+// -- this is the model making that same call live, so it gets the same
+// Verdict/Diagnosis/CounterExampleGenCode treatment instead of a JSON dump.
+function submitHackSeg(args){
+  if(!args||typeof args!=='object')
+    return seg('call submit_hack',typeof args==='string'?args:JSON.stringify(args,null,1),'',true);
+  const label=args.label, cls=label==null?'':label==='Accepted'?'ok':'no';
+  return (label!=null?`<div class="seg"><h4>Verdict</h4>
+      <span class="pill ${cls}">${esc(label)}</span></div>`:'')
+    + mdseg('Diagnosis',args.verdict,'reason',true)
+    + codeSeg('CounterExampleGenCode',args.code,'python',false);
+}
+
+function argSeg(title,toolName,args,open){
+  if(toolName==='execute_code' && args && typeof args==='object' && typeof args.code==='string')
+    return codeSeg(title,args.code,'python',open);
+  if(toolName==='execute_command' && args && typeof args==='object' && typeof args.command==='string')
+    return codeSeg(title,args.command,'bash',open);
+  if(toolName==='submit_hack') return submitHackSeg(args);
+  return seg(title,typeof args==='string'?args:JSON.stringify(args,null,1),'',open);
+}
+
+function renderTurns(d,ctx){
+  const pv=ctx.score===''?null:(+ctx.score===100?+ctx.pts:+ctx.score);
+  document.getElementById('dt').textContent=
+    `Day ${ctx.day} · ${drawerTag(ctx.day,ctx.pid)} · Trajectory #${ctx.rid} · Round ${ctx.round}`;
+  // d.steps (from the summary file) undercounts on purpose -- it's tool calls
+  // before submit_hack, not turn cards -- so once the full transcript is in
+  // hand, show how many cards are actually below rather than that narrower
+  // number.
+  const stepCount=d.events?d.events.length:d.steps;
+  document.getElementById('dm').innerHTML=[
+    stepCount!=null?`<b>${stepCount}</b> steps`:'',
+    d.input_tokens!=null?`<b>${ktok(d.input_tokens)}</b> in`:'',
+    d.output_tokens!=null?`<b>${ktok(d.output_tokens)}</b> out`:'',
+  ].filter(Boolean).map(x=>`<span>${x}</span>`).join('');
+
+  // The verifier's own review gives three things worth reading on their own:
+  // a verdict (its "label"), a diagnosis (the "verdict" text explaining it),
+  // and -- when it wrote one -- the code it used to demonstrate the failure.
+  // Shown next to what the real judge said, since the two can disagree.
+  const label=d.label ?? (ctx.label || null);
+  const acls=label==null?'':label==='Accepted'?'ok':'no';
+  // The UOJ raw score (0-100, scaled to the subtask) reads as a second,
+  // conflicting number next to the points -- just show the points.
+  const jcls=ctx.score===''?'':(+ctx.score===100?'ok':'no');
+  const judgeText=ctx.score===''?'not submitted'
+    :`${pv}<small>/${ctx.pts}</small>`;
+  const panel=`<div class="vpanel">
+      <div class="vcard ${jcls}">
+        <div class="vcard-h">Online Judge</div>
+        <div class="vcard-v">${judgeText}</div>
+      </div>
+      <div class="vcard ${acls}">
+        <div class="vcard-h">Our Verifier &middot; Arbiter</div>
+        <div class="vcard-v">${esc(label ?? '—')}</div>
+        ${mdseg('Diagnosis',d.verdict,'reason',true)}
+        ${codeSeg('CounterExampleGenCode',d.counterexample_code,'python',false)}
+      </div>
+    </div>`;
+
+  const back=backLinkHtml();
+  const db=document.getElementById('dbody');
+  if(!d.events){
+    // Even without turns the verdict itself is worth reading, so show it rather
+    // than only apologising for the missing trajectory.
+    db.innerHTML=back+panel+`<div class="empty">${esc(d._note||'No trajectory stored for this review.')}</div>`;
+  } else {
+    db.innerHTML=back+panel+d.events.map((e,i)=>{
+      if(e.kind==='assistant'){
+        const tc=(e.tool_calls||[]).map(c=>c.name).join(', ');
+        return `<div class="turn"><div class="th"><span class="stepno">Step ${i+1}</span>
+          <span class="k asst">ASSISTANT</span>
+          <span class="nm">${tc?'→ '+esc(tc):'final'}</span></div><div class="tb">
+          ${mdseg('message',e.text,'',true)}
+          ${mdseg('reasoning',e.reasoning,'reason',false)}
+          ${(e.tool_calls||[]).map(c=>argSeg(`call ${c.name}`,c.name,c.arguments,true)).join('')}
+        </div></div>`;
+      }
+      const res=typeof e.result==='string'?e.result:JSON.stringify(e.result,null,1);
+      return `<div class="turn"><div class="th"><span class="stepno">Step ${i+1}</span>
+        <span class="k tool">TOOL</span>
+        <span class="nm">${esc(e.tool)}</span></div><div class="tb">
+        ${argSeg('arguments',e.tool,e.arguments,true)}
+        ${seg('result',res,'res',true)}
+      </div></div>`;
+    }).join('');
+  }
+  db.querySelectorAll('h4[data-tw]').forEach(h=>h.onclick=()=>{
+    const pre=h.nextElementSibling;
+    pre.hidden=!pre.hidden;
+    h.querySelector('.tw').textContent=pre.hidden?'▸':'▾';
+  });
+}
+
+const openD=()=>{document.getElementById('drawer').classList.add('on');
+  document.getElementById('scrim').classList.add('on');
+  document.getElementById('drawer').setAttribute('aria-hidden','false');};
+const closeD=()=>{document.getElementById('drawer').classList.remove('on');
+  document.getElementById('scrim').classList.remove('on');
+  document.getElementById('drawer').setAttribute('aria-hidden','true');
+  document.querySelectorAll('.nd.sel,.ci.sel').forEach(n=>n.classList.remove('sel'));};
+
+function renderCode(d,ctx){
+  document.getElementById('dt').textContent=
+    `Day ${ctx.day} · ${drawerTag(ctx.day,ctx.pid)} · Trajectory #${ctx.rid} · Round ${ctx.round} · Code`;
+  document.getElementById('dm').innerHTML=[
+    d.seed?'<b>seed</b> (initial sampling)':'',
+    d.code_bytes!=null?`program <b>${kb(d.code_bytes)}</b>`:'',
+    d.reasoning_tokens!=null?`reasoning <b>${ktok(d.reasoning_tokens)}</b> tokens`:'',
+    d.raw_tokens!=null?`completion <b>${ktok(d.raw_tokens)}</b> tokens`:'',
+  ].filter(Boolean).map(x=>`<span>${x}</span>`).join('');
+  // The program first: it is what the round is judged on. The completion that
+  // wrote it follows, reasoning included, then the prompt it answered.
+  document.getElementById('dbody').innerHTML=
+    backLinkHtml()
+    + (d._note?`<div class="empty">${esc(d._note)}</div>`:'')
+    + codeSeg('submitted program (C++)',d.code,'cpp',true)
+    + seg('reasoning',d.reasoning,'reason',false)
+    + seg('answer as written',d.content,'',false)
+    + seg('prompt it answered',d.prompt,'',false);
+  document.getElementById('dbody').querySelectorAll('h4[data-tw]').forEach(h=>h.onclick=()=>{
+    const pre=h.nextElementSibling;
+    pre.hidden=!pre.hidden;
+    h.querySelector('.tw').textContent=pre.hidden?'▸':'▾';
+  });
+}
+
+// A "merged from" / per-subtask-source list, shared by the single-file merge
+// (one list) and the multi-file submission strategy (one per file) -- each
+// entry reuses the .nd/.ci click handling below to jump straight into the
+// source trajectory.
+function piecesListHtml(pieces,day){
+  if(!pieces||!pieces.length) return '';
+  return `<div class="mpieces">${pieces.map(pc=>{
+    const has=pc.pid!=null&&pc.rid!=null&&pc.round!=null;
+    const sn=has?subtaskTag(pc.src_day??day,pc.pid):(pc.subtask||'');
+    const dattrs=has?`data-day="${pc.src_day??day}" data-pid="${pc.pid}"
+      data-rid="${pc.rid}" data-round="${pc.round}" data-label=""
+      data-score="${pc.score??''}" data-pts="${pc.points??''}"`:'';
+    return `<div class="mp${has?' nd':''}" ${dattrs}>
+      <div class="mp-t">${esc(sn)}<span class="mp-pts">${pc.points!=null?pc.points+' pts':''}</span></div>
+      ${pc.judged?`<div class="mp-j">${esc(pc.judged)}</div>`:''}
+      ${has?`<div class="mp-src"><span>trajectory #${pc.rid} &middot; round ${pc.round}</span>
+        <span class="ci" data-code="1" ${dattrs}><img class="ci-ic" src="figs/coding.png" alt="code"></span></div>`:''}
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// The problem-level answer: one program stitched together from a
+// per-subtask trajectory each, so it gets its own drawer with a "merged
+// from" list on top.
+function renderMerge(d,ctx){
+  const task=DATA[ctx.day]?.tasks?.[ctx.p-1];
+  document.getElementById('dt').textContent=
+    `Day ${ctx.day} · Problem ${ctx.p}${task?' · '+task.name:''} · Final Submission`;
+  document.getElementById('dm').innerHTML=[
+    d.code_bytes!=null?`program <b>${kb(d.code_bytes)}</b>`:'',
+    d.reasoning?`reasoning <b>${kb(d.reasoning.length)}</b>`:'',
+  ].filter(Boolean).map(x=>`<span>${x}</span>`).join('');
+
+  const pieces=d.pieces||[];
+  const piecesHtml=pieces.length?`<div class="vpanel"><div class="vcard">
+      <div class="vcard-h">Merged From</div>
+      ${piecesListHtml(pieces,ctx.day)}
+    </div></div>`:'';
+
+  document.getElementById('dbody').innerHTML=piecesHtml
+    + codeSeg('submitted program (C++)',d.code,'cpp',true)
+    + seg('reasoning',d.reasoning,'reason',false)
+    + seg('answer as written',d.content,'',false)
+    + seg('prompt it answered',d.prompt,'',false);
+  document.getElementById('dbody').querySelectorAll('h4[data-tw]').forEach(h=>h.onclick=()=>{
+    const pre=h.nextElementSibling;
+    pre.hidden=!pre.hidden;
+    h.querySelector('.tw').textContent=pre.hidden?'▸':'▾';
+  });
+}
+
+// The arithmetic behind a file's one "expected N" number, laid out per
+// subtask so it can be checked rather than taken on faith: how many
+// Arbiter-accepted candidates exist to draw from, how many of those are
+// true ACs, how many submissions this file spends on it, and the resulting
+// E[max of that many draws without replacement] -- which is what actually
+// gets summed into the file's total.
+function evTableHtml(rows){
+  if(!rows||!rows.length) return '';
+  const total=rows.reduce((a,r)=>a+(r.expected||0),0);
+  return `<table class="evtab"><thead><tr>
+      <th>Subtask</th><th>Points</th><th>Pool</th><th>True AC</th>
+      <th>Submissions</th><th>E[max]</th></tr></thead><tbody>
+      ${rows.map(r=>`<tr><td>${esc(r.subtask)}</td><td>${r.points}</td>
+        <td>${r.pool}</td><td>${r.true_ac}</td><td>${r.submissions}</td>
+        <td><b>${r.expected.toFixed(2)}</b></td></tr>`).join('')}
+      ${rows.length>1?`<tr class="evtot"><td colspan="5">sum</td>
+        <td><b>${total.toFixed(2)}</b></td></tr>`:''}
+    </tbody></table>`;
+}
+
+// Some problems have no single submission that can cover every subtask (a
+// subtask's own condition isn't observable from what the grader passes, or
+// its accepted pool contains no true AC at all) -- the answer there is
+// several files, each submitted its own number of times, not one merge.
+// See P4_submission_strategy.md for the reasoning this mirrors.
+function renderMergeMulti(d,ctx){
+  const task=DATA[ctx.day]?.tasks?.[ctx.p-1];
+  document.getElementById('dt').textContent=
+    `Day ${ctx.day} · Problem ${ctx.p}${task?' · '+task.name:''} · Final Submission`;
+  document.getElementById('dm').innerHTML=[
+    d.files?.length?`<b>${d.files.length}</b> files`:'',
+  ].filter(Boolean).map(x=>`<span>${x}</span>`).join('');
+
+  const achieved=d.score_kind==='achieved';
+  const summary=`<div class="vpanel"><div class="vcard">
+      <div class="vcard-h">${achieved?'Submission Score &middot; achieved with certainty'
+        :'Submission Strategy &middot; Expected Score'}</div>
+      <div class="vcard-v">${d.expected_score}<small>/${d.max_score}</small></div>
+      ${d.note?`<div class="mp-j" style="margin-top:8px">${esc(d.note)}</div>`:''}
+      ${d.caveat?`<div class="mp-j" style="margin-top:8px;color:var(--ink3);font-style:italic">
+        <b style="font-style:normal">Verified:</b> ${esc(d.caveat)}</div>`:''}
+    </div></div>`;
+
+  const files=(d.files||[]).map(f=>{
+    const stats=[f.submissions!=null?`<b>${f.submissions}</b> submissions`:'',
+      f.expected!=null?`expected <b>${f.expected}</b>${f.max!=null?` / max <b>${f.max}</b>`:''}`:''
+    ].filter(Boolean).join(' &middot; ');
+    return `<div class="vpanel"><div class="vcard">
+      <div class="vcard-h">${esc(f.name)} &middot; ${esc(f.subtasks||'')}</div>
+      ${stats?`<div class="mp-j">${stats}</div>`:''}
+      ${f.dispatch?`<div class="mp-j" style="margin-top:4px;color:var(--ink3)">${esc(f.dispatch)}</div>`:''}
+      ${evTableHtml(f.subtask_ev)}
+      ${piecesListHtml(f.pieces,ctx.day)}
+      ${codeSeg('code (C++)',f.code,'cpp',false)}
+      ${seg('reasoning',f.reasoning,'reason',false)}
+      ${seg('answer as written',f.content,'',false)}
+      ${seg('prompt it answered',f.prompt,'',false)}
+    </div></div>`;
+  }).join('');
+
+  document.getElementById('dbody').innerHTML=summary+files;
+  document.getElementById('dbody').querySelectorAll('h4[data-tw]').forEach(h=>h.onclick=()=>{
+    const pre=h.nextElementSibling;
+    pre.hidden=!pre.hidden;
+    h.querySelector('.tw').textContent=pre.hidden?'▸':'▾';
+  });
+}
+
+const renderMergeAny=(d,ctx)=>d.multi?renderMergeMulti(d,ctx):renderMerge(d,ctx);
+
+// Every click that opens the drawer is one of these three moves. Each entry
+// is the whole contract for that move: which element triggers it, how to
+// read a fetch context off its dataset, what it says while/if things go
+// wrong, and how it affects the "back to final submission" breadcrumb --
+// instead of that logic being smeared across three copy-pasted handlers with
+// mergeBack set (or not) by hand in each one.
+const NAV = [
+  { sel:'.mfin,.mback',           // score badge, or the back-link inside a trajectory view
+    ctx:el=>({day:+el.dataset.day, p:+el.dataset.p}),
+    title:ctx=>`Day ${ctx.day} · Problem ${ctx.p} · Final Submission`,
+    url:ctx=>apiURL.merge(ctx),
+    render:renderMergeAny, what:'the final submission',
+    notFound:'no final submission for that problem',
+    back:()=>null,                // opening a merge view always clears any prior back-link
+    after:ctx=>{currentMerge=ctx;},
+  },
+  { sel:'.ci',                    // the </> icon: this round's program + completion
+    ctx:el=>({...el.dataset, day:+el.dataset.day}),
+    title:ctx=>`Day ${ctx.day} · ${drawerTag(ctx.day,ctx.pid)} · Trajectory #${ctx.rid} · Round ${ctx.round} · Code`,
+    url:ctx=>apiURL.code(ctx),
+    render:renderCode, what:'the code', notFound:'no code for that round',
+    selGroup:'.nd.sel,.ci.sel',
+    // Reachable two ways: the fan on the main page, or a "merged from" piece
+    // inside a final-submission drawer -- only the second leaves a way back.
+    back:el=>el.closest('.mp')?currentMerge:null,
+  },
+  { sel:'.nd', guard:el=>!!el.dataset.pid,   // a fan node: the full trajectory
+    ctx:el=>({...el.dataset, day:+el.dataset.day}),
+    title:ctx=>`Day ${ctx.day} · ${drawerTag(ctx.day,ctx.pid)} · Trajectory #${ctx.rid} · Round ${ctx.round}`,
+    url:ctx=>apiURL.turns(ctx),
+    render:renderTurns, what:'the trajectory',
+    checkOk:false,  // unlike the other two, /turns is rendered even on a non-2xx
+                     // response (it still carries a usable error/_note payload)
+    selGroup:'.nd.sel',
+    back:el=>el.closest('.mp')?currentMerge:null,
+  },
+];
+
+async function navigate(spec,el){
+  mergeBack=spec.back(el);
+  if(spec.selGroup){
+    document.querySelectorAll(spec.selGroup).forEach(n=>n.classList.remove('sel'));
+    el.classList.add('sel');
+  }
+  const ctx=spec.ctx(el);
+  document.getElementById('dt').textContent=spec.title(ctx);
+  document.getElementById('dm').innerHTML='';
+  document.getElementById('dbody').innerHTML='<div class="empty">Loading…</div>';
+  openD();
+  try{
+    const r=await fetch(spec.url(ctx));
+    const j=await r.json();
+    // In static mode a "not found" is a real file served 200 that carries
+    // {error, _status:404}; treat that the same as a non-2xx from serve.py.
+    const notOk=!r.ok || (j&&j._status&&j._status>=400);
+    if(spec.checkOk!==false && notOk){
+      document.getElementById('dbody').innerHTML=
+        `<div class="empty">${esc(j.error||spec.notFound)}</div>`;
+    }else{
+      if(spec.after) spec.after(ctx);
+      spec.render(j,ctx);
+    }
+  }catch(e){
+    document.getElementById('dbody').innerHTML=
+      `<div class="empty">Could not load ${spec.what}: ${esc(e.message)}</div>`;
+  }
+}
+
+document.addEventListener('click',ev=>{
+  for(const spec of NAV){
+    const el=ev.target.closest(spec.sel);
+    if(!el||(spec.guard&&!spec.guard(el))) continue;
+    ev.stopPropagation();
+    navigate(spec,el);
+    return;
+  }
+});
+document.getElementById('dx').onclick=closeD;
+document.getElementById('scrim').onclick=closeD;
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeD();});
+
+(async()=>{
+  for(const [n,f] of [[1,'day1.json'],[2,'day2.json']]){
+    try{const r=await fetch(f);if(r.ok)DATA[n]=await r.json();}catch(e){}
+  }
+  const n=Object.keys(DATA).length;
+  if(!n){document.getElementById('body').textContent='No data found.';return;}
+  // A run that has not started yet has seeds but no reviews; say so instead of
+  // showing a wall of zeros with no explanation.
+  const any=Object.values(DATA).some(d=>d.tasks.some(t=>t.subtasks.some(
+    s=>s.chains.some(c=>c.rounds.some(r=>r.label||r.score!=null)))));
+  render();
+  if(!any) document.getElementById('body').insertAdjacentHTML('afterbegin',
+    `<div class="waiting">Seeds are staged (${Object.values(DATA).reduce((a,d)=>
+      a+d.tasks.reduce((b,t)=>b+t.subtasks.length*50,0),0)} trajectories across
+      ${Object.values(DATA).reduce((a,d)=>a+d.tasks.reduce((b,t)=>b+t.subtasks.length,0),0)}
+      subtasks) but no round has been reviewed or judged yet — this page fills in
+      as the run progresses.</div>`);
+})();
+
+// ---- interactive figures: hover a column for its exact values, with a
+//      highlight band behind it and the points growing (learned from the
+//      meta-harness demo chart) ----
+function wireFigure(fig, opts){
+  if(!fig) return;
+  const svg=fig.querySelector('svg');
+  const vb=svg.viewBox.baseVal;                 // handles 720 vs 732 wide viewBoxes
+  const tip=fig.querySelector('.figtip');
+  const band=fig.querySelector('.colhi');
+  const boxOf=el=>fig.getBoundingClientRect();
+  const px=x=>{const r=svg.getBoundingClientRect();return r.left-boxOf().left + (x-vb.x)/vb.width*r.width;};
+  const py=y=>{const r=svg.getBoundingClientRect();return r.top-boxOf().top + (y-vb.y)/vb.height*r.height;};
+  function show(hit){
+    // highlight band centred on the column
+    if(band){
+      const cx=+hit.dataset.x, w=+hit.getAttribute('width'), x=+hit.getAttribute('x');
+      band.setAttribute('x',x+4); band.setAttribute('width',Math.max(0,w-8));
+      band.setAttribute('fill-opacity','.06');
+    }
+    // grow the markers nearest this column's x (circles use cx, star <use>s x)
+    const cx=+hit.dataset.x;
+    fig.querySelectorAll('circle').forEach(c=>{
+      if(c.classList.contains('dot')||c.parentElement.classList.contains('tdot')){
+        if(Math.abs(+c.getAttribute('cx')-cx)<1) c.classList.add('hi');
+      }
+    });
+    fig.querySelectorAll('.tstar use').forEach(u=>{
+      const sx=+u.dataset.x;
+      // rebuild the transform as translate(...) scale(...): the star's path is
+      // centred on its own origin, so scale grows it in place instead of
+      // sliding it toward the SVG corner.
+      const base=u.getAttribute('transform').match(/translate\([^)]*\)/)[0];
+      u.setAttribute('transform', Math.abs(sx-cx)<1 ? base+' scale(1.3)' : base);
+    });
+    tip.innerHTML=opts.tip(hit);
+    tip.style.left=px(cx)+'px';
+    tip.style.top =py(opts.tipY(hit))+'px';
+    tip.classList.add('on');
+  }
+  function hide(){
+    tip.classList.remove('on');
+    if(band) band.setAttribute('fill-opacity','0');
+    fig.querySelectorAll('.hi').forEach(c=>c.classList.remove('hi'));
+    fig.querySelectorAll('.tstar use').forEach(u=>{
+      u.setAttribute('transform', u.getAttribute('transform').replace(/\s*scale\([^)]*\)/,''));
+    });
+  }
+  fig.querySelectorAll('.hit').forEach(h=>{
+    h.addEventListener('mouseenter',()=>show(h));
+    h.addEventListener('mousemove',()=>show(h));
+    h.addEventListener('mouseleave',hide);
+  });
+}
+// Teaser: two curves (with / without verifier) at each k.
+wireFigure(document.querySelector('.teaser.interactive'), {
+  tipY:hit=>26+(400-Math.max(+hit.dataset.a,+hit.dataset.b))*0.992,
+  tip:hit=>`<div class="tt-r">${hit.dataset.title}</div>`+
+    `<div class="tt-row"><span class="sw" style="border-top-color:var(--full)"></span>`+
+    `<span class="tt-s">${(+hit.dataset.a).toFixed(2)}</span> with Arbiter</div>`+
+    `<div class="tt-row"><span class="sw" style="border-top-color:var(--ink3);border-top-style:dashed"></span>`+
+    `<span class="tt-u">${(+hit.dataset.b).toFixed(2)}</span> no verifier</div>`,
+});
+// Results: score + submissions per refinement round.
+(function(){
+  const fig=document.querySelector('#refinement .figure');
+  if(!fig) return;
+  const dots=[...fig.querySelectorAll('.dot')];   // 6 subs dots then 6 score dots
+  const XS=[52,180.8,309.6,438.4,567.2,696];
+  wireFigure(fig, {
+    tipY:hit=>{const r=+hit.dataset.r;return +dots[6+r].getAttribute('cy');},
+    tip:hit=>{const r=+hit.dataset.r;return `<div class="tt-r">Round ${r}${r===0?' · seeds':''}</div>`+
+      `<div class="tt-s">score ${hit.dataset.score} / 600</div>`+
+      `<div class="tt-u">${hit.dataset.subs} submissions / subtask</div>`;},
+  });
+})();
+
+// ---- sticky left section nav: fade in after scrolling, highlight active ----
+(function(){
+  const nav=document.getElementById('sectionNav');
+  if(!nav) return;
+  const links=[...nav.querySelectorAll('a')];
+  const secs=links.map(a=>document.querySelector(a.getAttribute('href')))
+                  .filter(Boolean);
+  function onScroll(){
+    nav.classList.toggle('visible', scrollY>260);
+    // active = the last section whose top has passed a third of the viewport
+    const line=innerHeight*0.33;
+    let idx=0;
+    secs.forEach((s,i)=>{if(s.getBoundingClientRect().top<=line) idx=i;});
+    links.forEach((a,i)=>a.classList.toggle('active',i===idx));
+  }
+  addEventListener('scroll',onScroll,{passive:true});
+  onScroll();
+})();
+
+// ---- citation copy button ----
+(function(){
+  const btn=document.getElementById('citeCopy'), bib=document.getElementById('citeBib');
+  if(!btn||!bib) return;
+  btn.onclick=async()=>{
+    try{
+      await navigator.clipboard.writeText(bib.textContent);
+      btn.textContent='Copied'; btn.classList.add('done');
+      setTimeout(()=>{btn.textContent='Copy'; btn.classList.remove('done');},1600);
+    }catch(e){
+      // clipboard API unavailable (e.g. non-secure context) -- select the text
+      // so the reader can copy it by hand.
+      const r=document.createRange(); r.selectNodeContents(bib);
+      const s=getSelection(); s.removeAllRanges(); s.addRange(r);
+    }
+  };
+})();
+</script>
