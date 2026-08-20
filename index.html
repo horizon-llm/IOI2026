@@ -189,6 +189,7 @@
   .legend{display:flex;flex-wrap:wrap;gap:13px;margin:20px 0 0;
     padding-top:18px;border-top:1px solid var(--line);font-size:12px;
     color:var(--ink2);align-items:center}
+  .legend[hidden]{display:none}   /* let the hidden attribute win over display:flex */
   /* Legend samples are the real 40x40 shape at its real size -- not a wider
      illustrative stand-in -- so they show the same abbreviated label the grid
      itself shows (a spelled-out word doesn't fit a true circle any better
@@ -207,14 +208,12 @@
   .legend .lgn .lb .full{display:none}
   .legend .lgw{display:inline-flex;width:44px;justify-content:center}
 
-  /* One shared 2-column grid: cells are filled row by row (two day headers,
-     then each problem pair). column-gap separates the days, row-gap the
-     problems; align-items:stretch makes both cards in a row equal height so
-     the columns stay aligned and end level. */
-  .days{display:grid;grid-template-columns:1fr 1fr;column-gap:24px;row-gap:11px;
-    align-items:stretch;min-width:0}
+  /* Two self-contained day columns side by side; each stacks its own header +
+     problems. Collapses to a single column on a narrow screen. */
+  .days{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
   @media (max-width:1500px){.days{grid-template-columns:1fr}}
-  .dayh{display:flex;align-items:baseline;gap:11px;
+  .day{min-width:0}
+  .dayh{display:flex;align-items:baseline;gap:11px;margin-bottom:11px;
     padding:6px 0 7px;border-bottom:2px solid var(--ink);
     position:sticky;top:0;background:var(--surface);z-index:5}
   .dayh .n{font-size:21px;font-weight:680}
@@ -222,7 +221,7 @@
     font-variant-numeric:tabular-nums}
   .dayh .s small{font-size:14px;font-weight:400;color:var(--ink3)}
   .task{background:var(--panel);border:1px solid var(--line);border-radius:11px;
-    padding:15px 17px}
+    padding:15px 17px;margin-bottom:11px}
   .thead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
   .tname{font-size:14.5px;font-weight:620}
   .tscorewrap{margin-left:auto;display:flex;align-items:center;gap:7px}
@@ -616,7 +615,7 @@
 <header>
  <div class="htop">
   <div class="htitle">
-   <h1>Arbiter: An Agentic Verifier for Competitive Programming Beyond Score</h1>
+   <h1 data-md="title">Arbiter: An Agentic Verifier for Competitive Programming Beyond Score</h1>
    <div class="authors">Zheye Deng<sup>1,2</sup>, Sha Li<sup>2</sup>, Changlong Yu<sup>2</sup>, Xin Liu<sup>2</sup>,
      Qin Lu<sup>2</sup>, Priyanka Nigam<sup>2</sup>, Yangqiu Song<sup>1</sup>
      <div class="aff"><sup>1</sup>HKUST &nbsp; <sup>2</sup>Amazon</div>
@@ -727,7 +726,7 @@
       </g>
     </svg>
     <div class="figtip" id="figtip-teaser"></div>
-    <div class="figcap"><b>gpt-oss-120b, refined against Arbiter, clears the IOI
+    <div class="figcap" data-md="teaser-cap"><b>gpt-oss-120b, refined against Arbiter, clears the IOI
     2026 gold-medal line.</b> Contest score (/600) versus <b>k</b>, the candidates
     drawn per subtask — Arbiter-gated refinement beats plain score@k at every
     budget, and the gap is widest where samples are scarce. Hover for exact
@@ -736,7 +735,7 @@
 
   <section id="verifier">
     <h2 class="sec-h">Agentic Verifier</h2>
-    <div class="sec-lead">A judge can tell you a solution is wrong. It can't tell
+    <div class="sec-lead" data-md="verifier">A judge can tell you a solution is wrong. It can't tell
     you <i>why</i> — showing the failing input would leak the secret tests that
     make it trustworthy, and every ranker, majority vote, or LLM-as-judge
     inherits that same blind spot: a verdict, never a witness. <b>Arbiter</b>
@@ -749,14 +748,14 @@
 
   <section id="training">
     <h2 class="sec-h">Training Details</h2>
-    <div class="sec-lead">TODO: describe how Arbiter was trained — the base
+    <div class="sec-lead" data-md="training">TODO: describe how Arbiter was trained — the base
     model, the reinforcement-learning setup that rewards finding a valid
     counterexample, the data it was trained on, and the compute budget.</div>
   </section>
 
   <section id="results">
     <h2 class="sec-h">Benchmark Results</h2>
-    <div class="sec-lead">This page reports an empirical test of what that
+    <div class="sec-lead" data-md="results">This page reports an empirical test of what that
     capability is worth: whether Arbiter-gated refinement, revising against a
     verifier's counterexample rather than a scalar reward, is by itself
     sufficient for competitive programming. <b>gpt-oss-120b</b> attempts every
@@ -889,7 +888,7 @@
         </tbody>
       </table>
     </div>
-    <div class="rtbl-cap"><b>Results on UOJ-Bench (Hacking) and USACO-Judge</b>,
+    <div class="rtbl-cap" data-md="results-cap"><b>Results on UOJ-Bench (Hacking) and USACO-Judge</b>,
     reported by difficulty split (Easy / Hard) and grouped by inference mode:
     non-agentic (⚡, single-shot) versus agentic (⚙, tool-using). <b>Bold</b> =
     best in column, <u>underline</u> = runner-up. Arbiter (35B) matches or beats
@@ -898,7 +897,7 @@
 
   <section id="refinement">
     <h2 class="sec-h">IOI Refinement</h2>
-    <div class="sec-lead">On IOI 2026 itself, gpt-oss-120b revises each candidate
+    <div class="sec-lead" data-md="refinement">On IOI 2026 itself, gpt-oss-120b revises each candidate
     against Arbiter's counterexample under a 5-round budget. Capping refinement
     at round <b>R</b> shows how quickly the verifier's feedback pays off.</div>
 
@@ -1006,7 +1005,7 @@
           transform="rotate(90 884 150)">avg submissions / subtask</text>
       </svg>
       <div class="figtip" id="figtip"></div>
-      <div class="figcap"><b>One round of refinement does most of the work.</b>
+      <div class="figcap" data-md="refinement-cap"><b>One round of refinement does most of the work.</b>
       Capping Arbiter-gated refinement at round <b>R</b>: score jumps
       <b>229 → 347</b> (clearing gold) from a single counterexample, reaching
       <b>376</b> by R5 — while judge submissions grow only gently (24 → 32), so
@@ -1016,14 +1015,14 @@
 
   <section id="artifacts">
     <h2 class="sec-h"><img src="figs/ioi_social.jpg" alt="IOI logo">IOI Artifacts</h2>
-    <div class="sec-lead">Every score above is backed by its raw data. Click a
+    <div class="sec-lead" data-md="artifacts">Every score above is backed by its raw data. Click a
     subtask to open its fan of 50 trajectories, then any node for the verifier's
     full turn-by-turn review, or the <img src="figs/coding.png" alt="code icon"
     style="width:12px;height:12px;vertical-align:-1px"> icon for the program that
     round submitted and the reasoning that wrote it. The badge beside a problem's
     score opens its merged final submission.</div>
     <div id="body"></div>
-    <div class="legend">
+    <div class="legend" hidden>
     <span>Each row is one trajectory; each column a round. A node shows the
       <b>verifier's verdict</b> and the judge's score <b>in that subtask's
       points</b>. The <img src="figs/coding.png" alt="code icon" style="width:12px;height:12px;
@@ -1073,6 +1072,40 @@
   <div class="db" id="dbody"></div>
 </aside>
 <script>
+// ---- editable page copy: inject content.md into [data-md] elements ----
+// The prose lives in content.md so collaborators can edit it without touching
+// this file. Each `## key` block there maps to a data-md="key" element here.
+// Author-controlled content, so raw inline HTML is passed through; **bold**,
+// *italic* and `code` are also supported. If content.md can't be fetched (e.g.
+// opened as a file:// URL), the hard-coded copy already in the HTML stays.
+(async function loadContent(){
+  let txt;
+  try{
+    const r=await fetch('content.md');
+    if(!r.ok) return;
+    txt=await r.text();
+  }catch(e){ return; }
+  const md=i=>i
+    .replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
+    .replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<i>$2</i>')
+    .replace(/`([^`]+)`/g,'<code>$1</code>');
+  // Split on `## key` headings. Anything before the first heading (the HTML
+  // comment banner) is ignored because key is still null.
+  const blocks={};
+  let key=null, buf=[];
+  const flush=()=>{ if(key) blocks[key]=buf.join('\n').trim(); buf=[]; };
+  for(const line of txt.split('\n')){
+    const m=line.match(/^##\s+(\S+)\s*$/);
+    if(m){ flush(); key=m[1]; continue; }
+    if(key!==null) buf.push(line);
+  }
+  flush();
+  document.querySelectorAll('[data-md]').forEach(el=>{
+    const k=el.dataset.md, v=blocks[k];
+    if(v!=null) el.innerHTML=md(v);
+  });
+})();
+
 // Where the /turns, /code, /merge payloads come from. Empty string = same
 // origin via serve.py's live endpoints (local dev). Set to a bucket base URL
 // (e.g. "https://pub-xxxx.r2.dev") to read the pre-generated static tree that
@@ -1338,10 +1371,9 @@ function render(){
       <div class="big"><img class="medal" src="figs/gold-medal.png" alt="gold medal">${grandDisp}<small>/${days.length*300}</small></div>
       <div class="det">${gsolved}/${gtotal} subtasks · Rank 17</div></div>`;
 
-  // One shared 2-column grid, filled row by row: first the two day headers,
-  // then each problem-row (P1|P4, P2|P5, ...). Grid rows force the paired
-  // cards to equal height, so the two days stay aligned and end level even
-  // when their problems have different subtask counts.
+  // Each day is a self-contained column (its header + its own problems), so it
+  // collapses cleanly to a single stack on a narrow screen instead of
+  // interleaving the two days' headers and problems.
   const taskCard=(t,n,ti)=>{
     let sc=0;
     t.subtasks.forEach(x=>{const r=subScore(x);sc+=r.got;});
@@ -1355,23 +1387,17 @@ function render(){
       <div class="tiles">${t.subtasks.map((x,si)=>subtaskTile(x,n,ti,si)).join('')}</div>
       </div>`;
   };
-  const headerRow=days.map(n=>{
+  const columns=days.map(n=>{
     const s=dayScore(DATA[n]);
     const sDisp=Number.isInteger(s.tot)?s.tot.toFixed(0):s.tot.toFixed(2);
-    return `<div class="dayh">
+    const head=`<div class="dayh">
       <span class="n">${DAYNAME[n]??'Day '+n}</span>
       <span class="s">${sDisp}<small>/300</small></span></div>`;
+    const tasks=DATA[n].tasks.map((t,ti)=>taskCard(t,n,ti)).join('');
+    return `<div class="day">${head}${tasks}</div>`;
   }).join('');
-  const maxTasks=Math.max(...days.map(n=>DATA[n].tasks.length));
-  let taskRows='';
-  for(let ti=0;ti<maxTasks;ti++){
-    taskRows+=days.map(n=>{
-      const t=DATA[n].tasks[ti];
-      return t?taskCard(t,n,ti):'<div></div>';
-    }).join('');
-  }
   document.getElementById('body').innerHTML =
-    grandCard + '<div class="days">' + headerRow + taskRows +
+    grandCard + '<div class="days">' + columns +
     '</div><div id="gdz"></div>';
 
   // One tile open per task: clicking another swaps the drop zone's contents,
