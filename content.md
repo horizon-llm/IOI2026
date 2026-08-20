@@ -34,7 +34,7 @@ This page reports an empirical test of what that capability is worth: whether Ar
 On IOI 2026 itself, gpt-oss-120b revises each candidate against Arbiter's counterexample under a 5-round budget. Capping refinement at round **R** shows how quickly the verifier's feedback pays off.
 
 ## refinement-cap
-**One round of refinement does most of the work.** Capping Arbiter-gated refinement at round **R**: score jumps **229 → 347** (clearing gold) from a single counterexample, reaching **376** by R5 — while judge submissions grow only gently (24 → 32), so the gain is bought cheaply.
+**One round of refinement does most of the work.** The line is contest score when Arbiter-gated refinement is capped at round **R**: it jumps **229 → 347** (clearing gold) from a single counterexample, reaching **376** by R5. The bars show how many trajectories are still being sampled each round per subtask — all **50** seeds at R0, dropping to **20** at R1 and just **7** by R5 as accepted solutions leave the pool. Most of the score is banked while the pool is still large.
 
 ## artifacts
 Every score above is backed by its raw data. Click a subtask to open its fan of 50 trajectories, then any node for the verifier's full turn-by-turn review, or the <img src="figs/coding.png" alt="code icon" style="width:12px;height:12px;vertical-align:-1px"> icon for the program that round submitted and the reasoning that wrote it. The badge beside a problem's score opens its merged final submission.

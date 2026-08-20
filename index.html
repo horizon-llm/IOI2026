@@ -106,6 +106,12 @@
   .figure svg{display:block;width:100%;height:auto}
   .figcap{font-size:12.5px;color:var(--ink2);line-height:1.55;margin-top:6px}
   .figcap b{color:var(--ink)}
+  /* HTML legend below a chart (kept out of the SVG so it never overlaps bars) */
+  .figlegend{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;
+    font-size:12px;color:var(--ink2);margin-top:8px}
+  .figlegend span{display:inline-flex;align-items:center;gap:6px}
+  .figlegend .lg-line{width:20px;height:0;border-top:2.5px solid var(--full)}
+  .figlegend .lg-bar{width:14px;height:11px;border-radius:2px;background:#c7c4bc}
   /* hover interactivity for the chart data points */
   .figure .hit{fill:transparent;cursor:pointer}
   .figure .dot,.figure .tdot circle{transition:r .12s}
@@ -903,7 +909,7 @@
 
     <div class="figure interactive">
       <svg viewBox="0 0 900 330" role="img"
-           aria-label="Contest score and average submissions as refinement proceeds round by round">
+           aria-label="Contest score and new submissions per subtask at each refinement round">
         <!-- hover column highlight (positioned by JS) -->
         <rect class="colhi" x="0" y="26" width="0" height="248" fill="var(--full)"
           fill-opacity="0" rx="3"/>
@@ -923,88 +929,89 @@
           <text x="50" y="216">250</text>
           <text x="50" y="278">200</text>
         </g>
-        <!-- right y labels: avg submissions per subtask (muted) -->
+        <!-- right y labels: trajectories still being sampled/refined, scale 0..50 -->
         <g fill="#9a988f" font-size="12" font-family="inherit" text-anchor="start">
-          <text x="850" y="30">36</text>
-          <text x="850" y="92">32</text>
-          <text x="850" y="154">28</text>
-          <text x="850" y="216">24</text>
-          <text x="850" y="278">20</text>
+          <text x="830" y="52">50</text>
+          <text x="830" y="97">40</text>
+          <text x="830" y="142">30</text>
+          <text x="830" y="187">20</text>
+          <text x="830" y="232">10</text>
+          <text x="830" y="278">0</text>
         </g>
-        <!-- gold-medal score threshold (361.12) -->
+        <!-- bars: trajectories still active (a sample is drawn) at each round.
+             All 50 seeds run R0; the pool shrinks as accepted chains drop out. -->
+        <g fill="#c7c4bc">
+          <rect x="92"  y="48.5"  width="36" height="225.5" rx="2"/>
+          <rect x="228" y="183.4" width="36" height="90.6"  rx="2"/>
+          <rect x="364" y="218.1" width="36" height="55.9"  rx="2"/>
+          <rect x="500" y="232.5" width="36" height="41.5"  rx="2"/>
+          <rect x="636" y="239.3" width="36" height="34.7"  rx="2"/>
+          <rect x="772" y="242.9" width="36" height="31.1"  rx="2"/>
+        </g>
+        <!-- value label atop each bar -->
+        <g fill="#7d7b73" font-size="11" font-weight="600" font-family="inherit" text-anchor="middle">
+          <text x="110" y="42">50</text>
+          <text x="246" y="177">20.1</text>
+          <text x="382" y="212">12.4</text>
+          <text x="518" y="226">9.2</text>
+          <text x="654" y="233">7.7</text>
+          <text x="790" y="237">6.9</text>
+        </g>
+        <!-- gold-medal score threshold (361.12); label sits mid-line in the
+             open band above the short R2..R5 bars, clear of the tall R0 bar. -->
         <line x1="60" y1="74.2" x2="840" y2="74.2" stroke="#c9a227"
           stroke-width="1.25" stroke-dasharray="4 4"/>
-        <image href="figs/gold-medal.png" x="64" y="55" width="22" height="22"/>
-        <text x="91" y="70" fill="#a8851d" font-size="11" font-weight="600"
+        <image href="figs/gold-medal.png" x="410" y="52" width="20" height="20"/>
+        <text x="434" y="67" fill="#a8851d" font-size="11" font-weight="600"
           font-family="inherit" text-anchor="start">gold medal · 361</text>
-        <!-- faint area under the score curve -->
-        <path d="M60,238.0 L216,91.7 L372,91.7 L528,91.7 L684,55.8 L840,55.8 L840,274 L60,274 Z"
-          fill="var(--full)" fill-opacity=".05"/>
 
-        <!-- avg submissions per subtask (right axis, dashed muted) -->
-        <polyline fill="none" stroke="#b6b3ab" stroke-width="2"
-          stroke-dasharray="6 4" stroke-linejoin="round" stroke-linecap="round"
-          points="60,209.4 216,144.0 372,123.2 528,109.5 684,98.5 840,88.8"/>
-        <g fill="#fff" stroke="#b6b3ab" stroke-width="2">
-          <circle class="dot" cx="60"  cy="209.4" r="3.5"/>
-          <circle class="dot" cx="216" cy="144.0" r="3.5"/>
-          <circle class="dot" cx="372" cy="123.2" r="3.5"/>
-          <circle class="dot" cx="528" cy="109.5" r="3.5"/>
-          <circle class="dot" cx="684" cy="98.5"  r="3.5"/>
-          <circle class="dot" cx="840" cy="88.8"  r="3.5"/>
-        </g>
-
-        <!-- refinement curve: contest score after capping at round R -->
+        <!-- contest-score curve after capping refinement at round R -->
         <polyline fill="none" stroke="var(--full)" stroke-width="2.5"
           stroke-linejoin="round" stroke-linecap="round"
-          points="60,238.0 216,91.7 372,91.7 528,91.7 684,55.8 840,55.8"/>
+          points="110,238.0 246,91.7 382,91.7 518,91.7 654,55.8 790,55.8"/>
         <g fill="var(--full)">
-          <circle class="dot" cx="60"  cy="238.0" r="4"/>
-          <circle class="dot" cx="216" cy="91.7"  r="4"/>
-          <circle class="dot" cx="372" cy="91.7"  r="4"/>
-          <circle class="dot" cx="528" cy="91.7"  r="4"/>
-          <circle class="dot" cx="684" cy="55.8"  r="4"/>
-          <circle class="dot" cx="840" cy="55.8"  r="4"/>
+          <circle class="dot" cx="110" cy="238.0" r="4"/>
+          <circle class="dot" cx="246" cy="91.7"  r="4"/>
+          <circle class="dot" cx="382" cy="91.7"  r="4"/>
+          <circle class="dot" cx="518" cy="91.7"  r="4"/>
+          <circle class="dot" cx="654" cy="55.8"  r="4"/>
+          <circle class="dot" cx="790" cy="55.8"  r="4"/>
         </g>
 
         <!-- interactive hit-targets: one per round, full column height. -->
         <g class="hits">
-          <rect class="hit" data-r="0" data-x="60"  data-score="229" data-subs="24.2" x="0"   y="26" width="138" height="248"/>
-          <rect class="hit" data-r="1" data-x="216" data-score="347" data-subs="28.4" x="138" y="26" width="156" height="248"/>
-          <rect class="hit" data-r="2" data-x="372" data-score="347" data-subs="29.7" x="294" y="26" width="156" height="248"/>
-          <rect class="hit" data-r="3" data-x="528" data-score="347" data-subs="30.6" x="450" y="26" width="156" height="248"/>
-          <rect class="hit" data-r="4" data-x="684" data-score="376" data-subs="31.3" x="606" y="26" width="156" height="248"/>
-          <rect class="hit" data-r="5" data-x="840" data-score="376" data-subs="32.0" x="762" y="26" width="138" height="248"/>
-        </g>
-
-        <!-- legend, tucked into the empty lower area -->
-        <g font-size="12.5" font-family="inherit">
-          <line x1="330" y1="240" x2="358" y2="240" stroke="var(--full)" stroke-width="2.5"/>
-          <text x="366" y="244" fill="var(--ink)">contest score</text>
-          <line x1="490" y1="240" x2="518" y2="240" stroke="#b6b3ab" stroke-width="2" stroke-dasharray="6 4"/>
-          <text x="526" y="244" fill="var(--ink2)">avg submissions</text>
+          <rect class="hit" data-r="0" data-x="110" data-score="229" data-sampled="50"   x="0"   y="26" width="178" height="248"/>
+          <rect class="hit" data-r="1" data-x="246" data-score="347" data-sampled="20.1" x="178" y="26" width="136" height="248"/>
+          <rect class="hit" data-r="2" data-x="382" data-score="347" data-sampled="12.4" x="314" y="26" width="136" height="248"/>
+          <rect class="hit" data-r="3" data-x="518" data-score="347" data-sampled="9.2"  x="450" y="26" width="136" height="248"/>
+          <rect class="hit" data-r="4" data-x="654" data-score="376" data-sampled="7.7"  x="586" y="26" width="136" height="248"/>
+          <rect class="hit" data-r="5" data-x="790" data-score="376" data-sampled="6.9"  x="722" y="26" width="178" height="248"/>
         </g>
 
         <!-- x labels: refinement round -->
         <g fill="#9a988f" font-size="12" font-family="inherit" text-anchor="middle">
-          <text x="60"  y="296">R0</text>
-          <text x="216" y="296">R1</text>
-          <text x="372" y="296">R2</text>
-          <text x="528" y="296">R3</text>
-          <text x="684" y="296">R4</text>
-          <text x="840" y="296">R5</text>
+          <text x="110" y="296">R0</text>
+          <text x="246" y="296">R1</text>
+          <text x="382" y="296">R2</text>
+          <text x="518" y="296">R3</text>
+          <text x="654" y="296">R4</text>
+          <text x="790" y="296">R5</text>
         </g>
         <!-- axis titles -->
-        <text x="450" y="320" fill="#7d7b73" font-size="12.5"
+        <text x="440" y="320" fill="#7d7b73" font-size="12.5"
           font-family="inherit" text-anchor="middle">refinement round</text>
         <text x="18" y="150" fill="var(--full)" font-size="12.5"
           font-family="inherit" text-anchor="middle"
           transform="rotate(-90 18 150)">contest score (/600)</text>
         <text x="884" y="150" fill="#7d7b73" font-size="12.5"
           font-family="inherit" text-anchor="middle"
-          transform="rotate(90 884 150)">avg submissions / subtask</text>
+          transform="rotate(90 884 150)">sampled rollout / subtask</text>
       </svg>
       <div class="figtip" id="figtip"></div>
+      <div class="figlegend">
+        <span><span class="lg-line"></span>contest score</span>
+        <span><span class="lg-bar"></span>sampled rollout / subtask</span>
+      </div>
       <div class="figcap" data-md="refinement-cap"><b>One round of refinement does most of the work.</b>
       Capping Arbiter-gated refinement at round <b>R</b>: score jumps
       <b>229 → 347</b> (clearing gold) from a single counterexample, reaching
@@ -2006,17 +2013,16 @@ wireFigure(document.querySelector('.teaser.interactive'), {
     `<div class="tt-row"><span class="sw" style="border-top-color:var(--ink3);border-top-style:dashed"></span>`+
     `<span class="tt-u">${(+hit.dataset.b).toFixed(2)}</span> no verifier</div>`,
 });
-// Results: score + submissions per refinement round.
+// Results: score curve + new-submissions bars per refinement round.
 (function(){
   const fig=document.querySelector('#refinement .figure');
   if(!fig) return;
-  const dots=[...fig.querySelectorAll('.dot')];   // 6 subs dots then 6 score dots
-  const XS=[52,180.8,309.6,438.4,567.2,696];
+  const dots=[...fig.querySelectorAll('.dot')];   // 6 score dots, one per round
   wireFigure(fig, {
-    tipY:hit=>{const r=+hit.dataset.r;return +dots[6+r].getAttribute('cy');},
+    tipY:hit=>{const r=+hit.dataset.r;return +dots[r].getAttribute('cy');},
     tip:hit=>{const r=+hit.dataset.r;return `<div class="tt-r">Round ${r}${r===0?' · seeds':''}</div>`+
       `<div class="tt-s">score ${hit.dataset.score} / 600</div>`+
-      `<div class="tt-u">${hit.dataset.subs} submissions / subtask</div>`;},
+      `<div class="tt-u">${hit.dataset.sampled} sampled rollouts / subtask</div>`;},
   });
 })();
 
