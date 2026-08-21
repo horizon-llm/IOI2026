@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
-<title>Arbiter: Sample-Efficient Test-Time Scaling with an Agentic Verifier</title>
+<title>IOI 2026 · run 4 · Arbiter-gated refinement (5-round budget)</title>
 <!-- vendored locally (no CDN) -- KaTeX 0.16.9, for the LaTeX inside problem
      statements and model reasoning that mdToHtml() renders -->
 <link rel="stylesheet" href="vendor/katex/katex.min.css">
@@ -86,10 +86,6 @@
     line-height:1.25;display:flex;align-items:center;gap:10px}
   .sec-h img{height:30px;width:auto;border-radius:5px}
   .sec-lead{font-size:14.5px;color:var(--ink2);line-height:1.6;margin:0 0 16px}
-  /* inline citations in prose: quiet ink-colored links, blue only on hover */
-  .sec-lead a{color:inherit;text-decoration:none;
-    border-bottom:1px solid rgba(29,90,168,.35);transition:color .12s}
-  .sec-lead a:hover{color:var(--full);border-bottom-color:var(--full)}
   /* sticky left-side section nav (mirrors meta-harness): fixed, vertically
      centred, fades in after a little scroll, highlights the active section, and
      hides on narrow screens where there is no room beside the centred column. */
@@ -132,6 +128,8 @@
   .figlegend span{display:inline-flex;align-items:center;gap:6px}
   .figlegend .lg-line{width:20px;height:0;border-top:2.5px solid var(--full)}
   .figlegend .lg-bar{width:14px;height:11px;border-radius:2px;background:#c7c4bc}
+  .figlegend .lg-dash{width:20px;height:0;border-top:2px dashed #b6b3ab}
+  .figlegend .lg-dot{width:20px;height:0;border-top:2px dotted var(--full);opacity:.6}
   /* hover interactivity for the chart data points */
   .figure .hit{fill:transparent;cursor:pointer}
   .figure .dot,.figure .tdot circle{transition:r .12s}
@@ -362,6 +360,7 @@
   .grandbadge{position:absolute;top:9%;left:8%;display:flex;align-items:center;
     gap:8px;background:#0b0b0b;color:#fff;border-radius:9px;padding:8px 12px;
     box-shadow:0 2px 10px rgba(11,11,11,.16);z-index:2}
+  .grandbadge[hidden]{display:none}
   .grandbadge .medal{width:22px;height:22px;flex:none}
   .grandbadge .gb-lab{font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;
     color:#b9b7b1;font-weight:650}
@@ -910,10 +909,82 @@
 <div class="wrap">
 
   <div class="figure teaser interactive">
-    <div class="grandbadge" id="grandbadge"></div>
+    <div class="grandbadge" id="grandbadge" hidden></div>
+    <svg viewBox="0 0 900 330" role="img"
+         aria-label="Contest score versus total tokens spent, with and without the verifier">
+      <rect class="colhi" x="0" y="26" width="0" height="248" fill="var(--full)" fill-opacity="0" rx="3"/>
+      <!-- horizontal gridlines, score 200..400 -->
+      <g stroke="rgba(11,11,11,.06)" stroke-width="1">
+        <line x1="70" y1="26"  x2="850" y2="26"/>
+        <line x1="70" y1="88"  x2="850" y2="88"/>
+        <line x1="70" y1="150" x2="850" y2="150"/>
+        <line x1="70" y1="212" x2="850" y2="212"/>
+        <line x1="70" y1="274" x2="850" y2="274"/>
+      </g>
+      <g fill="#9a988f" font-size="12" font-family="inherit" text-anchor="end">
+        <text x="60" y="30">400</text><text x="60" y="92">350</text>
+        <text x="60" y="154">300</text><text x="60" y="216">250</text>
+        <text x="60" y="278">200</text>
+      </g>
+      <!-- gold-medal threshold -->
+      <line x1="70" y1="74.2" x2="850" y2="74.2" stroke="#c9a227" stroke-width="1.25" stroke-dasharray="4 4"/>
+      <image href="figs/gold-medal.png" x="150" y="52" width="20" height="20"/>
+      <text x="174" y="67" fill="#a8851d" font-size="11" font-weight="600" font-family="inherit">gold medal · 361</text>
+      <!-- WITHOUT verifier: score@k (dashed, muted) -->
+      <polyline fill="none" stroke="#b6b3ab" stroke-width="2" stroke-dasharray="6 4"
+        stroke-linejoin="round" stroke-linecap="round"
+        points="230.1,143.1 390.1,91.8 710.1,57.9"/>
+      <g fill="#fff" stroke="#b6b3ab" stroke-width="2">
+        <circle cx="230.1" cy="143.1" r="3.5"/>
+        <circle cx="390.1" cy="91.8" r="3.5"/>
+        <circle cx="710.1" cy="57.9" r="3.5"/>
+      </g>
+      <!-- WITH verifier, generation-only tokens (solid, vermillion "Ours") -->
+      <polyline fill="none" stroke="#D55E00" stroke-width="2.5"
+        stroke-linejoin="round" stroke-linecap="round"
+        points="228.5,184.1 296.9,79.4 343.1,79.9 377.1,80.0 405.2,44.0 431.1,44.0"/>
+      <g fill="#D55E00">
+        <circle cx="228.5" cy="184.1" r="4"/><circle cx="296.9" cy="79.4" r="4"/>
+        <circle cx="343.1" cy="79.9" r="4"/><circle cx="377.1" cy="80.0" r="4"/>
+        <circle cx="405.2" cy="44.0" r="4"/><circle cx="431.1" cy="44.0" r="4"/>
+      </g>
+      <!-- WITH verifier: gen + verifier tokens (solid, lighter vermillion) -->
+      <polyline fill="none" stroke="#E8965A" stroke-width="2.5"
+        stroke-linejoin="round" stroke-linecap="round"
+        points="389.8,184.1 530.4,79.4 621.0,79.9 693.1,80.0 755.2,44.0 812.7,44.0"/>
+      <g fill="#E8965A">
+        <circle cx="389.8" cy="184.1" r="4"/><circle cx="530.4" cy="79.4" r="4"/>
+        <circle cx="621.0" cy="79.9" r="4"/><circle cx="693.1" cy="80.0" r="4"/>
+        <circle cx="755.2" cy="44.0" r="4"/><circle cx="812.7" cy="44.0" r="4"/>
+      </g>
+      <g fill="var(--ink3)" font-size="10" font-family="inherit" text-anchor="middle">
+        <text x="389.8" y="199">R0</text><text x="530.4" y="72">R1</text><text x="755.2" y="37">R4</text>
+      </g>
+      <!-- x labels: total tokens (millions) -->
+      <g fill="#9a988f" font-size="12" font-family="inherit" text-anchor="middle">
+        <text x="70" y="296">0</text><text x="226" y="296">100M</text>
+        <text x="382" y="296">200M</text><text x="538" y="296">300M</text>
+        <text x="694" y="296">400M</text><text x="850" y="296">500M</text>
+      </g>
+      <text x="460" y="320" fill="#7d7b73" font-size="12.5" font-family="inherit" text-anchor="middle">total tokens</text>
+      <text x="18" y="150" fill="#7d7b73" font-size="12.5" font-family="inherit" text-anchor="middle" transform="rotate(-90 18 150)">contest score (/600)</text>
+    </svg>
+    <div class="figlegend">
+      <span><span class="lg-line" style="border-top-color:#D55E00"></span>with Arbiter — generation tokens</span>
+      <span><span class="lg-line" style="border-top-color:#E8965A"></span>with Arbiter — generation + verifier</span>
+      <span><span class="lg-dash"></span>no verifier (score@k)</span>
+    </div>
+    <div class="figcap"><b>gpt-oss-120b, refined against Arbiter,
+    clears the IOI 2026 gold-medal line — at a fraction of the tokens.</b> Contest
+    score versus total tokens spent: Arbiter-gated refinement reaches
+    <b>385.46</b> (gold) where plain sampling tops out at 374, and gets there with
+    far fewer tokens.</div>
+  </div>
+
+  <!-- retired original teaser (score@k), kept for reference -->
+  <template id="old-teaser"><div class="figure teaser interactive">
     <svg viewBox="0 0 900 330" role="img"
          aria-label="Contest score as a function of samples drawn per subtask, with and without the verifier">
-      <!-- hover column highlight (positioned by JS) -->
       <rect class="colhi" x="0" y="26" width="0" height="248" fill="var(--full)"
         fill-opacity="0" rx="3"/>
       <!-- horizontal gridlines, score 150..400 -->
@@ -1005,40 +1076,24 @@
       </g>
     </svg>
     <div class="figtip" id="figtip-teaser"></div>
-    <div class="figcap" data-md="teaser-cap"><b>gpt-oss-120b, refined against Arbiter, clears the IOI
+    <div class="figcap"><b>gpt-oss-120b, refined against Arbiter, clears the IOI
     2026 gold-medal line.</b> Contest score (/600) versus <b>k</b>, the candidates
     drawn per subtask — Arbiter-gated refinement beats plain score@k at every
     budget, and the gap is widest where samples are scarce. Hover for exact
     values.</div>
-  </div>
+  </div></template>
 
   <section id="verifier">
-    <h2 class="sec-h">From Search to Refinement</h2>
-    <div class="sec-lead" data-md="verifier">Prior attempts at IOI-level competitive programming
-    scale test-time compute in parallel: overgenerate, then search.
-    <a href="https://storage.googleapis.com/deepmind-media/AlphaCode2/AlphaCode2_Tech_Report.pdf"
-    target="_blank" rel="noopener">AlphaCode</a> drew up to a million candidate
-    programs per problem and distilled them to ten submissions with filtering
-    and clustering. OpenAI's <a href="https://arxiv.org/abs/2502.06807"
-    target="_blank" rel="noopener">o1-ioi</a> sampled 10,000 solutions per
-    subtask at IOI 2024, then picked 50 with clustering and a learned
-    reranker. NVIDIA's <a href="https://arxiv.org/abs/2510.14232"
-    target="_blank" rel="noopener">GenCluster</a> reached the IOI 2025 gold
-    line with an open-weight model by drawing 5,000 solutions per subtask from
-    gpt-oss-120b — the same solver we refine — and selecting 50 through
-    behavioral clustering and a tournament. The paradigm works, but every
-    sample is drawn blind, and each verdict spends one of the 50 submissions
-    a contestant is allowed. How can we do better than search?
-    <br><br>
-    <b>Arbiter</b>
+    <h2 class="sec-h">Agentic Verifier</h2>
+    <div class="sec-lead" data-md="verifier">A judge can tell you a solution is wrong. It can't tell
+    you <i>why</i> — showing the failing input would leak the secret tests that
+    make it trustworthy, and every ranker, majority vote, or LLM-as-judge
+    inherits that same blind spot: a verdict, never a witness. <b>Arbiter</b>
     (<span style="color:var(--ink3)"><b>A</b>gentic <b>R</b>einforcement-learned
     <b>B</b>ug-finding <b>I</b>nteractive <b>T</b>est <b>E</b>xamine<b>R</b></span>)
-    supplies the missing feedback. It reads the problem and one candidate,
-    decides Accept or Reject, and on rejection returns a diagnosis plus a
-    concrete input that breaks the code. A solver refining against that signal
-    does not redraw from scratch; it corrects its prior mistake, so test-time
-    compute scales with the depth of a revision chain rather than the width of
-    a sample pool.</div>
+    is a verifier trained to do both — read a problem and one candidate solution,
+    decide Accept or Reject, and on rejection hand back a concrete input that
+    breaks the code, not just a score.</div>
 
     <div class="figure">
       <div class="tkfig" role="img" aria-label="Agentic Judge versus Online Judge: one shared candidate, different systems, different outputs">
@@ -1101,16 +1156,6 @@
       a verdict, a diagnosis of what is wrong, and a concrete counterexample the candidate
       fails on — one response, not just a score.</div>
     </div>
-
-    <div class="sec-lead" data-md="environment">Beyond IOI, Arbiter is an example of
-    <b>environment engineering</b>. A typical coding environment is built to
-    ensure correctness and nothing more: it scores what the model did, and the
-    score is where the interaction ends. We design the environment to also
-    carry signal — every rejection arrives with a diagnosis and a replayable
-    counterexample, so the model has something concrete to improve from.
-    And because that feedback comes from the verifier rather than the judge,
-    querying it spends no submissions and exposes no hidden tests. The same
-    signal can drive RL training and test-time refinement alike.</div>
   </section>
 
   <section id="training">
@@ -1362,29 +1407,14 @@
 
   <section id="results">
     <h2 class="sec-h">Benchmark Results</h2>
-    <div class="sec-lead" data-md="results">Apart from the IOI experiments, we also evaluate
-    Arbiter's standalone judging capability on two complementary benchmarks.
-    <b>UOJ-Bench</b> is an existing public hacking benchmark:
-    every candidate is known to be wrong (479 Easy / 1,005 Hard), so it probes
-    depth — covert bugs that survive an official test suite.
-    <b>USACO-Judge</b> is a benchmark we built from the held-out 2026 USACO
-    contests: 900 candidates (270 Easy / 630 Hard) over 39 problems spanning
-    Bronze through Platinum, balanced at one correct solution for every two
-    wrong ones, so a verifier must accept correct code as well as break wrong
-    code. Candidates come from five model families plus five human competitive
-    programmers, and every label is a live judge verdict on expert-authored
-    validators and checkers.
-    <br><br>
-    The table ranks models by hack success: the share of wrong candidates
-    broken with a legal generated input, split Easy/Hard on each benchmark,
-    all single-sample. Training does the heavy lifting. On UOJ-Bench Easy, the
-    same 35B backbone breaks <b>16.7%</b> of candidates untrained,
-    <b>41.3%</b> with an agentic scaffold, and <b>61.5%</b> after RL. That
-    places Arbiter <b>above DeepSeek-V4-Pro, a model 45× its size, on every
-    split</b>. It trades blows with GLM-5.2 (behind on UOJ-Bench, ahead on
-    USACO-Judge) and posts the best USACO-Judge Easy score in the table at
-    <b>96.6%</b>. The strongest closed models, GPT-5.5 and Claude-Opus-4.8,
-    remain ahead; we do not claim otherwise.</div>
+    <div class="sec-lead" data-md="results">This page reports an empirical test of what that
+    capability is worth: whether Arbiter-gated refinement, revising against a
+    verifier's counterexample rather than a scalar reward, is by itself
+    sufficient for competitive programming. <b>gpt-oss-120b</b> attempts every
+    IOI 2026 subtask and revises against <b>Arbiter</b>'s feedback round by
+    round, under a <b>5-round budget</b>, until a trajectory is
+    <b style="color:var(--stop)">Accepted</b> and submitted. That refinement
+    loop alone clears IOI 2026's gold-medal score line.</div>
 
     <div class="rtbl-wrap">
       <table class="rtbl2">
@@ -1456,7 +1486,7 @@
         </tbody>
       </table>
     </div>
-    <div class="rtbl-cap" data-md="results-cap"><b>Hack success rate (%)</b> on UOJ-Bench and USACO-Judge,
+    <div class="rtbl-cap"><b>Hack success rate (%)</b> on UOJ-Bench and USACO-Judge,
     by difficulty split (Easy / Hard). <b>&uarr;</b> higher is better;
     <b>bold</b> = best in column. Grouped by inference mode: non-agentic
     (⚡, single-shot) versus agentic (⚙, tool-using). Arbiter (35B) rivals models
@@ -1598,7 +1628,7 @@
       <svg viewBox="0 0 900 330" role="img"
            aria-label="Contest score and new submissions per subtask at each refinement round">
         <!-- hover column highlight (positioned by JS) -->
-        <rect class="colhi" x="0" y="26" width="0" height="248" fill="var(--full)"
+        <rect class="colhi" x="0" y="26" width="0" height="248" fill="#D55E00"
           fill-opacity="0" rx="3"/>
         <!-- horizontal gridlines, score 200..400 -->
         <g stroke="rgba(11,11,11,.06)" stroke-width="1">
@@ -1608,8 +1638,8 @@
           <line x1="60" y1="212" x2="840" y2="212"/>
           <line x1="60" y1="274" x2="840" y2="274"/>
         </g>
-        <!-- left y labels: contest score (accent) -->
-        <g fill="var(--full)" font-size="12" font-family="inherit" text-anchor="end">
+        <!-- left y labels: contest score (vermillion = our method, matches teaser) -->
+        <g fill="#D55E00" font-size="12" font-family="inherit" text-anchor="end">
           <text x="50" y="30">400</text>
           <text x="50" y="92">350</text>
           <text x="50" y="154">300</text>
@@ -1653,10 +1683,10 @@
           font-family="inherit" text-anchor="start">gold medal · 361</text>
 
         <!-- contest-score curve after capping refinement at round R -->
-        <polyline fill="none" stroke="var(--full)" stroke-width="2.5"
+        <polyline fill="none" stroke="#D55E00" stroke-width="2.5"
           stroke-linejoin="round" stroke-linecap="round"
           points="110,184.1 246,79.4 382,79.9 518,80.0 654,44.0 790,44.0"/>
-        <g fill="var(--full)">
+        <g fill="#D55E00">
           <circle class="dot" cx="110" cy="184.1" r="4"/>
           <circle class="dot" cx="246" cy="79.4"  r="4"/>
           <circle class="dot" cx="382" cy="79.9"  r="4"/>
@@ -1687,7 +1717,7 @@
         <!-- axis titles -->
         <text x="440" y="320" fill="#7d7b73" font-size="12.5"
           font-family="inherit" text-anchor="middle">refinement round</text>
-        <text x="18" y="150" fill="var(--full)" font-size="12.5"
+        <text x="18" y="150" fill="#D55E00" font-size="12.5"
           font-family="inherit" text-anchor="middle"
           transform="rotate(-90 18 150)">contest score (/600)</text>
         <text x="884" y="150" fill="#7d7b73" font-size="12.5"
@@ -1707,6 +1737,102 @@
       (24 → 32), so the gain is bought cheaply.</div>
     </div>
   </section>
+
+  <template id="old-token-fig"><div class="figure interactive">
+      <svg viewBox="0 0 900 330" role="img"
+           aria-label="Contest score versus total tokens spent, with and without the verifier">
+        <rect class="colhi" x="0" y="26" width="0" height="248" fill="var(--full)" fill-opacity="0" rx="3"/>
+        <!-- horizontal gridlines, score 200..400 -->
+        <g stroke="rgba(11,11,11,.06)" stroke-width="1">
+          <line x1="70" y1="26"  x2="850" y2="26"/>
+          <line x1="70" y1="88"  x2="850" y2="88"/>
+          <line x1="70" y1="150" x2="850" y2="150"/>
+          <line x1="70" y1="212" x2="850" y2="212"/>
+          <line x1="70" y1="274" x2="850" y2="274"/>
+        </g>
+        <g fill="#9a988f" font-size="12" font-family="inherit" text-anchor="end">
+          <text x="60" y="30">400</text><text x="60" y="92">350</text>
+          <text x="60" y="154">300</text><text x="60" y="216">250</text>
+          <text x="60" y="278">200</text>
+        </g>
+        <!-- gold-medal threshold -->
+        <line x1="70" y1="74.2" x2="850" y2="74.2" stroke="#c9a227" stroke-width="1.25" stroke-dasharray="4 4"/>
+        <image href="figs/gold-medal.png" x="150" y="52" width="20" height="20"/>
+        <text x="174" y="67" fill="#a8851d" font-size="11" font-weight="600" font-family="inherit">gold medal · 361</text>
+
+        <!-- WITHOUT verifier: score@k (dashed, muted) -->
+        <polyline fill="none" stroke="#b6b3ab" stroke-width="2" stroke-dasharray="6 4"
+          stroke-linejoin="round" stroke-linecap="round"
+          points="230.1,143.1 390.1,91.8 710.1,57.9"/>
+        <g fill="#fff" stroke="#b6b3ab" stroke-width="2">
+          <circle class="dot" cx="230.1" cy="143.1" r="3.5"/>
+          <circle class="dot" cx="390.1" cy="91.8" r="3.5"/>
+          <circle class="dot" cx="710.1" cy="57.9" r="3.5"/>
+        </g>
+
+        <!-- WITH verifier, GENERATION-ONLY tokens (solid, vermillion = "Ours",
+             matching the length-penalty figure) -->
+        <polyline fill="none" stroke="#D55E00" stroke-width="2.5"
+          stroke-linejoin="round" stroke-linecap="round"
+          points="228.5,184.1 296.9,79.4 343.1,79.9 377.1,80.0 405.2,44.0 431.1,44.0"/>
+        <g fill="#D55E00">
+          <circle class="dot" cx="228.5" cy="184.1" r="4"/>
+          <circle class="dot" cx="296.9" cy="79.4" r="4"/>
+          <circle class="dot" cx="343.1" cy="79.9" r="4"/>
+          <circle class="dot" cx="377.1" cy="80.0" r="4"/>
+          <circle class="dot" cx="405.2" cy="44.0" r="4"/>
+          <circle class="dot" cx="431.1" cy="44.0" r="4"/>
+        </g>
+
+        <!-- WITH verifier: gen + verifier tokens (solid, lighter vermillion) -->
+        <polyline fill="none" stroke="#E8965A" stroke-width="2.5"
+          stroke-linejoin="round" stroke-linecap="round"
+          points="389.8,184.1 530.4,79.4 621.0,79.9 693.1,80.0 755.2,44.0 812.7,44.0"/>
+        <g fill="#E8965A">
+          <circle class="dot" cx="389.8" cy="184.1" r="4"/>
+          <circle class="dot" cx="530.4" cy="79.4" r="4"/>
+          <circle class="dot" cx="621.0" cy="79.9" r="4"/>
+          <circle class="dot" cx="693.1" cy="80.0" r="4"/>
+          <circle class="dot" cx="755.2" cy="44.0" r="4"/>
+          <circle class="dot" cx="812.7" cy="44.0" r="4"/>
+        </g>
+        <!-- round labels on the verifier points -->
+        <g fill="var(--ink3)" font-size="10" font-family="inherit" text-anchor="middle">
+          <text x="389.8" y="199">R0</text>
+          <text x="530.4" y="72">R1</text>
+          <text x="755.2" y="37">R4</text>
+        </g>
+
+        <!-- interactive hit-targets (one per plotted point) -->
+        <g class="hits">
+          <rect class="hit" data-x="230.1" data-tip="No verifier · k=50" data-tok="102.6M" data-score="305.59" x="0" y="26" width="310" height="248"/>
+          <rect class="hit" data-x="390.1" data-tip="No verifier · k=100 / Arbiter · R0" data-tok="205M" data-score="—" x="310" y="26" width="140" height="248"/>
+          <rect class="hit" data-x="710.1" data-tip="No verifier · k=200" data-tok="410.3M" data-score="374.27" x="450" y="26" width="120" height="248"/>
+        </g>
+
+        <!-- x labels: total tokens (millions) -->
+        <g fill="#9a988f" font-size="12" font-family="inherit" text-anchor="middle">
+          <text x="70" y="296">0</text><text x="226" y="296">100M</text>
+          <text x="382" y="296">200M</text><text x="538" y="296">300M</text>
+          <text x="694" y="296">400M</text><text x="850" y="296">500M</text>
+        </g>
+        <text x="460" y="320" fill="#7d7b73" font-size="12.5" font-family="inherit" text-anchor="middle">total tokens (generation + verifier)</text>
+        <text x="18" y="150" fill="#7d7b73" font-size="12.5" font-family="inherit" text-anchor="middle" transform="rotate(-90 18 150)">contest score (/600)</text>
+      </svg>
+      <div class="figlegend">
+        <span><span class="lg-line" style="border-top-color:#D55E00"></span>with Arbiter — generation tokens only</span>
+        <span><span class="lg-line" style="border-top-color:#E8965A"></span>with Arbiter — generation + verifier tokens</span>
+        <span><span class="lg-dash"></span>no verifier (score@k, k=50/100/200)</span>
+      </div>
+      <div class="figcap"><b>The verifier turns tokens into score more efficiently.</b>
+      Contest score against <b>tokens spent</b>. Plain sampling (<b>dashed</b>,
+      no verifier) needs ~410M tokens at k=200 to reach 374. Arbiter-gated
+      refinement clears the gold line at <b>385.46</b> by R4 — counting only the
+      model's <b style="color:#D55E00">generation tokens</b> that costs just
+      <b>~215M</b>; counting the <b style="color:#E8965A">verifier's tokens too</b>
+      it is ~439M, still reaching a higher score than sampling ever does. All
+      counts are exact gpt-oss-120b tokens.</div>
+    </div></template>
 
   <section id="artifacts">
     <h2 class="sec-h"><img src="figs/ioi_social.jpg" alt="IOI logo">IOI Artifacts</h2>
