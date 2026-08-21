@@ -16,7 +16,7 @@
 Arbiter: Sample-Efficient Test-Time Scaling with an Agentic Verifier
 
 ## teaser-cap
-**gpt-oss-120b, refined against Arbiter, clears the IOI 2026 gold-medal line.** Contest score (/600) versus **k**, the candidates drawn per subtask — Arbiter-gated refinement beats plain score@k at every budget, and the gap is widest where samples are scarce. Hover for exact values.
+**gpt-oss-120b, refined against Arbiter, clears the IOI 2026 gold-medal line — at a fraction of the tokens.** Contest score versus total tokens spent: Arbiter-gated refinement reaches **385.46** (gold) where plain sampling tops out at 374, and gets there with far fewer tokens.
 
 ## verifier
 Prior attempts at IOI-level competitive programming scale test-time compute in parallel: overgenerate, then search. <a href="https://storage.googleapis.com/deepmind-media/AlphaCode2/AlphaCode2_Tech_Report.pdf" target="_blank" rel="noopener">AlphaCode</a> drew up to a million candidate programs per problem and distilled them to ten submissions with filtering and clustering. OpenAI's <a href="https://arxiv.org/abs/2502.06807" target="_blank" rel="noopener">o1-ioi</a> sampled 10,000 solutions per subtask at IOI 2024, then picked 50 with clustering and a learned reranker. NVIDIA's <a href="https://arxiv.org/abs/2510.14232" target="_blank" rel="noopener">GenCluster</a> reached the IOI 2025 gold line with an open-weight model by drawing 5,000 solutions per subtask from gpt-oss-120b — the same solver we refine — and selecting 50 through behavioral clustering and a tournament. The paradigm works the way gold panning works: scoop blind, sift everything, keep the rare fleck that glitters — while each verdict spends one of the 50 submissions a contestant is allowed. How can we do better than search?
