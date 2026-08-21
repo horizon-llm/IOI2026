@@ -1031,9 +1031,31 @@
 
   <section id="training">
     <h2 class="sec-h">Training Details</h2>
-    <div class="sec-lead" data-md="training">TODO: describe how Arbiter was trained — the base
-    model, the reinforcement-learning setup that rewards finding a valid
-    counterexample, the data it was trained on, and the compute budget.</div>
+    <div class="sec-lead" data-md="training"><b>Base model &amp; RL loop.</b> Arbiter is trained from <b>Qwen3.6-35B-A3B</b> with
+    <b>GRPO</b>-style group-normalized advantages in an asynchronous agentic-RL
+    loop. The verifier is trained in a sandbox environment with two tools
+    (<code>execute_code</code>, <code>execute_command</code>) and no judge
+    access. It can compile the candidate code solution and probe it on inputs
+    of its own devising, but must commit to a verdict on its own evidence.
+    Adjudication happens only after the episode ends, when the candidate is
+    re-hosted on a live judge and the submitted hack is replayed against it.
+    This keeps the training signal unmetered and leak-free.
+    <br><br>
+    <b>Training data.</b> We mine training data from a strong solver's RL
+    rollouts and sample it down to <b>20K submissions across 6,145
+    problems</b> under a score-stratified quota. The near-miss band (score
+    76–99) gets the largest share at <b>40%</b>, since a solution that fails a
+    single subtask cannot be broken by a careless input and forces the
+    verifier to actually read the code. Every label is a live judge verdict.
+    The pool is deduplicated by code content, capped per problem, and kept
+    disjoint from every evaluation problem, with a separate hard validation
+    set (100 problems, 400 candidates) to pick checkpoints.
+    <br><br>
+    <b>Reward design.</b> Every Arbiter output includes a verdict (AC/no-AC),
+    a diagnosis and a hack. Rewarding only the verdict makes the reward easily
+    gamable due to label imbalance, and the model quickly degenerates.
+    Rewarding the diagnosis is hard due to its free-form text nature. Thus our
+    reward heavily relies on the verifiability of the hack.</div>
 
     <div class="figure">
       <div class="rf-panel" id="rfPanel">
@@ -1126,6 +1148,19 @@
       <b>+0.10</b> bonus on top: Arbiter caught something the judge missed. The diagnosis is
       never itself rewarded — it can only cost, if it runs over 1000 tokens.</div>
     </div>
+
+    <div class="sec-lead" data-md="training-funnel">The reward is a
+    <b>layered funnel</b> built to make evidence cheaper to produce than to
+    fake. Three-quarters of it sits at the one step that cannot be faked: a
+    validator-legal input that actually breaks the candidate. Guessing
+    "rejected" and submitting garbage therefore caps an order of magnitude
+    below a verified break.
+    <br><br>
+    <b>Length penalty.</b> Late in training, responses balloon until episodes
+    die to timeouts rather than to wrong verdicts. The fix, adopted from Kimi
+    K2.5, is a length penalty applied in alternating phases against a relative
+    budget — the 75th percentile of length within each group's best-reward
+    tier. Under it, response length comes down while reward keeps rising.</div>
 
     <div class="figure" id="trainChartFig">
       <div class="figtip tr-tip-mini" id="trTip0"></div>
