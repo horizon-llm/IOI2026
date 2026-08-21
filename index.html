@@ -1043,7 +1043,7 @@
     a sample pool.</div>
 
     <div class="figure">
-      <div class="tkfig" role="img" aria-label="Agentic Judge versus Online Judge: one shared candidate, different systems, different outputs">
+      <div class="tkfig" role="img" aria-label="Agentic Verifier versus Online Judge: one shared candidate, different systems, different outputs">
         <div class="tk-inputs-row">
           <div class="tk-chip tk-in tk-clickable" data-comp="problem">Problem</div>
           <div class="tk-chip tk-in tk-clickable" data-comp="candidate">Candidate</div>
@@ -1055,7 +1055,7 @@
           <div class="tk-col" data-comp="agentic-path">
             <div class="tk-arrow tk-r1">&#8595;</div>
             <div class="tk-sys tk-agentic tk-r2" data-comp="agentic-judge">
-              <div class="tk-sys-h">Agentic Judge</div>
+              <div class="tk-sys-h">Agentic Verifier</div>
               <div class="tk-sub">
                 <span class="tk-subchip" data-comp="llm">LLM</span>
                 <span class="tk-subchip" data-comp="sandbox-a">Sandbox</span>
@@ -1096,7 +1096,7 @@
         </div>
       </div>
       <div class="figtip tk-tip" id="figtip-tkturn"></div>
-      <div class="figcap"><b>An agentic judge returns what an online judge cannot.</b> Both
+      <div class="figcap"><b>An agentic verifier returns what an online judge cannot.</b> Both
       systems take a candidate solution and run it; the online judge additionally needs the
       problem's official test data and checker, which are typically withheld, and returns
       only a verdict. Arbiter needs just the problem statement and the candidate, and returns
@@ -1364,8 +1364,8 @@
 
   <section id="results">
     <h2 class="sec-h">Benchmark Results</h2>
-    <div class="sec-lead" data-md="results">Apart from the IOI experiments, we also evaluate
-    Arbiter's standalone judging capability on two complementary benchmarks.
+    <div class="sec-lead" data-md="results">The IOI result above rests on Arbiter's judging
+    quality. We measure that capability directly on two complementary benchmarks.
     <b>UOJ-Bench</b> is an existing public hacking benchmark:
     every candidate is known to be wrong (479 Easy / 1,005 Hard), so it probes
     depth — covert bugs that survive an official test suite.
@@ -1712,7 +1712,7 @@
       </div>
       <div class="figcap" data-md="refinement-cap"><b>One round of refinement does most of the work.</b>
       Capping Arbiter-gated refinement at round <b>R</b>: score jumps
-      <b>272.49 → 356.91</b> from a single counterexample — most of the eventual
+      <b>272.49 → 356.91</b> from a single round of Arbiter feedback — most of the eventual
       gain, though not quite gold yet — then reaches <b>385.46</b> by R4, clearing
       gold, and holds there through R5. Judge submissions grow only gently
       (24 → 32), so the gain is bought cheaply.</div>
@@ -3123,7 +3123,7 @@ wireFigure(document.querySelector('.teaser.interactive'), {
     openD();
   }
   function openTrajectory(){
-    document.getElementById('dt').textContent=`Agentic Judge · One Real Trajectory`;
+    document.getElementById('dt').textContent=`Agentic Verifier · One Real Trajectory`;
     document.getElementById('dm').innerHTML=
       `<span><b>${TKTRAJ.events.length}</b> steps</span>`;
     const submitEv=TKTRAJ.events.find(e=>e.kind==='assistant'&&(e.tool_calls||[]).some(c=>c.name==='submit_hack'));
