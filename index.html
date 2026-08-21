@@ -1361,14 +1361,16 @@
     programmers, and every label is a live judge verdict on expert-authored
     validators and checkers.
     <br><br>
-    The table reports label accuracy (correct Accept/Reject) and hack success
-    (a generated input that legally breaks a wrong candidate), all
-    single-sample. Training does the heavy lifting: the same 35B backbone
-    scores <b>16.2</b> overall hack success untrained, <b>40.8</b> with an
-    agentic scaffold, and <b>63.7</b> after RL. That puts Arbiter <b>11.6
-    points above DeepSeek-V4-Pro, a model 45× its size</b>, and ahead of every
-    open-weight model except GLM-5.2. The strongest closed models, GPT-5.5 and
-    Claude-Opus-4.8, remain ahead; we do not claim otherwise.</div>
+    The table ranks models by hack success: the share of wrong candidates
+    broken with a legal generated input, split Easy/Hard on each benchmark,
+    all single-sample. Training does the heavy lifting. On UOJ-Bench Easy, the
+    same 35B backbone breaks <b>16.7%</b> of candidates untrained,
+    <b>41.3%</b> with an agentic scaffold, and <b>61.5%</b> after RL. That
+    places Arbiter <b>above DeepSeek-V4-Pro, a model 45× its size, on every
+    split</b>. It trades blows with GLM-5.2 (behind on UOJ-Bench, ahead on
+    USACO-Judge) and posts the best USACO-Judge Easy score in the table at
+    <b>96.6%</b>. The strongest closed models, GPT-5.5 and Claude-Opus-4.8,
+    remain ahead; we do not claim otherwise.</div>
 
     <div class="rtbl-wrap">
       <table class="rtbl2">
@@ -1440,7 +1442,7 @@
         </tbody>
       </table>
     </div>
-    <div class="rtbl-cap"><b>Hack success rate (%)</b> on UOJ-Bench and USACO-Judge,
+    <div class="rtbl-cap" data-md="results-cap"><b>Hack success rate (%)</b> on UOJ-Bench and USACO-Judge,
     by difficulty split (Easy / Hard). <b>&uarr;</b> higher is better;
     <b>bold</b> = best in column. Grouped by inference mode: non-agentic
     (⚡, single-shot) versus agentic (⚙, tool-using). Arbiter (35B) rivals models
