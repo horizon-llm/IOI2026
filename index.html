@@ -886,7 +886,7 @@
   <a href="#verifier">Agentic Verifier</a>
   <a href="#training">Training Details</a>
   <a href="#results">Benchmark Results</a>
-  <a href="#refinement">IOI Refinement</a>
+  <a href="#refinement">The Climb to IOI Gold</a>
   <a href="#artifacts">IOI Artifacts</a>
   <a href="#citation">BibTeX</a>
 </nav>
@@ -1026,16 +1026,18 @@
     target="_blank" rel="noopener">GenCluster</a> reached the IOI 2025 gold
     line with an open-weight model by drawing 5,000 solutions per subtask from
     gpt-oss-120b — the same solver we refine — and selecting 50 through
-    behavioral clustering and a tournament. The paradigm works, but every
-    sample is drawn blind, and each verdict spends one of the 50 submissions
-    a contestant is allowed. How can we do better than search?
+    behavioral clustering and a tournament. The paradigm works the way gold
+    panning works: scoop blind, sift everything, keep the rare fleck that
+    glitters — while each verdict spends one of the 50 submissions a
+    contestant is allowed. How can we do better than search?
     <br><br>
     <b>Arbiter</b>
     (<span style="color:var(--ink3)"><b>A</b>gentic <b>R</b>einforcement-learned
     <b>B</b>ug-finding <b>I</b>nteractive <b>T</b>est <b>E</b>xamine<b>R</b></span>)
-    supplies the missing feedback. It reads the problem and one candidate,
-    decides Accept or Reject, and on rejection returns a diagnosis plus a
-    concrete input that breaks the code. A solver refining against that signal
+    hands the solver a metal detector instead. It reads the problem and one
+    candidate, decides Accept or Reject, and on rejection returns a diagnosis
+    plus a concrete input that breaks the code — a bearing on where to dig
+    next. A solver refining against that signal
     does not redraw from scratch; it corrects its prior mistake, so test-time
     compute scales with the depth of a revision chain rather than the width of
     a sample pool.</div>
@@ -1108,7 +1110,7 @@
     score is where the interaction ends. We design the environment to also
     carry signal — every rejection arrives with a diagnosis and a replayable
     counterexample, so the model has something concrete to improve from.
-    And because that feedback comes from the verifier rather than the judge,
+    Because that feedback comes from the verifier rather than the judge,
     querying it spends no submissions and exposes no hidden tests. The same
     signal can drive RL training and test-time refinement alike.</div>
   </section>
@@ -1589,10 +1591,19 @@
   --></template>
 
   <section id="refinement">
-    <h2 class="sec-h">IOI Refinement</h2>
-    <div class="sec-lead" data-md="refinement">On IOI 2026 itself, gpt-oss-120b revises each candidate
-    against Arbiter's counterexample under a 5-round budget. Capping refinement
-    at round <b>R</b> shows how quickly the verifier's feedback pays off.</div>
+    <h2 class="sec-h">The Climb to IOI Gold</h2>
+    <div class="sec-lead" data-md="refinement">On IOI 2026 itself, <b>gpt-oss-120b</b> attempts every
+    subtask, drawing <b>50</b> seed solutions each. <b>Arbiter</b> reviews
+    every candidate. An <b style="color:var(--sub-ok)">Accepted</b> verdict
+    sends the program to the judge and retires its trajectory; a rejection
+    returns feedback that the solver revises against in the next round, under
+    a <b>5-round budget</b>. A trajectory that never earns an accept submits
+    its final revision instead. The verifier thus decides both what to fix and
+    when to stop. The climb is also cheap: where GenCluster drew <b>5,000</b>
+    solutions per subtask, refinement reaches gold on fewer than <b>100</b>
+    generations per subtask on average — less than two rounds of revision.
+    Capping refinement at round <b>R</b> shows how quickly the feedback pays
+    off.</div>
 
     <div class="figure interactive">
       <svg viewBox="0 0 900 330" role="img"
