@@ -48,6 +48,8 @@
     transition:border-color .12s,color .12s}
   .links a:hover{border-color:var(--full);color:var(--full)}
   .links a.disabled{opacity:.4;pointer-events:none}
+  /* small provider icon inside a text link (matches the plain button style) */
+  .links a .lk-ic{width:16px;height:16px;object-fit:contain}
   h1 img{height:44px;width:auto;border-radius:6px}
   .sub{color:var(--ink);font-size:14.5px;line-height:1.55;text-align:left}
   /* matches the paper's \author block: the two labs in superscript order,
@@ -345,11 +347,21 @@
   .teaser{margin:6px 0 30px}
   .teaser svg{display:block;width:100%;height:auto}
   .teaser .figcap{text-align:center;max-width:680px;margin:8px auto 0}
+  /* compact contest-total badge overlaid in the teaser's empty upper-left area */
+  .grandbadge{position:absolute;top:9%;left:8%;display:flex;align-items:center;
+    gap:8px;background:#0b0b0b;color:#fff;border-radius:9px;padding:8px 12px;
+    box-shadow:0 2px 10px rgba(11,11,11,.16);z-index:2}
+  .grandbadge .medal{width:22px;height:22px;flex:none}
+  .grandbadge .gb-lab{font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;
+    color:#b9b7b1;font-weight:650}
+  .grandbadge .gb-big{font-size:19px;font-weight:700;line-height:1.1;
+    font-variant-numeric:tabular-nums}
+  .grandbadge .gb-big span{font-size:11px;font-weight:400;color:#8a8884}
+  .grandbadge .gb-det{font-size:9.5px;color:#b9b7b1;margin-top:1px}
   /* results table, styled after the vals.ai leaderboard: clean rows with subtle
      zebra striping, a provider logo beside each model, roomy cells, grouped
      headers, and a highlighted "ours" row. */
-  .rtbl-wrap{margin:0 0 12px;overflow-x:auto;border:1px solid var(--line);
-    border-radius:12px;background:var(--panel)}
+  .rtbl-wrap{margin:0 40px 12px;overflow-x:auto}
   table.rtbl{border-collapse:collapse;font-size:12.5px;width:100%;
     font-variant-numeric:tabular-nums;color:var(--ink)}
   table.rtbl th,table.rtbl td{padding:9px 12px;text-align:center;white-space:nowrap}
@@ -381,8 +393,35 @@
   table.rtbl tr.ours{background:rgba(29,90,168,.08) !important;
     box-shadow:inset 3px 0 0 var(--full)}
   table.rtbl tr.ours .mdl{color:var(--full);font-weight:700}
-  .rtbl-cap{font-size:12.5px;color:var(--ink2);line-height:1.55;margin:10px 0 26px}
+  .rtbl-cap{font-size:12.5px;color:var(--ink2);line-height:1.55;margin:10px 40px 26px}
   .rtbl-cap b{color:var(--ink)}
+  /* clean flat results table in the meta-harness style: right-aligned numeric
+     columns, shaded serif-weight header, hover striping, accent "ours" row. */
+  table.rtbl2{width:100%;border-collapse:collapse;font-size:12.5px;line-height:1.4;
+    font-variant-numeric:lining-nums tabular-nums;color:var(--ink);table-layout:fixed}
+  /* the numeric columns are narrow and equal; the model column takes the rest */
+  table.rtbl2 col.num{width:11%}
+  table.rtbl2 th{font-weight:650;text-align:center;padding:7px 6px;
+    border-bottom:2px solid var(--ink);white-space:nowrap}
+  table.rtbl2 th.mdl,table.rtbl2 th:first-child{text-align:left;padding-left:14px}
+  /* Easy/Hard sub-header row: lighter, no heavy rule under the group names */
+  table.rtbl2 thead tr:first-child th:not(.mdl){border-bottom:1px solid var(--grid)}
+  table.rtbl2 thead tr.sub th{font-weight:500;color:var(--ink3);font-size:11px;
+    border-bottom:2px solid var(--ink);padding:3px 6px 7px}
+  table.rtbl2 td{text-align:center;padding:7px 6px;
+    border-bottom:1px solid var(--grid);white-space:nowrap}
+  table.rtbl2 td.mdl{text-align:left;font-weight:600;padding-left:14px;white-space:normal}
+  table.rtbl2 .mdl .m{display:inline-flex;align-items:center;gap:7px}
+  table.rtbl2 .mdl .m img{width:18px;height:18px;object-fit:contain;flex:none;border-radius:4px}
+  table.rtbl2 .mdl small{color:var(--ink3);font-weight:500}
+  table.rtbl2 tbody tr:not(.band):hover{background:#faf9f7}
+  table.rtbl2 b{font-weight:750;color:var(--full)}
+  table.rtbl2 .band td{background:#efeee9;font-weight:700;color:var(--ink2);
+    font-size:11px;letter-spacing:.05em;text-transform:uppercase;
+    text-align:left;padding:5px 14px}
+  table.rtbl2 tr.ours-best td{background:rgba(29,90,168,.08)}
+  table.rtbl2 tr.ours-best td:first-child{border-left:3px solid var(--full)}
+  table.rtbl2 tr.ours-best .mdl{color:var(--full);font-weight:750}
 
   /* headline: both days plus the combined 600-point total */
   /* Sits beside the title now, in the header's own blank right-hand space,
@@ -847,7 +886,7 @@
    </div>
    <div class="links">
      <a href="#" class="disabled">Paper</a>
-     <a href="#" class="disabled">Code</a>
+     <a href="https://huggingface.co/datasets/n-alignment/USACO-Judge" target="_blank" rel="noopener"><img class="lk-ic" src="figs/logos/hf-icon.svg" alt="">Benchmark Data</a>
      <a href="https://github.com/horizon-llm/IOI2026" target="_blank" rel="noopener">Artifact</a>
    </div>
   </div>
@@ -857,6 +896,7 @@
 <div class="wrap">
 
   <div class="figure teaser interactive">
+    <div class="grandbadge" id="grandbadge"></div>
     <svg viewBox="0 0 900 330" role="img"
          aria-label="Contest score as a function of samples drawn per subtask, with and without the verifier">
       <!-- hover column highlight (positioned by JS) -->
@@ -1318,6 +1358,83 @@
     loop alone clears IOI 2026's gold-medal score line.</div>
 
     <div class="rtbl-wrap">
+      <table class="rtbl2">
+        <colgroup>
+          <col><col class="num"><col class="num"><col class="num"><col class="num">
+        </colgroup>
+        <thead>
+          <tr>
+            <th class="mdl" rowspan="2">Model</th>
+            <th colspan="2">UOJ-Bench&thinsp;&uarr;</th>
+            <th colspan="2">USACO-Judge&thinsp;&uarr;</th>
+          </tr>
+          <tr class="sub">
+            <th>Easy</th><th>Hard</th>
+            <th>Easy</th><th>Hard</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="band"><td colspan="5">⚡ Non-agentic · single-shot</td></tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/logos/qwen.png" alt="">Qwen3.6-35B-A3B</span></td>
+            <td>16.7</td><td>10.9</td><td>32.0</td><td>21.7</td>
+          </tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/logos/openai.png" alt="">GPT-OSS-120B</span></td>
+            <td>29.1</td><td>20.1</td><td>33.9</td><td>36.8</td>
+          </tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/logos/deepseek.png" alt="">DeepSeek-V4-Flash-Preview</span></td>
+            <td>33.5</td><td>22.0</td><td>55.0</td><td>41.5</td>
+          </tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/logos/qwen.png" alt="">Qwen3.5-397B-A17B</span></td>
+            <td>41.7</td><td>30.8</td><td>77.3</td><td>58.9</td>
+          </tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/logos/kimi.png" alt="">Kimi-K2.5</span></td>
+            <td>46.8</td><td>31.0</td><td>70.6</td><td>57.2</td>
+          </tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/logos/deepseek.png" alt="">DeepSeek-V4-Pro-Preview</span></td>
+            <td>51.2</td><td>38.9</td><td>84.9</td><td>71.0</td>
+          </tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/logos/zai.png" alt="">GLM-5.2</span></td>
+            <td>65.3</td><td>57.3</td><td>91.2</td><td>79.0</td>
+          </tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/logos/claude.png" alt="">Claude-Opus-4.8</span></td>
+            <td>77.0</td><td>67.1</td><td><b>94.5</b></td><td>87.6</td>
+          </tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/logos/openai.png" alt="">GPT-5.5</span></td>
+            <td><b>78.7</b></td><td><b>77.0</b></td><td>90.7</td><td><b>92.0</b></td>
+          </tr>
+          <tr class="band"><td colspan="5">⚙ Agentic · tool-using</td></tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/logos/qwen.png" alt="">Qwen3.6-35B-A3B</span></td>
+            <td>41.3</td><td>31.5</td><td>79.4</td><td>45.9</td>
+          </tr>
+          <tr>
+            <td class="mdl"><span class="m"><img src="figs/logos/deepseek.png" alt="">DeepSeek-V4-Flash-Preview</span></td>
+            <td>56.4</td><td>49.4</td><td>92.8</td><td>65.3</td>
+          </tr>
+          <tr class="ours-best">
+            <td class="mdl"><span class="m"><img src="figs/logos/judgement.png" alt="">Arbiter <small>(Ours, 35B-A3B)</small></span></td>
+            <td>61.5</td><td>50.7</td><td><b>96.6</b></td><td>79.4</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="rtbl-cap"><b>Hack success rate (%)</b> on UOJ-Bench and USACO-Judge,
+    by difficulty split (Easy / Hard). <b>&uarr;</b> higher is better;
+    <b>bold</b> = best in column. Grouped by inference mode: non-agentic
+    (⚡, single-shot) versus agentic (⚙, tool-using). Arbiter (35B) rivals models
+    up to ~45× larger.</div>
+  </section>
+
+  <template id="old-rtbl"><!-- retired multi-column hack/label table, kept for reference
       <table class="rtbl">
         <thead>
           <tr class="groups">
@@ -1342,7 +1459,7 @@
         <tbody>
           <tr class="band"><td colspan="10">⚡ Non-agentic · single-shot</td></tr>
           <tr>
-            <td class="mdl"><span class="m"><img src="figs/models/qwen.png" alt="">Qwen3.6-35B-A3B</span></td>
+            <td class="mdl"><span class="m"><img src="figs/logos/qwen.png" alt="">Qwen3.6-35B-A3B</span></td>
             <td class="sepd">86.85</td><td>87.56</td>
             <td class="sep">16.70</td><td>10.85</td>
             <td class="sepd">66.42</td><td>64.55</td>
@@ -1350,7 +1467,7 @@
             <td class="sepd">16.20</td>
           </tr>
           <tr>
-            <td class="mdl"><span class="m"><img src="figs/models/openai.png" alt="">GPT-OSS-120B</span></td>
+            <td class="mdl"><span class="m"><img src="figs/logos/openai.png" alt="">GPT-OSS-120B</span></td>
             <td class="sepd">79.12</td><td>77.05</td>
             <td class="sep">29.09</td><td>20.07</td>
             <td class="sepd">60.74</td><td>66.88</td>
@@ -1358,7 +1475,7 @@
             <td class="sepd">26.72</td>
           </tr>
           <tr>
-            <td class="mdl"><span class="m"><img src="figs/models/deepseek.png" alt="">DeepSeek-V4-Flash-Preview</span></td>
+            <td class="mdl"><span class="m"><img src="figs/logos/deepseek.png" alt="">DeepSeek-V4-Flash-Preview</span></td>
             <td class="sepd">73.49</td><td>73.08</td>
             <td class="sep">33.49</td><td>22.03</td>
             <td class="sepd">74.89</td><td>68.64</td>
@@ -1366,7 +1483,7 @@
             <td class="sepd">31.44</td>
           </tr>
           <tr>
-            <td class="mdl"><span class="m"><img src="figs/models/qwen.png" alt="">Qwen3.5-397B-A17B</span></td>
+            <td class="mdl"><span class="m"><img src="figs/logos/qwen.png" alt="">Qwen3.5-397B-A17B</span></td>
             <td class="sepd"><u>88.87</u></td><td><u>88.33</u></td>
             <td class="sep">41.68</td><td>30.78</td>
             <td class="sepd">85.31</td><td>74.23</td>
@@ -1374,7 +1491,7 @@
             <td class="sepd">42.97</td>
           </tr>
           <tr>
-            <td class="mdl"><span class="m"><img src="figs/models/zhipu.png" alt="">GLM-5.2</span></td>
+            <td class="mdl"><span class="m"><img src="figs/logos/zai.png" alt="">GLM-5.2</span></td>
             <td class="sepd">80.17</td><td>76.77</td>
             <td class="sep">65.34</td><td>57.33</td>
             <td class="sepd">94.07</td><td>80.63</td>
@@ -1382,7 +1499,7 @@
             <td class="sepd">66.47</td>
           </tr>
           <tr>
-            <td class="mdl"><span class="m"><img src="figs/models/kimi.png" alt="">Kimi-K2.5</span></td>
+            <td class="mdl"><span class="m"><img src="figs/logos/kimi.png" alt="">Kimi-K2.5</span></td>
             <td class="sepd">72.44</td><td>68.66</td>
             <td class="sep">46.76</td><td>30.95</td>
             <td class="sepd">83.33</td><td>72.86</td>
@@ -1390,7 +1507,7 @@
             <td class="sepd">43.30</td>
           </tr>
           <tr>
-            <td class="mdl"><span class="m"><img src="figs/models/deepseek.png" alt="">DeepSeek-V4-Pro-Preview</span></td>
+            <td class="mdl"><span class="m"><img src="figs/logos/deepseek.png" alt="">DeepSeek-V4-Pro-Preview</span></td>
             <td class="sepd">76.06</td><td>75.45</td>
             <td class="sep">51.15</td><td>38.94</td>
             <td class="sepd">90.74</td><td>82.86</td>
@@ -1398,7 +1515,7 @@
             <td class="sepd">52.16</td>
           </tr>
           <tr>
-            <td class="mdl"><span class="m"><img src="figs/models/claude.png" alt="">Claude-Opus-4.8</span></td>
+            <td class="mdl"><span class="m"><img src="figs/logos/claude.png" alt="">Claude-Opus-4.8</span></td>
             <td class="sepd">84.97</td><td>75.72</td>
             <td class="sep"><u>77.04</u></td><td><u>67.06</u></td>
             <td class="sepd"><b><u>94.81</u></b></td><td>82.38</td>
@@ -1406,7 +1523,7 @@
             <td class="sepd"><u>75.86</u></td>
           </tr>
           <tr>
-            <td class="mdl"><span class="m"><img src="figs/models/openai.png" alt="">GPT-5.5</span></td>
+            <td class="mdl"><span class="m"><img src="figs/logos/openai.png" alt="">GPT-5.5</span></td>
             <td class="sepd"><b>91.86</b></td><td><b>89.85</b></td>
             <td class="sep"><b>78.71</b></td><td><b>77.01</b></td>
             <td class="sepd"><b>94.44</b></td><td><b>90.79</b></td>
@@ -1415,7 +1532,7 @@
           </tr>
           <tr class="band"><td colspan="10">⚙ Agentic · tool-using</td></tr>
           <tr>
-            <td class="mdl"><span class="m"><img src="figs/models/qwen.png" alt="">Qwen3.6-35B-A3B</span></td>
+            <td class="mdl"><span class="m"><img src="figs/logos/qwen.png" alt="">Qwen3.6-35B-A3B</span></td>
             <td class="sepd">71.82</td><td>67.43</td>
             <td class="sep">41.34</td><td>31.47</td>
             <td class="sepd">85.56</td><td>65.34</td>
@@ -1423,7 +1540,7 @@
             <td class="sepd">40.79</td>
           </tr>
           <tr>
-            <td class="mdl"><span class="m"><img src="figs/models/deepseek.png" alt="">DeepSeek-V4-Flash-Preview</span></td>
+            <td class="mdl"><span class="m"><img src="figs/logos/deepseek.png" alt="">DeepSeek-V4-Flash-Preview</span></td>
             <td class="sepd">65.55</td><td>63.18</td>
             <td class="sep">56.37</td><td><b>49.35</b></td>
             <td class="sepd"><b>96.30</b></td><td>77.62</td>
@@ -1440,13 +1557,7 @@
           </tr>
         </tbody>
       </table>
-    </div>
-    <div class="rtbl-cap" data-md="results-cap"><b>Results on UOJ-Bench (Hacking) and USACO-Judge</b>,
-    reported by difficulty split (Easy / Hard) and grouped by inference mode:
-    non-agentic (⚡, single-shot) versus agentic (⚙, tool-using). <b>Bold</b> =
-    best in column, <u>underline</u> = runner-up. Arbiter (35B) matches or beats
-    models up to ~45× larger.</div>
-  </section>
+  --></template>
 
   <section id="refinement">
     <h2 class="sec-h">IOI Refinement</h2>
@@ -1939,12 +2050,16 @@ function render(){
     grand+=s.tot; gsolved+=s.ns; gtotal+=s.nt;
   });
   const grandDisp=Number.isInteger(grand)?grand.toFixed(0):grand.toFixed(2);
-  // Contest-total badge now leads the Day 1 / Day 2 grid instead of sitting up
-  // under the authors, so it reads as the header of the artifacts scoreboard.
   document.getElementById('top').innerHTML='';
-  const grandCard=`<div class="card grand"><div class="lab">Contest total</div>
-      <div class="big"><img class="medal" src="figs/gold-medal.png" alt="gold medal">${grandDisp}<small>/${days.length*300}</small></div>
-      <div class="det">${gsolved}/${gtotal} subtasks · Rank 17</div></div>`;
+  // Contest-total badge is a compact overlay in the teaser figure's empty
+  // upper-left area (see #grandbadge); fill it here so the number stays
+  // data-driven. Not shown above the day grid anymore.
+  const gb=document.getElementById('grandbadge');
+  if(gb) gb.innerHTML=`<img class="medal" src="figs/gold-medal.png" alt="gold medal">`+
+    `<div><div class="gb-lab">Contest total</div>`+
+    `<div class="gb-big">${grandDisp}<span>/${days.length*300}</span></div>`+
+    `<div class="gb-det">${gsolved}/${gtotal} subtasks · Rank 17</div></div>`;
+  const grandCard='';
 
   // Each day is a self-contained column (its header + its own problems), so it
   // collapses cleanly to a single stack on a narrow screen instead of
