@@ -161,8 +161,11 @@
      actual grid items, placed by column via data-comp and by row via .tk-rN. */
   .tk-inputs-row{display:flex;gap:8px;justify-content:center;width:100%;
     max-width:786px;margin:0 auto}
+  /* stretch, not start: the agentic judge box carries the extra turn-beat row
+     and would otherwise stand taller than the online judge beside it. Letting
+     both fill their shared grid row makes the two systems the same height. */
   .tk-cols{display:grid;grid-template-columns:1fr 1fr;column-gap:26px;
-    align-items:start;width:100%;max-width:786px;margin:0 auto}
+    align-items:stretch;width:100%;max-width:786px;margin:0 auto}
   .tk-col{display:contents}
   .tk-col[data-comp="agentic-path"]>*{grid-column:1}
   .tk-col[data-comp="online-path"]>*{grid-column:2}
@@ -174,6 +177,20 @@
     margin:3px 0 0}
   .tk-arrow{color:#c6c3bc;font-size:13px;line-height:1;text-align:center;
     height:16px;margin-top:2px}
+  /* circled index on each input chip, and the matching set repeated on each
+     system's inbound arrow -- says which inputs feed which system without
+     drawing crossing connector lines. Candidate is the shared one, so it
+     appears on both arrows. */
+  .tk-num{margin-right:4px;font-weight:700;opacity:.75}
+  /* only the inbound (row-1) arrows carry the feed badge, and it sits stacked
+     above the arrow rather than beside it -- so the row grows taller than the
+     bare 16px arrow row further down. */
+  .tk-arrow.tk-r1{height:auto;display:flex;flex-direction:column;
+    align-items:center;gap:1px}
+  .tk-feeds{display:block;font-size:11px;font-weight:700;letter-spacing:.5px;
+    line-height:1.2}
+  .tk-feeds-a{color:#b96f00}
+  .tk-feeds-o{color:#6b6459}
   .tk-chip{flex:1;border:1.3px solid;border-radius:6px;padding:6px 8px;
     font-size:11px;font-weight:650;text-align:center;background:#fff;
     cursor:default;transition:box-shadow .12s,transform .12s}
@@ -181,8 +198,11 @@
   .tk-chip.tk-in{border-color:#8E8375;color:#5b544a;background:rgba(142,131,117,.06)}
   .tk-chip.tk-held{border-color:#8E8375;color:#8E8375;background:#fff;
     border-style:dashed}
+  /* flex column so the shorter box (online judge) centres its content
+     vertically once it is stretched to the taller box's height */
   .tk-sys{border:1.6px solid;border-radius:5px;padding:8px 10px 9px;
-    text-align:center;cursor:default;transition:box-shadow .12s}
+    text-align:center;cursor:default;transition:box-shadow .12s;
+    display:flex;flex-direction:column;justify-content:center}
   .tk-sys:hover{box-shadow:0 2px 10px rgba(11,11,11,.10)}
   /* problem / candidate / the whole judge box open the drawer on click --
      every chip already lifts on hover regardless of whether it's clickable,
@@ -191,19 +211,72 @@
      the hover shadow, echoing the "opens something" convention of an
      external-link icon; :hover also strengthens the boundary itself so the
      whole shape reads as a button, not just a label. */
+  /* ---- attention cues ----------------------------------------------------
+     Static affordances (the badge, the dotted underline) only work on an
+     element the reader is already looking at; they cannot pull a first glance.
+     Two cues, both armed when the figure first scrolls into view:
+       .tk-cue-in  ONE slow breath on the clickable boxes, then the class is
+                   dropped -- a repeating glow on a box reads as a strobe;
+       .tk-cue     a highlight that keeps walking the turn beats left to right,
+                   which doubles as a hint that the row is an ordered
+                   trajectory. Long cycle, short lit window, so it sweeps every
+                   few seconds instead of blinking.
+     Every animated property is also written by :hover, so hovering has to stand
+     the animation down or the hover feedback would lose to the keyframe.
+     Skipped entirely under reduced-motion. */
+  @keyframes tkPulse{
+    0%,100%{box-shadow:0 0 0 0 rgba(29,90,168,0)}
+    45%{box-shadow:0 0 0 4px rgba(29,90,168,.22)}
+  }
+  @keyframes tkGlyph{0%,100%{transform:scale(1)}
+    45%{transform:scale(1.28);box-shadow:0 1px 5px rgba(29,90,168,.45)}}
+  @keyframes tkWalk{
+    0%,14%,100%{background:#fff;box-shadow:0 0 0 0 rgba(255,153,0,0);transform:none}
+    6%{background:rgba(255,153,0,.20);
+       box-shadow:0 2px 9px rgba(255,153,0,.35);transform:translateY(-2px)}
+  }
+  .tk-cue-in .tk-clickable{animation:tkPulse 1.6s ease-in-out 1}
+  .tk-cue-in .tk-chip.tk-clickable::after,
+  .tk-cue-in .tk-sys.tk-clickable .tk-sys-h::after{animation:tkGlyph 1.6s ease-in-out 1}
+  .tk-cue .tk-turn{animation:tkWalk 3.2s ease-in-out infinite}
+  .tk-cue-in .tk-clickable:hover,
+  .tk-cue-in .tk-chip.tk-clickable:hover::after,
+  .tk-cue-in .tk-sys.tk-clickable:hover .tk-sys-h::after,
+  .tk-cue .tk-turns:hover .tk-turn{animation:none}
+  @media (prefers-reduced-motion:reduce){
+    .tk-cue-in .tk-clickable,.tk-cue .tk-turn,
+    .tk-cue-in .tk-chip.tk-clickable::after,
+    .tk-cue-in .tk-sys.tk-clickable .tk-sys-h::after{animation:none}
+  }
   .tk-clickable{cursor:pointer}
-  .tk-chip.tk-clickable::after{content:'\2197';margin-left:4px;font-size:9px;
-    color:#8E8375;opacity:.5;transition:opacity .12s,color .12s}
+  /* The open-affordance is a filled round badge, not a bare glyph: at 9px and
+     50% opacity the arrow read as typographic decoration. Solid fill + white
+     arrow reads as a control you press. Rest colours are the darker end of
+     each box's own family (not the light accent) so white stays legible on
+     them; both go to the page's link blue on hover. */
+  /* Centre the badge against its label with flex rather than nudging it by a
+     magic vertical-align: an inline-block's baseline is its own last line box,
+     which never lines up with the neighbouring text and left the circle riding
+     low. As flex items both are centred by the browser at any font size. */
+  .tk-chip.tk-clickable{display:flex;align-items:center;justify-content:center;gap:5px}
+  .tk-sys.tk-clickable .tk-sys-h{display:flex;align-items:center;
+    justify-content:center;gap:6px}
+  .tk-chip.tk-clickable::after,
+  .tk-sys.tk-clickable .tk-sys-h::after{content:'\2197';flex:none;
+    border-radius:50%;text-align:center;color:#fff;font-weight:700;
+    transition:background .12s,transform .12s,box-shadow .12s}
+  .tk-chip.tk-clickable::after{width:13px;height:13px;line-height:13px;
+    font-size:8.5px;background:#8E8375}
+  .tk-sys.tk-clickable .tk-sys-h::after{width:15px;height:15px;line-height:15px;
+    font-size:9.5px;background:#b96f00}
   .tk-chip.tk-clickable:hover{box-shadow:0 2px 8px rgba(29,90,168,.22);
     border-color:#1d5aa8}
-  .tk-chip.tk-clickable:hover::after{opacity:1;color:#1d5aa8}
   .tk-sys.tk-clickable{border-style:solid}
-  .tk-sys.tk-clickable .tk-sys-h::after{content:'\2197';margin-left:5px;
-    font-size:10.5px;font-weight:400;color:#b96f00;opacity:.5;
-    transition:opacity .12s}
   .tk-sys.tk-clickable:hover{box-shadow:0 2px 12px rgba(29,90,168,.20);
     border-color:#1d5aa8}
-  .tk-sys.tk-clickable:hover .tk-sys-h::after{opacity:1}
+  .tk-chip.tk-clickable:hover::after,
+  .tk-sys.tk-clickable:hover .tk-sys-h::after{background:#1d5aa8;
+    transform:translateY(-1px);box-shadow:0 1px 4px rgba(29,90,168,.4)}
   /* turn beats and the 4 real output tags are hover-only (a tooltip, not a
      drawer) -- a dotted underline is the standard "hover for detail" cue,
      deliberately different from the clickable arrow above so the two kinds
@@ -339,6 +412,23 @@
   .rf-wire-label{transition:opacity .16s}
   .rf-dim{opacity:.16}
   .rf-wire.rf-active{stroke:#3a3934;stroke-width:1.8}
+  /* Training-pool alluvial: sampling score band (left) -> judge verdict
+     (right). Ribbon thickness is exactly proportional to count -- nothing is
+     floored, so the thin bands stay honestly thin. */
+  .td-hdr text{font-size:11.5px;font-weight:700;fill:var(--ink2)}
+  .td-lbl text{font-size:12px;fill:var(--ink);
+    font-variant-numeric:tabular-nums;transition:opacity .13s}
+  .td-lbl .td-pct{font-size:10.5px;fill:var(--ink3)}
+  .td-rib{opacity:.58;cursor:pointer;transition:opacity .13s}
+  .td-post{fill:#c7c4bc;cursor:pointer;transition:opacity .13s}
+  #tdFig.td-dim .td-rib{opacity:.09}
+  #tdFig.td-dim .td-rib.td-hi{opacity:.9}
+  #tdFig.td-dim .td-post{opacity:.2}
+  #tdFig.td-dim .td-post.td-hi{opacity:1}
+  #tdFig.td-dim .td-lbl text{opacity:.25}
+  #tdFig.td-dim .td-lbl text.td-hi{opacity:1}
+  .figtip.td-tip .tt-td-h{font-weight:700;margin-bottom:2px}
+  .figtip.td-tip .tt-td-n{color:var(--ink2)}
   .figtip{position:absolute;pointer-events:none;opacity:0;z-index:3;
     background:var(--panel);border:1px solid var(--line);border-radius:7px;
     box-shadow:0 3px 12px rgba(11,11,11,.14);padding:8px 11px;font-size:11.5px;
@@ -822,6 +912,10 @@
     border-radius:6px;font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;
     white-space:pre-wrap;word-break:break-word;max-height:340px;overflow:auto;
     color:#26251f}
+  /* A drawer panel whose whole point IS the program (the Candidate view)
+     shows it in full -- the 340px cap above exists for the trajectory
+     drawer's multi-KB tool dumps, not for a 43-line submission. */
+  .db-nofold pre{max-height:none}
   pre.reason{background:#fbfaf8;color:var(--ink2)}
   pre.res{background:#f6f8f4;border-color:#dfe6d9}
   pre.code{background:#f6f7f4;border-color:#dfe0d9}
@@ -885,7 +979,7 @@
   <a href="#verifier">Agentic Verifier</a>
   <a href="#training">Training Details</a>
   <a href="#results">Benchmark Results</a>
-  <a href="#refinement">IOI Refinement</a>
+  <a href="#refinement">The Climb to IOI Gold</a>
   <a href="#artifacts">IOI Artifacts</a>
   <a href="#citation">BibTeX</a>
 </nav>
@@ -942,18 +1036,18 @@
       <!-- WITH verifier, generation-only tokens (solid, vermillion "Ours") -->
       <polyline fill="none" stroke="#D55E00" stroke-width="2.5"
         stroke-linejoin="round" stroke-linecap="round"
-        points="228.5,184.1 296.9,79.4 343.1,79.9 377.1,80.0 405.2,44.0 431.1,44.0"/>
+        points="228.5,223.8 296.9,79.4 343.1,79.9 377.1,80.0 405.2,44.0 431.1,44.0"/>
       <g fill="#D55E00">
-        <circle cx="228.5" cy="184.1" r="4"/><circle cx="296.9" cy="79.4" r="4"/>
+        <circle cx="228.5" cy="223.8" r="4"/><circle cx="296.9" cy="79.4" r="4"/>
         <circle cx="343.1" cy="79.9" r="4"/><circle cx="377.1" cy="80.0" r="4"/>
         <circle cx="405.2" cy="44.0" r="4"/><circle cx="431.1" cy="44.0" r="4"/>
       </g>
       <!-- WITH verifier: gen + verifier tokens (solid, lighter vermillion) -->
       <polyline fill="none" stroke="#E8965A" stroke-width="2.5"
         stroke-linejoin="round" stroke-linecap="round"
-        points="389.8,184.1 530.4,79.4 621.0,79.9 693.1,80.0 755.2,44.0 812.7,44.0"/>
+        points="389.8,223.8 530.4,79.4 621.0,79.9 693.1,80.0 755.2,44.0 812.7,44.0"/>
       <g fill="#E8965A">
-        <circle cx="389.8" cy="184.1" r="4"/><circle cx="530.4" cy="79.4" r="4"/>
+        <circle cx="389.8" cy="223.8" r="4"/><circle cx="530.4" cy="79.4" r="4"/>
         <circle cx="621.0" cy="79.9" r="4"/><circle cx="693.1" cy="80.0" r="4"/>
         <circle cx="755.2" cy="44.0" r="4"/><circle cx="812.7" cy="44.0" r="4"/>
       </g>
@@ -1084,31 +1178,49 @@
   </div></template>
 
   <section id="verifier">
-    <h2 class="sec-h">Agentic Verifier</h2>
-    <div class="sec-lead" data-md="verifier">A judge can tell you a solution is wrong. It can't tell
-    you <i>why</i> — showing the failing input would leak the secret tests that
-    make it trustworthy, and every ranker, majority vote, or LLM-as-judge
-    inherits that same blind spot: a verdict, never a witness. <b>Arbiter</b>
+    <h2 class="sec-h">From Search to Refinement</h2>
+    <div class="sec-lead" data-md="verifier">Prior attempts at IOI-level competitive programming
+    scale test-time compute in parallel: overgenerate, then search.
+    <a href="https://storage.googleapis.com/deepmind-media/AlphaCode2/AlphaCode2_Tech_Report.pdf"
+    target="_blank" rel="noopener">AlphaCode</a> drew up to a million candidate
+    programs per problem and distilled them to ten submissions with filtering
+    and clustering. OpenAI's <a href="https://arxiv.org/abs/2502.06807"
+    target="_blank" rel="noopener">o1-ioi</a> sampled 10,000 solutions per
+    subtask at IOI 2024, then picked 50 with clustering and a learned
+    reranker. NVIDIA's <a href="https://arxiv.org/abs/2510.14232"
+    target="_blank" rel="noopener">GenCluster</a> reached the IOI 2025 gold
+    line with an open-weight model by drawing 5,000 solutions per subtask from
+    gpt-oss-120b — the same solver we refine — and selecting 50 through
+    behavioral clustering and a tournament. The paradigm works the way gold
+    panning works: scoop blind, sift everything, keep the rare fleck that
+    glitters — while each verdict spends one of the 50 submissions a
+    contestant is allowed. How can we do better than search?
+    <br><br>
+    <b>Arbiter</b>
     (<span style="color:var(--ink3)"><b>A</b>gentic <b>R</b>einforcement-learned
     <b>B</b>ug-finding <b>I</b>nteractive <b>T</b>est <b>E</b>xamine<b>R</b></span>)
-    is a verifier trained to do both — read a problem and one candidate solution,
-    decide Accept or Reject, and on rejection hand back a concrete input that
-    breaks the code, not just a score.</div>
+    hands the solver a metal detector instead. It reads the problem and one
+    candidate, decides Accept or Reject, and on rejection returns a diagnosis
+    plus a concrete input that breaks the code — a bearing on where to dig
+    next. A solver refining against that signal
+    does not redraw from scratch; it corrects its prior mistake, so test-time
+    compute scales with the depth of a revision chain rather than the width of
+    a sample pool.</div>
 
     <div class="figure">
-      <div class="tkfig" role="img" aria-label="Agentic Judge versus Online Judge: one shared candidate, different systems, different outputs">
+      <div class="tkfig" role="img" aria-label="Agentic Verifier versus Online Judge: one shared candidate, different systems, different outputs">
         <div class="tk-inputs-row">
-          <div class="tk-chip tk-in tk-clickable" data-comp="problem">Problem</div>
-          <div class="tk-chip tk-in tk-clickable" data-comp="candidate">Candidate</div>
-          <div class="tk-chip tk-held" data-comp="testdata">Test Data</div>
-          <div class="tk-chip tk-held" data-comp="checker">Checker</div>
+          <div class="tk-chip tk-in tk-clickable" data-comp="problem"><span class="tk-num">&#9312;</span>Problem</div>
+          <div class="tk-chip tk-in tk-clickable" data-comp="candidate"><span class="tk-num">&#9313;</span>Candidate</div>
+          <div class="tk-chip tk-held" data-comp="testdata"><span class="tk-num">&#9314;</span>Test Data</div>
+          <div class="tk-chip tk-held" data-comp="checker"><span class="tk-num">&#9315;</span>Checker</div>
         </div>
         <div class="tk-note">Test Data &amp; Checker: typically not publicly released</div>
         <div class="tk-cols">
           <div class="tk-col" data-comp="agentic-path">
-            <div class="tk-arrow tk-r1">&#8595;</div>
+            <div class="tk-arrow tk-r1"><span class="tk-feeds tk-feeds-a">&#9312;&#9313;</span>&#8595;</div>
             <div class="tk-sys tk-agentic tk-r2" data-comp="agentic-judge">
-              <div class="tk-sys-h">Agentic Judge</div>
+              <div class="tk-sys-h">Agentic Verifier</div>
               <div class="tk-sub">
                 <span class="tk-subchip" data-comp="llm">LLM</span>
                 <span class="tk-subchip" data-comp="sandbox-a">Sandbox</span>
@@ -1132,7 +1244,7 @@
             </div>
           </div>
           <div class="tk-col" data-comp="online-path">
-            <div class="tk-arrow tk-r1">&#8595;</div>
+            <div class="tk-arrow tk-r1"><span class="tk-feeds tk-feeds-o">&#9313;&#9314;&#9315;</span>&#8595;</div>
             <div class="tk-sys tk-online tk-r2" data-comp="online-judge">
               <div class="tk-sys-h">Online Judge</div>
               <div class="tk-sub">
@@ -1149,13 +1261,23 @@
         </div>
       </div>
       <div class="figtip tk-tip" id="figtip-tkturn"></div>
-      <div class="figcap"><b>An agentic judge returns what an online judge cannot.</b> Both
+      <div class="figcap"><b>An agentic verifier returns what an online judge cannot.</b> Both
       systems take a candidate solution and run it; the online judge additionally needs the
       problem's official test data and checker, which are typically withheld, and returns
       only a verdict. Arbiter needs just the problem statement and the candidate, and returns
       a verdict, a diagnosis of what is wrong, and a concrete counterexample the candidate
       fails on — one response, not just a score.</div>
     </div>
+
+    <div class="sec-lead" data-md="environment">Beyond IOI, Arbiter is an example of
+    <b>environment engineering</b>. A typical coding environment is built to
+    ensure correctness and nothing more: it scores what the model did, and the
+    score is where the interaction ends. We design the environment to also
+    carry signal — every rejection arrives with a diagnosis and a replayable
+    counterexample, so the model has something concrete to improve from.
+    Because that feedback comes from the verifier rather than the judge,
+    querying it spends no submissions and exposes no hidden tests. The same
+    signal can drive RL training and test-time refinement alike.</div>
   </section>
 
   <section id="training">
@@ -1179,7 +1301,65 @@
     The pool is deduplicated by code content, capped per problem, and kept
     disjoint from every evaluation problem, with a separate hard validation
     set (100 problems, 400 candidates) to pick checkpoints.
-    <br><br>
+</div>
+
+    <div class="figure" id="tdFig">
+        <svg viewBox="0 0 900 294" role="img" aria-label="The 20K Arbiter training candidates: sampling score band on the left, actual judge verdict on the right, ribbon thickness proportional to count">
+          <g class="td-hdr">
+            <text x="164" y="29" text-anchor="end">score band</text>
+            <text x="700" y="29" text-anchor="start">verdict</text>
+          </g>
+          <g class="td-ribbons">
+            <path class="td-rib" data-band="b100" data-verd="AC" data-n="3000" data-lbl="100 &#8594; AC" data-pct="15%" fill="#1A9850" d="M164,42 C432.0,42 432.0,42 700,42 L700,67.5 C432.0,67.5 432.0,67.5 164,67.5 Z"/>
+            <path class="td-rib" data-band="b76" data-verd="WA" data-n="4460" data-lbl="76–99 &#8594; WA" data-pct="22.3%" fill="#D73027" d="M164,87.5 C432.0,87.5 432.0,75.5 700,75.5 L700,113.41 C432.0,113.41 432.0,125.41 164,125.41 Z"/>
+            <path class="td-rib" data-band="b76" data-verd="TLE" data-n="3107" data-lbl="76–99 &#8594; TLE" data-pct="15.5%" fill="#F2C300" d="M164,125.41 C432.0,125.41 432.0,169.01 700,169.01 L700,195.42 C432.0,195.42 432.0,151.82 164,151.82 Z"/>
+            <path class="td-rib" data-band="b76" data-verd="MLE" data-n="220" data-lbl="76–99 &#8594; MLE" data-pct="1.1%" fill="#3182BD" d="M164,151.82 C432.0,151.82 432.0,223.02 700,223.02 L700,224.89 C432.0,224.89 432.0,153.69 164,153.69 Z"/>
+            <path class="td-rib" data-band="b76" data-verd="RE" data-n="163" data-lbl="76–99 &#8594; RE" data-pct="0.8%" fill="#7B5EA7" d="M164,153.69 C432.0,153.69 432.0,243.29 700,243.29 L700,244.68 C432.0,244.68 432.0,155.08 164,155.08 Z"/>
+            <path class="td-rib" data-band="b1" data-verd="WA" data-n="4600" data-lbl="1–75 &#8594; WA" data-pct="23%" fill="#D73027" d="M164,175.07 C432.0,175.07 432.0,113.41 700,113.41 L700,152.51 C432.0,152.51 432.0,214.17 164,214.17 Z"/>
+            <path class="td-rib" data-band="b1" data-verd="TLE" data-n="1600" data-lbl="1–75 &#8594; TLE" data-pct="8%" fill="#F2C300" d="M164,214.17 C432.0,214.17 432.0,195.42 700,195.42 L700,209.02 C432.0,209.02 432.0,227.77 164,227.77 Z"/>
+            <path class="td-rib" data-band="b1" data-verd="MLE" data-n="400" data-lbl="1–75 &#8594; MLE" data-pct="2%" fill="#3182BD" d="M164,227.77 C432.0,227.77 432.0,224.89 700,224.89 L700,228.29 C432.0,228.29 432.0,231.17 164,231.17 Z"/>
+            <path class="td-rib" data-band="b1" data-verd="RE" data-n="600" data-lbl="1–75 &#8594; RE" data-pct="3%" fill="#7B5EA7" d="M164,231.17 C432.0,231.17 432.0,244.68 700,244.68 L700,249.78 C432.0,249.78 432.0,236.27 164,236.27 Z"/>
+            <path class="td-rib" data-band="b0" data-verd="WA" data-n="1000" data-lbl="0 &#8594; WA" data-pct="5%" fill="#D73027" d="M164,256.27 C432.0,256.27 432.0,152.51 700,152.51 L700,161.01 C432.0,161.01 432.0,264.77 164,264.77 Z"/>
+            <path class="td-rib" data-band="b0" data-verd="CE" data-n="850" data-lbl="0 &#8594; CE" data-pct="4.2%" fill="#8C8C8C" d="M164,264.77 C432.0,264.77 432.0,264.77 700,264.77 L700,272.0 C432.0,272.0 432.0,272.0 164,272.0 Z"/>
+          </g>
+          <g class="td-posts">
+            <rect class="td-post" data-band="b100" data-n="3000" data-lbl="score band 100" data-pct="15%" x="152" y="42" width="12" height="25.5" rx="1.5"/>
+            <rect class="td-post" data-band="b76" data-n="7950" data-lbl="score band 76–99" data-pct="39.8%" x="152" y="87.5" width="12" height="67.57" rx="1.5"/>
+            <rect class="td-post" data-band="b1" data-n="7200" data-lbl="score band 1–75" data-pct="36%" x="152" y="175.07" width="12" height="61.2" rx="1.5"/>
+            <rect class="td-post" data-band="b0" data-n="1850" data-lbl="score band 0" data-pct="9.2%" x="152" y="256.27" width="12" height="15.73" rx="1.5"/>
+            <rect class="td-post" data-verd="AC" data-n="3000" data-lbl="verdict AC" data-pct="15%" x="700" y="42" width="12" height="25.5" rx="1.5"/>
+            <rect class="td-post" data-verd="WA" data-n="10060" data-lbl="verdict WA" data-pct="50.3%" x="700" y="75.5" width="12" height="85.51" rx="1.5"/>
+            <rect class="td-post" data-verd="TLE" data-n="4707" data-lbl="verdict TLE" data-pct="23.5%" x="700" y="169.01" width="12" height="40.01" rx="1.5"/>
+            <rect class="td-post" data-verd="MLE" data-n="620" data-lbl="verdict MLE" data-pct="3.1%" x="700" y="223.02" width="12" height="5.27" rx="1.5"/>
+            <rect class="td-post" data-verd="RE" data-n="763" data-lbl="verdict RE" data-pct="3.8%" x="700" y="243.29" width="12" height="6.49" rx="1.5"/>
+            <rect class="td-post" data-verd="CE" data-n="850" data-lbl="verdict CE" data-pct="4.2%" x="700" y="264.77" width="12" height="7.23" rx="1.5"/>
+          </g>
+          <g class="td-lbl">
+            <text data-band="b100" x="143" y="58.25" text-anchor="end">100<tspan class="td-pct" dx="5">15%</tspan></text>
+            <text data-band="b76" x="143" y="124.79" text-anchor="end">76–99<tspan class="td-pct" dx="5">39.8%</tspan></text>
+            <text data-band="b1" x="143" y="209.17" text-anchor="end">1–75<tspan class="td-pct" dx="5">36%</tspan></text>
+            <text data-band="b0" x="143" y="267.64" text-anchor="end">0<tspan class="td-pct" dx="5">9.2%</tspan></text>
+            <text data-verd="AC" x="721" y="58.25" text-anchor="start"><tspan style="fill:#1A9850">AC</tspan><tspan class="td-pct" dx="5">15%</tspan></text>
+            <text data-verd="WA" x="721" y="121.75" text-anchor="start"><tspan style="fill:#D73027">WA</tspan><tspan class="td-pct" dx="5">50.3%</tspan></text>
+            <text data-verd="TLE" x="721" y="192.51" text-anchor="start"><tspan style="fill:#F2C300">TLE</tspan><tspan class="td-pct" dx="5">23.5%</tspan></text>
+            <text data-verd="MLE" x="721" y="229.15" text-anchor="start"><tspan style="fill:#3182BD">MLE</tspan><tspan class="td-pct" dx="5">3.1%</tspan></text>
+            <text data-verd="RE" x="721" y="250.03" text-anchor="start"><tspan style="fill:#7B5EA7">RE</tspan><tspan class="td-pct" dx="5">3.8%</tspan></text>
+            <text data-verd="CE" x="721" y="271.89" text-anchor="start"><tspan style="fill:#8C8C8C">CE</tspan><tspan class="td-pct" dx="5">4.2%</tspan></text>
+          </g>
+        </svg>
+      <div class="figtip td-tip" id="tdTip"></div>
+      <div class="figcap" data-md="training-cap-pool"><b>Where the 20K training
+      candidates come from.</b> Left: the sampling quota we chose, by the
+      candidate's score on the problem. Right: the judge verdict that quota
+      actually produced. Hover any ribbon or bar for exact counts. The
+      near-miss band (76&ndash;99) is the only one that fans out to every
+      verdict &mdash; a solution failing a single subtask can break in any way,
+      which is exactly what forces the verifier to read the code rather than
+      guess. The score-0 band pools genuinely-zero submissions with programs that
+      fail to compile &mdash; both score 0, and only the verdict tells them apart.</div>
+    </div>
+
+    <div class="sec-lead" data-md="training-reward">
     <b>Reward design.</b> Every Arbiter output includes a verdict (AC/no-AC),
     a diagnosis and a hack. Rewarding only the verdict makes the reward easily
     gamable due to label imbalance, and the model quickly degenerates.
@@ -1400,21 +1580,37 @@
       230&ndash;249). Under the penalty (vermillion), response length falls while mean reward
       holds — and the abortion ratio (trajectories cut off before finishing) falls too. Solid
       lines are a 5-step centred moving average; faint lines are the raw per-step values. The
-      baseline (grey) fades out at step 237, where that run's own logging ends — it never
-      reaches the 300-step mark the penalized run runs to.</div>
+      baseline (grey) stops a little past 200 steps: about half its trajectories were aborting
+      before they finished (against ~15% under the penalty) and mean reward had begun sliding
+      back — running it further would only have spent compute to watch it degrade.</div>
     </div>
   </section>
 
   <section id="results">
     <h2 class="sec-h">Benchmark Results</h2>
-    <div class="sec-lead" data-md="results">This page reports an empirical test of what that
-    capability is worth: whether Arbiter-gated refinement, revising against a
-    verifier's counterexample rather than a scalar reward, is by itself
-    sufficient for competitive programming. <b>gpt-oss-120b</b> attempts every
-    IOI 2026 subtask and revises against <b>Arbiter</b>'s feedback round by
-    round, under a <b>5-round budget</b>, until a trajectory is
-    <b style="color:var(--stop)">Accepted</b> and submitted. That refinement
-    loop alone clears IOI 2026's gold-medal score line.</div>
+    <div class="sec-lead" data-md="results">The IOI result above rests on Arbiter's judging
+    quality. We measure that capability directly on two complementary benchmarks.
+    <b>UOJ-Bench</b> is an existing public hacking benchmark:
+    every candidate is known to be wrong (479 Easy / 1,005 Hard), so it probes
+    depth — covert bugs that survive an official test suite.
+    <b>USACO-Judge</b> is a benchmark we built from the held-out 2026 USACO
+    contests: 900 candidates (270 Easy / 630 Hard) over 39 problems spanning
+    Bronze through Platinum, balanced at one correct solution for every two
+    wrong ones, so a verifier must accept correct code as well as break wrong
+    code. Candidates come from five model families plus five human competitive
+    programmers, and every label is a live judge verdict on expert-authored
+    validators and checkers.
+    <br><br>
+    The table ranks models by hack success: the share of wrong candidates
+    broken with a legal generated input, split Easy/Hard on each benchmark,
+    all single-sample. Training does the heavy lifting. On UOJ-Bench Easy, the
+    same 35B backbone breaks <b>16.7%</b> of candidates untrained,
+    <b>41.3%</b> with an agentic scaffold, and <b>61.5%</b> after RL. That
+    places Arbiter <b>above DeepSeek-V4-Pro, a model 45× its size, on every
+    split</b>. It trades blows with GLM-5.2 (behind on UOJ-Bench, ahead on
+    USACO-Judge) and posts the best USACO-Judge Easy score in the table at
+    <b>96.6%</b>. The strongest closed models, GPT-5.5 and Claude-Opus-4.8,
+    remain ahead; we do not claim otherwise.</div>
 
     <div class="rtbl-wrap">
       <table class="rtbl2">
@@ -1619,10 +1815,19 @@
   --></template>
 
   <section id="refinement">
-    <h2 class="sec-h">IOI Refinement</h2>
-    <div class="sec-lead" data-md="refinement">On IOI 2026 itself, gpt-oss-120b revises each candidate
-    against Arbiter's counterexample under a 5-round budget. Capping refinement
-    at round <b>R</b> shows how quickly the verifier's feedback pays off.</div>
+    <h2 class="sec-h">The Climb to IOI Gold</h2>
+    <div class="sec-lead" data-md="refinement">On IOI 2026 itself, <b>gpt-oss-120b</b> attempts every
+    subtask, drawing <b>50</b> seed solutions each. <b>Arbiter</b> reviews
+    every candidate. An <b style="color:var(--sub-ok)">Accepted</b> verdict
+    sends the program to the judge and retires its trajectory; a rejection
+    returns feedback that the solver revises against in the next round, under
+    a <b>5-round budget</b>. A trajectory that never earns an accept submits
+    its final revision instead. The verifier thus decides both what to fix and
+    when to stop. The climb is also cheap: where GenCluster drew <b>5,000</b>
+    solutions per subtask, refinement reaches gold on fewer than <b>100</b>
+    generations per subtask on average — less than two rounds of revision.
+    Capping refinement at round <b>R</b> shows how quickly the feedback pays
+    off.</div>
 
     <div class="figure interactive">
       <svg viewBox="0 0 900 330" role="img"
@@ -1685,9 +1890,9 @@
         <!-- contest-score curve after capping refinement at round R -->
         <polyline fill="none" stroke="#D55E00" stroke-width="2.5"
           stroke-linejoin="round" stroke-linecap="round"
-          points="110,184.1 246,79.4 382,79.9 518,80.0 654,44.0 790,44.0"/>
+          points="110,223.8 246,79.4 382,79.9 518,80.0 654,44.0 790,44.0"/>
         <g fill="#D55E00">
-          <circle class="dot" cx="110" cy="184.1" r="4"/>
+          <circle class="dot" cx="110" cy="223.8" r="4"/>
           <circle class="dot" cx="246" cy="79.4"  r="4"/>
           <circle class="dot" cx="382" cy="79.9"  r="4"/>
           <circle class="dot" cx="518" cy="80.0"  r="4"/>
@@ -1697,7 +1902,7 @@
 
         <!-- interactive hit-targets: one per round, full column height. -->
         <g class="hits">
-          <rect class="hit" data-r="0" data-x="110" data-score="272.49" data-sampled="50"   x="0"   y="26" width="178" height="248"/>
+          <rect class="hit" data-r="0" data-x="110" data-score="240.49" data-sampled="50"   x="0"   y="26" width="178" height="248"/>
           <rect class="hit" data-r="1" data-x="246" data-score="356.91" data-sampled="20.1" x="178" y="26" width="136" height="248"/>
           <rect class="hit" data-r="2" data-x="382" data-score="356.57" data-sampled="12.4" x="314" y="26" width="136" height="248"/>
           <rect class="hit" data-r="3" data-x="518" data-score="356.46" data-sampled="9.2"  x="450" y="26" width="136" height="248"/>
@@ -1731,7 +1936,7 @@
       </div>
       <div class="figcap" data-md="refinement-cap"><b>One round of refinement does most of the work.</b>
       Capping Arbiter-gated refinement at round <b>R</b>: score jumps
-      <b>272.49 → 356.91</b> from a single counterexample — most of the eventual
+      <b>240.49 → 356.91</b> from a single round of Arbiter feedback — most of the eventual
       gain, though not quite gold yet — then reaches <b>385.46</b> by R4, clearing
       gold, and holds there through R5. Judge submissions grow only gently
       (24 → 32), so the gain is bought cheaply.</div>
@@ -2198,12 +2403,12 @@ function dayScore(d){
 
 function render(){
   const days=Object.keys(DATA).map(Number).sort();
-  let grand=0,gsolved=0,gtotal=0;
+  let grand=0;
   // Each day's own total/solved count is already the .dayh line right above
   // its task list -- a per-day card up here would just say it again.
   days.forEach(n=>{
     const s=dayScore(DATA[n]);
-    grand+=s.tot; gsolved+=s.ns; gtotal+=s.nt;
+    grand+=s.tot;
   });
   const grandDisp=Number.isInteger(grand)?grand.toFixed(0):grand.toFixed(2);
   document.getElementById('top').innerHTML='';
@@ -2214,7 +2419,7 @@ function render(){
   if(gb) gb.innerHTML=`<img class="medal" src="figs/gold-medal.png" alt="gold medal">`+
     `<div><div class="gb-lab">Contest total</div>`+
     `<div class="gb-big">${grandDisp}<span>/${days.length*300}</span></div>`+
-    `<div class="gb-det">${gsolved}/${gtotal} subtasks · Rank 17</div></div>`;
+    `<div class="gb-det">Rank 17</div></div>`;
   const grandCard='';
 
   // Each day is a self-contained column (its header + its own problems), so it
@@ -2429,10 +2634,15 @@ function mdToHtml(text){
       if(!inCode){flushPara();flushList();inCode=true;codeLang=fence[1]||'';codeLines=[];}
       else{
         const code=codeLines.join('\n');
+        // Only a fence that names a language is program text worth numbering.
+        // An untagged fence in these problem statements is sample I/O, where
+        // a line-number gutter would read as part of the data.
         const hiFn=codeLang==='python'||codeLang==='py'?pyHi
           :codeLang==='cpp'||codeLang==='c++'?cppHi
-          :codeLang==='bash'||codeLang==='sh'?shHi:esc;
-        html+=`<pre class="ln-pre">${numberedCode(code,hiFn)}</pre>`;
+          :codeLang==='bash'||codeLang==='sh'?shHi:null;
+        html+=hiFn
+          ? `<pre class="ln-pre">${numberedCode(code,hiFn)}</pre>`
+          : `<pre>${esc(code)}</pre>`;
         inCode=false;
       }
       continue;
@@ -2934,7 +3144,10 @@ wireFigure(document.querySelector('.teaser.interactive'), {
   // dimmed until the current controls put it on the active path.
   const ALWAYS_NODES=new Set(['cand','prob','arb','oj','vd','cx','dg','rf','sw']);
 
-  const state={verdict:'disagree', funnel:'breaks', matches:false, diagpen:false};
+  // Opens on the fully-earned path: both sides call it not-accepted, the
+  // counterexample actually breaks the candidate, and the predicted failure
+  // type matches -- 0.05 + 0.90 + 0.05 = 1.00.
+  const state={verdict:'unaccepted', funnel:'breaks', matches:true, diagpen:false};
 
   function reward(s){
     let total;
@@ -3063,14 +3276,28 @@ wireFigure(document.querySelector('.teaser.interactive'), {
 
     const figBox=fig.getBoundingClientRect();
     const cursorScreenX=screenX(xPix);
-    const leftOfMid=(cursorScreenX-figBox.left) > figBox.width*0.55;
-    const leftPx=(cursorScreenX-figBox.left)+(leftOfMid?-10:10);
-    const hTransform=leftOfMid?'translate(-100%,':'translate(0,';
+    const cursorRel=cursorScreenX-figBox.left;
+    const leftOfMid=cursorRel > figBox.width*0.55;
+    // Clear the crosshair AND the dot sitting on it (r=3.4 viewBox units, ~3px
+    // on screen) plus the card's own 12px-blur shadow. Position by the card's
+    // measured width rather than translate(-100%), so its right edge lands
+    // exactly TIP_GAP px left of the line whatever the content width is.
+    const TIP_GAP=16;
+    // body carries zoom:1.15, and the three APIs below disagree about it:
+    // getBoundingClientRect() reports zoomed (visual) px, offsetWidth reports
+    // unzoomed layout px, and style.left/top are interpreted as layout px.
+    // Do every measurement in rect-space, then divide by Z on the way out.
+    const Z=fig.offsetWidth ? figBox.width/fig.offsetWidth : 1;
+    const placeX=el=>{
+      const w=el.getBoundingClientRect().width;
+      const x=leftOfMid ? cursorRel-TIP_GAP-w : cursorRel+TIP_GAP;
+      el.style.left=(Math.max(0,Math.min(x,figBox.width-w))/Z)+'px';
+    };
 
     tipStep.textContent=`Step ${step}`;
-    tipStep.style.left=leftPx+'px';
-    tipStep.style.top=(screenY(rowTop(0))-figBox.top-10)+'px';
-    tipStep.style.transform=hTransform+'-100%)';
+    tipStep.style.top=((screenY(rowTop(0))-figBox.top-10)/Z)+'px';
+    tipStep.style.transform='translate(0,-100%)';
+    placeX(tipStep);
     tipStep.classList.add('on');
 
     TRD.forEach((p,i)=>{
@@ -3101,9 +3328,9 @@ wireFigure(document.querySelector('.teaser.interactive'), {
           : '');
       const dotScreenY=screenY(oursY)-figBox.top;
       const upperHalf=(oursY-rowTop(i)) < ROW_H/2;
-      tip.style.left=leftPx+'px';
-      tip.style.top=(dotScreenY+(upperHalf?10:-10))+'px';
-      tip.style.transform=hTransform+(upperHalf?'0)':'-100%)');
+      tip.style.top=((dotScreenY+(upperHalf?10:-10))/Z)+'px';
+      tip.style.transform=upperHalf?'translate(0,0)':'translate(0,-100%)';
+      placeX(tip);
       tip.classList.add('on');
     });
   }
@@ -3233,12 +3460,13 @@ wireFigure(document.querySelector('.teaser.interactive'), {
   function openCandidate(){
     document.getElementById('dt').textContent=`Candidate solution · ${TKTRAJ.problemTitle}`;
     document.getElementById('dm').innerHTML=`<span>program <b>${kb(TKTRAJ.candidateCode.length)}</b></span>`;
-    document.getElementById('dbody').innerHTML=codeSeg('submitted program (C++)',TKTRAJ.candidateCode,'cpp',true);
+    document.getElementById('dbody').innerHTML=
+      `<div class="db-nofold">${codeSeg('submitted program (C++)',TKTRAJ.candidateCode,'cpp',true)}</div>`;
     rewire();
     openD();
   }
   function openTrajectory(){
-    document.getElementById('dt').textContent=`Agentic Judge · One Real Trajectory`;
+    document.getElementById('dt').textContent=`Agentic Verifier · One Real Trajectory`;
     document.getElementById('dm').innerHTML=
       `<span><b>${TKTRAJ.events.length}</b> steps</span>`;
     const submitEv=TKTRAJ.events.find(e=>e.kind==='assistant'&&(e.tool_calls||[]).some(c=>c.name==='submit_hack'));
@@ -3285,5 +3513,83 @@ wireFigure(document.querySelector('.teaser.interactive'), {
     judgeBox.classList.add('tk-clickable');
     judgeBox.addEventListener('click',openTrajectory);
   }
+})();
+
+// Training-pool alluvial: hover a ribbon to isolate that band->verdict flow,
+// or a post to isolate everything touching that band / that verdict. Shares
+// the page's zoom-aware tooltip placement (body carries zoom:1.15, so
+// rect-space measurements have to be divided by Z before they become CSS px).
+(function(){
+  const fig=document.getElementById('tdFig');
+  const tip=document.getElementById('tdTip');
+  if(!fig||!tip) return;
+  const svg=fig.querySelector('svg');
+  const ribs=[...fig.querySelectorAll('.td-rib')];
+  const posts=[...fig.querySelectorAll('.td-post')];
+  const lbls=[...fig.querySelectorAll('.td-lbl text')];
+  const all=[...ribs,...posts,...lbls];
+  const N=n=>(+n).toLocaleString('en-US');
+
+  function clear(){
+    fig.classList.remove('td-dim');
+    all.forEach(e=>e.classList.remove('td-hi'));
+    tip.classList.remove('on');
+  }
+  function show(ev,el,match,head,sub){
+    fig.classList.add('td-dim');
+    all.forEach(e=>e.classList.toggle('td-hi',match(e)));
+    tip.innerHTML=`<div class="tt-td-h">${head}</div><div class="tt-td-n">${sub}</div>`;
+    const figBox=fig.getBoundingClientRect();
+    const Z=fig.offsetWidth ? figBox.width/fig.offsetWidth : 1;
+    const w=tip.getBoundingClientRect().width, hh=tip.getBoundingClientRect().height;
+    const relX=ev.clientX-figBox.left, relY=ev.clientY-figBox.top;
+    const x=Math.max(0,Math.min(relX+14,figBox.width-w));
+    const y=Math.max(0,Math.min(relY-hh-12,figBox.height-hh));
+    tip.style.left=(x/Z)+'px'; tip.style.top=(y/Z)+'px';
+    tip.style.transform='translate(0,0)';
+    tip.classList.add('on');
+  }
+
+  ribs.forEach(r=>{
+    const b=r.dataset.band, v=r.dataset.verd;
+    const match=e=>e===r||e.dataset.band===b&&!e.dataset.verd
+      ||e.dataset.verd===v&&!e.dataset.band;
+    const on=ev=>show(ev,r,match,r.dataset.lbl,
+      `${N(r.dataset.n)} candidates &middot; ${r.dataset.pct} of the pool`);
+    r.addEventListener('mouseenter',on);
+    r.addEventListener('mousemove',on);
+    r.addEventListener('mouseleave',clear);
+  });
+  posts.forEach(p=>{
+    const b=p.dataset.band, v=p.dataset.verd;
+    const match=e=>b ? e.dataset.band===b : e.dataset.verd===v;
+    const on=ev=>show(ev,p,match,p.dataset.lbl,
+      `${N(p.dataset.n)} candidates &middot; ${p.dataset.pct} of the pool`);
+    p.addEventListener('mouseenter',on);
+    p.addEventListener('mousemove',on);
+    p.addEventListener('mouseleave',clear);
+  });
+  svg.addEventListener('mouseleave',clear);
+})();
+
+// Attention cues for the judge diagram: arm them the moment the figure is
+// actually on screen (not at load, when it may be far below the fold), then
+// disconnect. The staggered delays stay in place because the sweep keeps
+// looping; only the boxes' one-off breath is torn down, so a later :hover is
+// never fighting a leftover keyframe for the same box-shadow.
+(function(){
+  const fig=document.querySelector('.tkfig');
+  if(!fig||!('IntersectionObserver' in window)) return;
+  fig.querySelectorAll('.tk-turn').forEach((t,i)=>
+    t.style.animationDelay=(0.30+i*0.17)+'s');
+  const io=new IntersectionObserver(es=>{
+    es.forEach(e=>{
+      if(!e.isIntersecting) return;
+      io.disconnect();
+      fig.classList.add('tk-cue','tk-cue-in');
+      setTimeout(()=>fig.classList.remove('tk-cue-in'), 2000);
+    });
+  },{threshold:0.35});
+  io.observe(fig);
 })();
 </script>
