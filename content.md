@@ -24,6 +24,9 @@ A judge can tell you a solution is wrong. It can't tell you *why* — showing th
 ## training
 TODO: describe how Arbiter was trained — the base model, the reinforcement-learning setup that rewards finding a valid counterexample, the data it was trained on, and the compute budget.
 
+## training-cap
+**The length penalty shortens responses without costing reward.** One run continued two ways from the same checkpoint, differing only in whether a length penalty is applied over three windows (shaded, steps 90–109 / 160–179 / 230–249). Under the penalty (vermillion), response length falls while mean reward holds — and the abortion ratio (trajectories cut off before finishing) falls too. Solid lines are a 5-step centred moving average; faint lines are the raw per-step values. The baseline (grey) fades out at step 237, where that run's own logging ends — it never reaches the 300-step mark the penalized run runs to.
+
 ## results
 This page reports an empirical test of what that capability is worth: whether Arbiter-gated refinement, revising against a verifier's counterexample rather than a scalar reward, is by itself sufficient for competitive programming. **gpt-oss-120b** attempts every IOI 2026 subtask and revises against **Arbiter**'s feedback round by round, under a **5-round budget**, until a trajectory is <b style="color:var(--stop)">Accepted</b> and submitted. That refinement loop alone clears IOI 2026's gold-medal score line.
 
@@ -34,7 +37,7 @@ This page reports an empirical test of what that capability is worth: whether Ar
 On IOI 2026 itself, gpt-oss-120b revises each candidate against Arbiter's counterexample under a 5-round budget. Capping refinement at round **R** shows how quickly the verifier's feedback pays off.
 
 ## refinement-cap
-**One round of refinement does most of the work.** The line is contest score when Arbiter-gated refinement is capped at round **R**: it jumps **229 → 347** (clearing gold) from a single counterexample, reaching **376** by R5. The bars show how many trajectories are still being sampled each round per subtask — all **50** seeds at R0, dropping to **20** at R1 and just **7** by R5 as accepted solutions leave the pool. Most of the score is banked while the pool is still large.
+**One round of refinement does most of the work.** The line is contest score when Arbiter-gated refinement is capped at round **R**: it jumps **272.49 → 356.91** from a single counterexample — most of the eventual gain, though not quite gold yet — then reaches **385.46** by R4, clearing gold, and holds there through R5. The bars show how many trajectories are still being sampled each round per subtask — all **50** seeds at R0, dropping to **20** at R1 and just **7** by R5 as accepted solutions leave the pool. Most of the score is banked while the pool is still large.
 
 ## artifacts
 Every score above is backed by its raw data. Click a subtask to open its fan of 50 trajectories, then any node for the verifier's full turn-by-turn review, or the <img src="figs/coding.png" alt="code icon" style="width:12px;height:12px;vertical-align:-1px"> icon for the program that round submitted and the reasoning that wrote it. The badge beside a problem's score opens its merged final submission.
