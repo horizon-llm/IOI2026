@@ -73,6 +73,10 @@
     line-height:1.25;display:flex;align-items:center;gap:10px}
   .sec-h img{height:30px;width:auto;border-radius:5px}
   .sec-lead{font-size:14.5px;color:var(--ink2);line-height:1.6;margin:0 0 16px}
+  /* inline citations in prose: quiet ink-colored links, blue only on hover */
+  .sec-lead a{color:inherit;text-decoration:none;
+    border-bottom:1px solid rgba(29,90,168,.35);transition:color .12s}
+  .sec-lead a:hover{color:var(--full);border-bottom-color:var(--full)}
   /* sticky left-side section nav (mirrors meta-harness): fixed, vertically
      centred, fades in after a little scroll, highlights the active section, and
      hides on narrow screens where there is no room beside the centred column. */
@@ -955,16 +959,32 @@
   </div>
 
   <section id="verifier">
-    <h2 class="sec-h">Agentic Verifier</h2>
-    <div class="sec-lead" data-md="verifier">A judge can tell you a solution is wrong. It can't tell
-    you <i>why</i> — showing the failing input would leak the secret tests that
-    make it trustworthy, and every ranker, majority vote, or LLM-as-judge
-    inherits that same blind spot: a verdict, never a witness. <b>Arbiter</b>
+    <h2 class="sec-h">Unlocking Sequential Scaling with an Agentic Verifier</h2>
+    <div class="sec-lead" data-md="verifier">Prior attempts at IOI-level competitive programming
+    scale test-time compute in parallel: overgenerate, then search.
+    <a href="https://storage.googleapis.com/deepmind-media/AlphaCode2/AlphaCode2_Tech_Report.pdf"
+    target="_blank" rel="noopener">AlphaCode</a> drew up to a million candidate
+    programs per problem and distilled them to ten submissions with filtering
+    and clustering. OpenAI's <a href="https://arxiv.org/abs/2502.06807"
+    target="_blank" rel="noopener">o1-ioi</a> sampled 10,000 solutions per
+    subtask at IOI 2024, then picked 50 with clustering and a learned
+    reranker. NVIDIA's <a href="https://arxiv.org/abs/2510.14232"
+    target="_blank" rel="noopener">GenCluster</a> reached the IOI 2025 gold
+    line with an open-weight model by drawing 5,000 solutions per subtask from
+    gpt-oss-120b — the same solver we refine — and selecting 50 through
+    behavioral clustering and a tournament. The paradigm works, but every
+    sample is drawn blind, and each verdict spends one of the 50 submissions
+    a contestant is allowed. How can we do better than search?
+    <br><br>
+    <b>Arbiter</b>
     (<span style="color:var(--ink3)"><b>A</b>gentic <b>R</b>einforcement-learned
     <b>B</b>ug-finding <b>I</b>nteractive <b>T</b>est <b>E</b>xamine<b>R</b></span>)
-    is a verifier trained to do both — read a problem and one candidate solution,
-    decide Accept or Reject, and on rejection hand back a concrete input that
-    breaks the code, not just a score.</div>
+    supplies the missing feedback. It reads the problem and one candidate,
+    decides Accept or Reject, and on rejection returns a diagnosis plus a
+    concrete input that breaks the code. A solver refining against that signal
+    does not redraw from scratch; it corrects its prior mistake, so test-time
+    compute scales with the depth of a revision chain rather than the width of
+    a sample pool.</div>
 
     <div class="figure">
       <div class="tkfig" role="img" aria-label="Agentic Judge versus Online Judge: one shared candidate, different systems, different outputs">
@@ -1027,6 +1047,16 @@
       a verdict, a diagnosis of what is wrong, and a concrete counterexample the candidate
       fails on — one response, not just a score.</div>
     </div>
+
+    <div class="sec-lead" data-md="environment">Beyond IOI, Arbiter is an example of
+    <b>environment engineering</b>. A typical coding environment is built to
+    ensure correctness and nothing more: it scores what the model did, and the
+    score is where the interaction ends. We design the environment to also
+    carry signal — every rejection arrives with a diagnosis and a replayable
+    counterexample, so the model has something concrete to improve from.
+    And because that feedback comes from the verifier rather than the judge,
+    querying it spends no submissions and exposes no hidden tests. The same
+    signal can drive RL training and test-time refinement alike.</div>
   </section>
 
   <section id="training">
