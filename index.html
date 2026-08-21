@@ -47,7 +47,18 @@
     text-decoration:none;font-size:13.5px;font-weight:600;
     transition:border-color .12s,color .12s}
   .links a:hover{border-color:var(--full);color:var(--full)}
-  .links a.disabled{opacity:.4;pointer-events:none}
+  /* disabled links keep pointer events so the hover tooltip shows; the
+     not-allowed cursor + no hover recolour signal they aren't clickable */
+  .links a.disabled{opacity:.4;cursor:not-allowed}
+  .links a.disabled:hover{border-color:var(--line);color:var(--ink)}
+  /* instant CSS tooltip for [data-tip] (native title is slow/flaky) */
+  .links a[data-tip]{position:relative}
+  .links a[data-tip]::after{content:attr(data-tip);position:absolute;
+    left:50%;bottom:calc(100% + 8px);transform:translateX(-50%);
+    background:#0b0b0b;color:#fff;font-size:11px;font-weight:500;
+    padding:4px 8px;border-radius:6px;white-space:nowrap;opacity:0;
+    pointer-events:none;transition:opacity .12s;z-index:5}
+  .links a[data-tip]:hover::after{opacity:1}
   /* small provider icon inside a text link (matches the plain button style) */
   .links a .lk-ic{width:16px;height:16px;object-fit:contain}
   h1 img{height:44px;width:auto;border-radius:6px}
@@ -94,13 +105,13 @@
     font-weight:600}
   @media (max-width:1280px){.section-nav{display:none}}
   /* citation block: a monospace BibTeX card with a copy button in the corner */
+  /* heading + box share one centred, content-width column so the "BibTeX"
+     heading's left edge lines up with the box's left edge */
+  .cite-block{width:fit-content;max-width:100%;margin:0 auto}
   .cite{position:relative;background:#faf9f7;border:1px solid var(--line);
-    border-radius:10px;padding:34px 20px 16px;margin:0 auto;
-    width:fit-content;max-width:100%}
+    border-radius:10px;padding:34px 20px 16px;margin:0;max-width:100%}
   /* thin full-width divider above the BibTeX section, like meta-harness */
   .sec-rule{border:none;border-top:1px solid var(--line);margin:44px 0 0}
-  #citation{text-align:center}
-  #citation .sec-h{justify-content:center}
   .cite pre{margin:0;padding:0;background:none;border:none;border-radius:0;
     max-height:none;font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace;
     color:#26251f;white-space:pre;overflow-x:auto;text-align:left}
@@ -400,17 +411,20 @@
   table.rtbl2{width:100%;border-collapse:collapse;font-size:12.5px;line-height:1.4;
     font-variant-numeric:lining-nums tabular-nums;color:var(--ink);table-layout:fixed}
   /* the numeric columns are narrow and equal; the model column takes the rest */
-  table.rtbl2 col.num{width:11%}
-  table.rtbl2 th{font-weight:650;text-align:center;padding:7px 6px;
+  table.rtbl2 col.num{width:12%}
+  /* numbers right-align so digits line up on a clean vertical edge; the group
+     headers (colspan 2) stay centred over their pair */
+  table.rtbl2 th{font-weight:650;text-align:right;padding:7px 20px 7px 6px;
     border-bottom:2px solid var(--ink);white-space:nowrap}
+  table.rtbl2 thead tr:first-child th{text-align:center;padding-right:6px}
   table.rtbl2 th.mdl,table.rtbl2 th:first-child{text-align:left;padding-left:14px}
   /* Easy/Hard sub-header row: lighter, no heavy rule under the group names */
   table.rtbl2 thead tr:first-child th:not(.mdl){border-bottom:1px solid var(--grid)}
   table.rtbl2 thead tr.sub th{font-weight:500;color:var(--ink3);font-size:11px;
-    border-bottom:2px solid var(--ink);padding:3px 6px 7px}
-  table.rtbl2 td{text-align:center;padding:7px 6px;
+    text-align:right;padding:3px 20px 7px 6px;border-bottom:2px solid var(--ink)}
+  table.rtbl2 td{text-align:right;padding:7px 20px 7px 6px;
     border-bottom:1px solid var(--grid);white-space:nowrap}
-  table.rtbl2 td.mdl{text-align:left;font-weight:600;padding-left:14px;white-space:normal}
+  table.rtbl2 td.mdl{text-align:left;font-weight:600;padding-left:14px;padding-right:6px;white-space:normal}
   table.rtbl2 .mdl .m{display:inline-flex;align-items:center;gap:7px}
   table.rtbl2 .mdl .m img{width:18px;height:18px;object-fit:contain;flex:none;border-radius:4px}
   table.rtbl2 .mdl small{color:var(--ink3);font-weight:500}
@@ -885,7 +899,7 @@
      <div class="aff"><sup>1</sup>HKUST &nbsp; <sup>2</sup>Amazon</div>
    </div>
    <div class="links">
-     <a href="#" class="disabled">Paper</a>
+     <a class="disabled" data-tip="Coming soon" onclick="return false">Paper</a>
      <a href="https://huggingface.co/datasets/n-alignment/USACO-Judge" target="_blank" rel="noopener"><img class="lk-ic" src="figs/logos/hf-icon.svg" alt="">Benchmark Data</a>
      <a href="https://github.com/horizon-llm/IOI2026" target="_blank" rel="noopener">Artifact</a>
    </div>
@@ -1732,17 +1746,18 @@
 
   <hr class="sec-rule">
   <section id="citation">
+    <div class="cite-block">
     <h2 class="sec-h">BibTeX</h2>
     <div class="cite">
       <button class="cite-copy" id="citeCopy">Copy</button>
       <pre id="citeBib">@misc{deng2026arbiter,
   author       = {Zheye Deng and Sha Li and Changlong Yu and Xin Liu and
                   Qin Lu and Priyanka Nigam and Yangqiu Song},
-  title        = {Arbiter: An Agentic Verifier for Competitive Programming Beyond Score},
+  title        = {Arbiter: Sample-Efficient Test-Time Scaling with an Agentic Verifier},
   year         = {2026},
-  howpublished = {HKUST and Amazon},
-  note         = {https://github.com/horizon-llm/IOI2026}
+  note         = {https://horizon-llm.github.io/IOI2026/}
 }</pre>
+    </div>
     </div>
   </section>
 </div>
