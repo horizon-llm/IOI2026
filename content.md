@@ -13,7 +13,7 @@
 -->
 
 ## title
-Arbiter: An Agentic Verifier for Competitive Programming Beyond Score
+Arbiter: Sample-Efficient Test-Time Scaling with an Agentic Verifier
 
 ## teaser-cap
 **gpt-oss-120b, refined against Arbiter, clears the IOI 2026 gold-medal line.** Contest score (/600) versus **k**, the candidates drawn per subtask — Arbiter-gated refinement beats plain score@k at every budget, and the gap is widest where samples are scarce. Hover for exact values.
