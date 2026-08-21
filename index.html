@@ -1348,14 +1348,27 @@
 
   <section id="results">
     <h2 class="sec-h">Benchmark Results</h2>
-    <div class="sec-lead" data-md="results">This page reports an empirical test of what that
-    capability is worth: whether Arbiter-gated refinement, revising against a
-    verifier's counterexample rather than a scalar reward, is by itself
-    sufficient for competitive programming. <b>gpt-oss-120b</b> attempts every
-    IOI 2026 subtask and revises against <b>Arbiter</b>'s feedback round by
-    round, under a <b>5-round budget</b>, until a trajectory is
-    <b style="color:var(--stop)">Accepted</b> and submitted. That refinement
-    loop alone clears IOI 2026's gold-medal score line.</div>
+    <div class="sec-lead" data-md="results">Apart from the IOI experiments, we also evaluate
+    Arbiter's standalone judging capability on two complementary benchmarks.
+    <b>UOJ-Bench</b> is an existing public hacking benchmark:
+    every candidate is known to be wrong (479 Easy / 1,005 Hard), so it probes
+    depth — covert bugs that survive an official test suite.
+    <b>USACO-Judge</b> is a benchmark we built from the held-out 2026 USACO
+    contests: 900 candidates (270 Easy / 630 Hard) over 39 problems spanning
+    Bronze through Platinum, balanced at one correct solution for every two
+    wrong ones, so a verifier must accept correct code as well as break wrong
+    code. Candidates come from five model families plus five human competitive
+    programmers, and every label is a live judge verdict on expert-authored
+    validators and checkers.
+    <br><br>
+    The table reports label accuracy (correct Accept/Reject) and hack success
+    (a generated input that legally breaks a wrong candidate), all
+    single-sample. Training does the heavy lifting: the same 35B backbone
+    scores <b>16.2</b> overall hack success untrained, <b>40.8</b> with an
+    agentic scaffold, and <b>63.7</b> after RL. That puts Arbiter <b>11.6
+    points above DeepSeek-V4-Pro, a model 45× its size</b>, and ahead of every
+    open-weight model except GLM-5.2. The strongest closed models, GPT-5.5 and
+    Claude-Opus-4.8, remain ahead; we do not claim otherwise.</div>
 
     <div class="rtbl-wrap">
       <table class="rtbl2">
