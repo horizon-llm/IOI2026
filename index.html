@@ -123,6 +123,13 @@
   /* Result figure: an inline SVG chart sitting directly on the page (no card or
      border), with a caption underneath, in the style of the meta-harness plots. */
   .figure{margin:0 40px 26px;position:relative}
+  /* Opt-out of the figure gutter for charts that need the full measure: the
+     three-across training panels are cramped at 740px and read better when
+     they span the same width as the body text. */
+  .figure.fig-full{margin-left:0;margin-right:0}
+  /* ...but the caption is prose, so it stays on the normal figure measure --
+     a full-width line of 12.5px text is past a comfortable reading length. */
+  .figure.fig-full .figcap{margin-left:40px;margin-right:40px}
   .figure svg{display:block;width:100%;height:auto}
   .figcap{font-size:12.5px;color:var(--ink2);line-height:1.55;margin-top:6px}
   .figcap b{color:var(--ink)}
@@ -142,67 +149,43 @@
   .figure .tstar use{transition:transform .12s}
   .figure .colhi{transition:fill-opacity .12s,x .12s,width .12s}
 
-  /* Agentic Judge vs Online Judge task diagram -- every box below is its own
-     element (class + data-comp) so a future pass can wire up hover/click
-     detail without restructuring anything; for now only a plain hover
-     affordance is live. */
+  /* Arbiter flow diagram -- every box is its own element (class + data-comp)
+     so the hover/click wiring can hang off the markup without restructuring.
+     A 3x3 grid rather than nested flexes: the inputs, the down arrow and the
+     verifier stack in column 1, while the horizontal arrow and the output
+     stack sit in columns 2-3 of the verifier's OWN row. That is what keeps
+     the outputs centred against the verifier box instead of against the whole
+     left-hand stack (which the inputs row would drag upward). */
   .tkfig{display:flex;flex-direction:column;align-items:center;gap:4px;
     margin:14px 0 2px}
-  /* Problem/Candidate/Test Data/Checker are one shared row above both paths
-     now (Candidate feeds both systems, so it's drawn once, not duplicated
-     per column) -- left-to-right position alone (Problem/Candidate sit over
-     the agentic column, Candidate/Test Data/Checker sit over the online one)
-     is enough to read which subset feeds which system, so there's no
-     separate connector between the row and the two "down arrow" glyphs below.
-     Below the row, the two judge columns are a CSS grid rather than a flex
-     column per side: the agentic judge box has grown taller than the online
-     one (it carries the turn-beat row), and a flex column stacks each side by
-     its own content height, so anything after that size mismatch drifts out
-     of alignment. A shared grid keeps every row (arrow / judge box / arrow /
-     outputs) the same height across both sides, sized to whichever side is
-     taller; .tk-col becomes display:contents so its data-comp wrapper stays
-     in the DOM without taking part in the grid itself -- its children are the
-     actual grid items, placed by column via data-comp and by row via .tk-rN. */
-  .tk-inputs-row{display:flex;gap:8px;justify-content:center;width:100%;
-    max-width:786px;margin:0 auto}
-  /* stretch, not start: the agentic judge box carries the extra turn-beat row
-     and would otherwise stand taller than the online judge beside it. Letting
-     both fill their shared grid row makes the two systems the same height. */
-  .tk-cols{display:grid;grid-template-columns:1fr 1fr;column-gap:26px;
-    align-items:stretch;width:100%;max-width:786px;margin:0 auto}
-  .tk-col{display:contents}
-  .tk-col[data-comp="agentic-path"]>*{grid-column:1}
-  .tk-col[data-comp="online-path"]>*{grid-column:2}
-  .tk-r1{grid-row:1}
-  .tk-r2{grid-row:2}
-  .tk-r3{grid-row:3}
-  .tk-r4{grid-row:4}
-  .tk-note{font-size:10px;color:#8E8375;font-style:italic;text-align:center;
-    margin:3px 0 0}
-  .tk-arrow{color:#c6c3bc;font-size:13px;line-height:1;text-align:center;
+  /* One row, three boxes: what goes in, what runs, what comes out. All three
+     are bordered containers in a stretch row, so their heights are equal by
+     construction rather than by hand-tuned padding -- the tallest content (the
+     verifier's turn-beat row) sets the row, and the other two fill it. Only
+     the two connecting arrows are sized to their glyph. */
+  .tk-grid{display:grid;grid-template-columns:0.72fr auto 1.8fr auto 0.85fr;
+    align-items:stretch;column-gap:14px;width:100%;max-width:786px;margin:0 auto}
+  .tk-harrow{align-self:center}
+  .tk-inbox{border:1.3px solid rgba(142,131,117,.35);border-radius:6px;
+    padding:7px;display:flex;flex-direction:column;gap:5px;justify-content:center}
+  .tk-inbox .tk-chip{flex:0 0 auto}
+  /* Test Data and Checker stay on the board precisely to be crossed out: the
+     point of the figure is that Arbiter reaches its verdict WITHOUT them. */
+  .tk-unused{display:flex;flex-direction:column;gap:5px;margin-top:3px;
+    padding-top:6px;border-top:1px dashed rgba(142,131,117,.3)}
+  .tk-unused-lbl{font-size:9.5px;font-style:italic;color:#a8a49c;
+    text-align:center}
+  .tk-chip.tk-held{border-color:#cfcbc2;color:#a8a49c;background:#fff;
+    border-style:dashed;font-weight:600}
+  .tk-harrow{color:#c6c3bc;font-size:17px;line-height:1}
+    .tk-arrow{color:#c6c3bc;font-size:13px;line-height:1;text-align:center;
     height:16px;margin-top:2px}
-  /* circled index on each input chip, and the matching set repeated on each
-     system's inbound arrow -- says which inputs feed which system without
-     drawing crossing connector lines. Candidate is the shared one, so it
-     appears on both arrows. */
-  .tk-num{margin-right:4px;font-weight:700;opacity:.75}
-  /* only the inbound (row-1) arrows carry the feed badge, and it sits stacked
-     above the arrow rather than beside it -- so the row grows taller than the
-     bare 16px arrow row further down. */
-  .tk-arrow.tk-r1{height:auto;display:flex;flex-direction:column;
-    align-items:center;gap:1px}
-  .tk-feeds{display:block;font-size:11px;font-weight:700;letter-spacing:.5px;
-    line-height:1.2}
-  .tk-feeds-a{color:#b96f00}
-  .tk-feeds-o{color:#6b6459}
   .tk-chip{flex:1;border:1.3px solid;border-radius:6px;padding:6px 8px;
     font-size:11px;font-weight:650;text-align:center;background:#fff;
     cursor:default;transition:box-shadow .12s,transform .12s}
   .tk-chip:hover{box-shadow:0 2px 8px rgba(11,11,11,.10);transform:translateY(-1px)}
   .tk-chip.tk-in{border-color:#8E8375;color:#5b544a;background:rgba(142,131,117,.06)}
-  .tk-chip.tk-held{border-color:#8E8375;color:#8E8375;background:#fff;
-    border-style:dashed}
-  /* flex column so the shorter box (online judge) centres its content
+    /* flex column so the shorter box (online judge) centres its content
      vertically once it is stretched to the taller box's height */
   .tk-sys{border:1.6px solid;border-radius:5px;padding:8px 10px 9px;
     text-align:center;cursor:default;transition:box-shadow .12s;
@@ -271,8 +254,8 @@
     transition:background .12s,transform .12s,box-shadow .12s}
   .tk-chip.tk-clickable::after{width:13px;height:13px;line-height:13px;
     font-size:8.5px;background:#8E8375}
-  .tk-sys.tk-clickable .tk-sys-h::after{width:15px;height:15px;line-height:15px;
-    font-size:9.5px;background:#b96f00}
+  .tk-sys.tk-clickable .tk-sys-h::after{width:16px;height:16px;line-height:16px;
+    font-size:10px;background:#b96f00}
   .tk-chip.tk-clickable:hover{box-shadow:0 2px 8px rgba(29,90,168,.22);
     border-color:#1d5aa8}
   .tk-sys.tk-clickable{border-style:solid}
@@ -291,7 +274,11 @@
     text-underline-offset:2px;text-decoration-color:currentColor}
   .tk-hoverable{transition:box-shadow .12s,border-color .12s}
   .tk-otag.tk-hoverable:hover{box-shadow:0 1px 8px rgba(11,11,11,.14)}
-  .tk-sys-h{font-size:12.5px;font-weight:700;margin-bottom:6px}
+  /* Two blocks, each flex:1 and self-centred: the title/tool pair and the
+     trajectory each own half the box, so both look vertically centred in
+     their own half rather than the whole stack being centred as one lump. */
+  .tk-top{flex:1;display:flex;flex-direction:column;justify-content:center;gap:6px}
+  .tk-sys-h{font-size:14px;font-weight:700}
   .tk-sub{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
   .tk-subchip{border:1px dotted;border-radius:3px;padding:2px 7px;
     font-size:9.5px;background:#fff}
@@ -299,19 +286,30 @@
      agentic box visibly sprout a multi-turn process the online judge never
      has; the 3 output tags below reuse the same tooltip to show what this
      trajectory actually submitted. */
-  .tk-turns{display:flex;align-items:center;justify-content:center;
-    flex-wrap:wrap;gap:4px 3px;margin-top:7px;padding-top:7px;
+  .tk-turns{flex:1;display:flex;flex-direction:column;align-items:stretch;
+    justify-content:center;margin-top:7px;padding-top:7px;
     border-top:1px dashed rgba(255,153,0,.35)}
   .tk-turns-cap{font-size:9px;color:var(--ink3);font-style:italic;
-    margin-right:1px;width:100%;text-align:center;margin-bottom:1px}
+    text-align:center;margin-bottom:3px}
+  /* nowrap, not wrap: the four beats read as one left-to-right trajectory, so
+     they must not break mid-sequence. The column below is sized to hold them. */
+  .tk-turn-row{display:flex;flex-wrap:nowrap;align-items:center;
+    justify-content:center;gap:3px}
   .tk-turn{font-size:9px;font-weight:650;border:1px solid #FF9900;
     border-radius:10px;padding:2px 6px;color:#b96f00;background:#fff;
-    cursor:default;transition:box-shadow .12s,transform .12s,background .12s}
+    white-space:nowrap;cursor:default;
+    transition:box-shadow .12s,transform .12s,background .12s}
   .tk-turn:hover{box-shadow:0 2px 8px rgba(11,11,11,.12);
     transform:translateY(-1px);background:rgba(255,153,0,.10)}
   .tk-turn-arr{font-size:9px;color:#d9b98a}
-  .figtip.tk-tip{white-space:normal;max-width:280px;line-height:1.5;
-    transform:translate(-50%,-110%)}
+  /* width:max-content is load-bearing, not decoration. The card is absolutely
+     positioned with left set and right:auto, so its shrink-to-fit width is
+     capped by (container width - left) -- for the right-hand column that left
+     barely 100px and max-width never got a say. Sizing to max-content takes
+     the width off the available space entirely; max-width then caps it, and
+     the JS clamps left by the measured half-width so it still stays inside. */
+  .figtip.tk-tip{white-space:normal;width:max-content;max-width:430px;
+    line-height:1.5;transform:translate(-50%,-110%)}
   .figtip.tk-tip .tt-turn-h{font-weight:700;color:#b96f00;margin-bottom:3px}
   .figtip.tk-tip .tt-turn-b{color:var(--ink2)}
   .figtip.tk-tip .tt-turn-code{display:block;margin-top:5px;padding:4px 6px;
@@ -325,31 +323,32 @@
   .tk-agentic{border-color:#FF9900;background:rgba(255,153,0,.05)}
   .tk-agentic .tk-sys-h{color:#b96f00}
   .tk-agentic .tk-subchip{border-color:#FF9900;color:#b96f00}
-  .tk-online{border-color:#8E8375;background:rgba(142,131,117,.05)}
-  .tk-online .tk-sys-h{color:#6b6459}
-  .tk-online .tk-subchip{border-color:#8E8375;color:#6b6459}
-  .tk-outbox{border:1.3px solid;border-radius:6px;padding:7px;
-    display:flex;flex-direction:column;gap:5px}
+        .tk-outbox{border:1.3px solid;border-radius:6px;padding:7px;
+    display:flex;flex-direction:column;gap:5px;justify-content:space-between}
   .tk-outbox.tk-agentic-out{border-color:rgba(255,153,0,.45);
     background:rgba(255,153,0,.03)}
-  .tk-outbox.tk-online-out{border-color:rgba(142,131,117,.35)}
-  .tk-otag{border:1.3px solid;border-radius:9px;padding:4px 9px;
+  /* Two centred lines per tag (name over gloss) rather than one long inline
+     run: it reads better in a narrow column and gives the three tags enough
+     height to fill the row the verifier sets. */
+  .tk-otag{border:1.3px solid;border-radius:9px;padding:6px 9px;
     font-size:10.5px;font-weight:650;text-align:center;cursor:default;
-    transition:box-shadow .12s}
+    transition:box-shadow .12s;display:flex;flex-direction:column;
+    justify-content:center;gap:1px}
   .tk-otag:hover{box-shadow:0 1px 6px rgba(11,11,11,.10)}
-  .tk-otag small{font-weight:400;font-style:normal;opacity:.75;margin-left:4px}
+  .tk-otag small{display:block;font-weight:400;font-style:normal;opacity:.75}
   .tk-otag.tk-verdict{border-color:#8E8375;background:rgba(142,131,117,.08);
     color:#5b544a}
   .tk-otag.tk-diag{border-color:#C87A00;background:rgba(200,122,0,.08);
     color:#C87A00}
   .tk-otag.tk-gen{border-color:#A8321D;background:rgba(168,50,29,.08);
     color:#A8321D}
-  .tk-otag.tk-absent{border-style:dashed;background:#fff;color:#a8a49c;
-    font-weight:500}
-  .tk-otag.tk-absent small{font-style:italic}
-  @media (max-width:640px){.tk-inputs-row{flex-wrap:wrap}
-    .tk-cols{display:flex;flex-direction:column;align-items:center}
-    .tk-col{display:flex;flex-direction:column;align-items:stretch;max-width:420px;width:100%}}
+  /* Narrow screens: unwind the row into one column, arrows turned downward. */
+  @media (max-width:640px){
+    .tk-grid{display:flex;flex-direction:column;align-items:stretch;
+      max-width:420px;margin:0 auto}
+    .tk-harrow{transform:rotate(90deg);text-align:center;margin:2px 0}
+    .tk-turn-row{flex-wrap:wrap}
+  }
 
   /* Interactive reward-flow diagram: a scenario control panel drives which
      nodes/wires in the SVG below light up, and a live running total. */
@@ -405,11 +404,16 @@
   /* small, per-panel readouts instead of one tall box -- a box tall enough to
      list all 3 panels would sit on top of the panels above the one you're
      actually pointing at. */
-  .tr-tip-mini{padding:5px 8px;white-space:nowrap}
-  .tr-tip-mini .tr-tip-h{font-weight:650;font-size:10.5px;margin-bottom:1px}
-  .tr-tip-mini .tr-tip-row{font-size:10.5px;white-space:nowrap;line-height:1.35}
-  .tr-tip-mini .tr-tip-row small{color:var(--ink3)}
-  .tr-tip-step{padding:2px 7px;font-size:10.5px;font-weight:700}
+  /* Side by side, the three panels can share one card: it lists all three at
+     the hovered step, so a reader compares them without chasing three boxes. */
+  .tr-tip-all{padding:6px 9px;white-space:nowrap;width:max-content}
+  .tr-tip-all .tr-tip-step{font-weight:700;font-size:10.5px;color:var(--ink);
+    border-bottom:1px solid var(--line);padding-bottom:3px;margin-bottom:4px}
+  .tr-tip-all .tr-tip-h{font-weight:650;font-size:10px;color:var(--ink3);
+    margin-top:5px}
+  .tr-tip-all .tr-tip-h:first-of-type{margin-top:0}
+  .tr-tip-all .tr-tip-row{font-size:10.5px;line-height:1.35}
+  .tr-tip-all .tr-tip-row small{color:var(--ink3)}
   .rf-node{transition:opacity .16s}
   .rf-wire{stroke:#c7c4bc;stroke-width:1.1;transition:opacity .16s,stroke .16s,stroke-width .16s}
   .rf-wire[marker-end]{stroke:#c7c4bc}
@@ -1079,107 +1083,6 @@
     far fewer tokens.</div>
   </div>
 
-  <!-- retired original teaser (score@k), kept for reference -->
-  <template id="old-teaser"><div class="figure teaser interactive">
-    <svg viewBox="0 0 900 330" role="img"
-         aria-label="Contest score as a function of samples drawn per subtask, with and without the verifier">
-      <rect class="colhi" x="0" y="26" width="0" height="248" fill="var(--full)"
-        fill-opacity="0" rx="3"/>
-      <!-- horizontal gridlines, score 150..400 -->
-      <g stroke="rgba(11,11,11,.06)" stroke-width="1">
-        <line x1="60" y1="26"    x2="840" y2="26"/>
-        <line x1="60" y1="75.6"  x2="840" y2="75.6"/>
-        <line x1="60" y1="125.2" x2="840" y2="125.2"/>
-        <line x1="60" y1="174.8" x2="840" y2="174.8"/>
-        <line x1="60" y1="224.4" x2="840" y2="224.4"/>
-        <line x1="60" y1="274"   x2="840" y2="274"/>
-      </g>
-      <g fill="#9a988f" font-size="12" font-family="inherit" text-anchor="end">
-        <text x="50" y="30">400</text>
-        <text x="50" y="79.6">350</text>
-        <text x="50" y="129.2">300</text>
-        <text x="50" y="178.8">250</text>
-        <text x="50" y="228.4">200</text>
-        <text x="50" y="278">150</text>
-      </g>
-      <!-- gold-medal score threshold (361.12) -->
-      <line x1="60" y1="64.6" x2="840" y2="64.6" stroke="#c9a227"
-        stroke-width="1.25" stroke-dasharray="4 4"/>
-      <image href="figs/gold-medal.png" x="64" y="45" width="22" height="22"/>
-      <text x="91" y="60" fill="#a8851d" font-size="11" font-weight="600"
-        font-family="inherit" text-anchor="start">gold medal · 361</text>
-      <!-- faint area under the verifier curve -->
-      <path d="M60,177.4 L504.1,77.3 L672,58.8 L840,51.0 L840,274 L60,274 Z"
-        fill="var(--full)" fill-opacity=".05"/>
-      <!-- WITHOUT verifier: gpt-oss score@k (dashed, muted) -->
-      <polyline fill="none" stroke="#b6b3ab" stroke-width="2"
-        stroke-dasharray="6 4" stroke-linejoin="round" stroke-linecap="round"
-        points="60,228.3 504.1,119.7 672,78.6 840,51.5"/>
-      <g class="tdot" fill="#fff" stroke="#b6b3ab" stroke-width="2">
-        <circle cx="60"    cy="228.3" r="3.5"/>
-        <circle cx="504.1" cy="119.7" r="3.5"/>
-        <circle cx="672"   cy="78.6"  r="3.5"/>
-        <circle cx="840"   cy="51.5"  r="3.5"/>
-      </g>
-      <!-- five-pointed star marker for our method (mirrors meta-harness, which
-           stars its own results and leaves baselines as dots) -->
-      <defs>
-        <path id="star" fill="var(--full)" stroke="#fff" stroke-width="1"
-          stroke-linejoin="round"
-          d="M0,-8 L2.35,-2.47 L8.36,-2.47 L3.5,1.06 L5.36,6.47
-             L0,3.2 L-5.36,6.47 L-3.5,1.06 L-8.36,-2.47 L-2.35,-2.47 Z"/>
-      </defs>
-      <!-- WITH verifier: Arbiter-gated refinement (solid, accent) -->
-      <polyline fill="none" stroke="var(--full)" stroke-width="2.5"
-        stroke-linejoin="round" stroke-linecap="round"
-        points="60,177.4 504.1,77.3 672,58.8 840,51.0"/>
-      <g class="tstar">
-        <use href="#star" data-x="60"    transform="translate(60 177.4)"/>
-        <use href="#star" data-x="504.1" transform="translate(504.1 77.3)"/>
-        <use href="#star" data-x="672"   transform="translate(672 58.8)"/>
-        <use href="#star" data-x="840"   transform="translate(840 51)"/>
-      </g>
-      <!-- legend, tucked into the empty lower-right area below the curves -->
-      <g font-size="12.5" font-family="inherit">
-        <line x1="560" y1="234" x2="588" y2="234" stroke="var(--full)" stroke-width="2.5"/>
-        <use href="#star" transform="translate(574 234) scale(0.72)"/>
-        <text x="596" y="238" fill="var(--ink)">with Arbiter</text>
-        <line x1="560" y1="256" x2="588" y2="256" stroke="#b6b3ab" stroke-width="2" stroke-dasharray="6 4"/>
-        <circle cx="574" cy="256" r="3.5" fill="#fff" stroke="#b6b3ab" stroke-width="2"/>
-        <text x="596" y="260" fill="var(--ink2)">no verifier (score@k)</text>
-      </g>
-      <!-- x labels -->
-      <g fill="#9a988f" font-size="12" font-family="inherit" text-anchor="middle">
-        <text x="60"    y="296">8</text>
-        <text x="504.1" y="296">50</text>
-        <text x="672"   y="296">100</text>
-        <text x="840"   y="296">200</text>
-      </g>
-      <!-- axis titles -->
-      <text x="450" y="320" fill="#7d7b73" font-size="12.5"
-        font-family="inherit" text-anchor="middle">samples per subtask (k)</text>
-      <text x="18" y="150" fill="#7d7b73" font-size="12.5"
-        font-family="inherit" text-anchor="middle"
-        transform="rotate(-90 18 150)">contest score (/600)</text>
-      <!-- interactive hit-targets (one per k), data drives the tooltip -->
-      <g class="hits">
-        <rect class="hit" x="0"   y="26" width="282" height="248"
-          data-x="60"    data-title="k = 8"   data-a="247.42" data-b="196.06"/>
-        <rect class="hit" x="282" y="26" width="306" height="248"
-          data-x="504.1" data-title="k = 50"  data-a="348.34" data-b="305.59"/>
-        <rect class="hit" x="588" y="26" width="168" height="248"
-          data-x="672"   data-title="k = 100" data-a="366.92" data-b="346.95"/>
-        <rect class="hit" x="756" y="26" width="144" height="248"
-          data-x="840"   data-title="k = 200" data-a="374.83" data-b="374.27"/>
-      </g>
-    </svg>
-    <div class="figtip" id="figtip-teaser"></div>
-    <div class="figcap"><b>gpt-oss-120b, refined against Arbiter, clears the IOI
-    2026 gold-medal line.</b> Contest score (/600) versus <b>k</b>, the candidates
-    drawn per subtask — Arbiter-gated refinement beats plain score@k at every
-    budget, and the gap is widest where samples are scarce. Hover for exact
-    values.</div>
-  </div></template>
 
   <section id="verifier">
     <h2 class="sec-h">From Search to Refinement</h2>
@@ -1212,25 +1115,29 @@
     a sample pool.</div>
 
     <div class="figure">
-      <div class="tkfig" role="img" aria-label="Agentic Verifier versus Online Judge: one shared candidate, different systems, different outputs">
-        <div class="tk-inputs-row">
-          <div class="tk-chip tk-in tk-clickable" data-comp="problem"><span class="tk-num">&#9312;</span>Problem</div>
-          <div class="tk-chip tk-in tk-clickable" data-comp="candidate"><span class="tk-num">&#9313;</span>Candidate</div>
-          <div class="tk-chip tk-held" data-comp="testdata"><span class="tk-num">&#9314;</span>Test Data</div>
-          <div class="tk-chip tk-held" data-comp="checker"><span class="tk-num">&#9315;</span>Checker</div>
-        </div>
-        <div class="tk-note">Test Data &amp; Checker: typically not publicly released</div>
-        <div class="tk-cols">
-          <div class="tk-col" data-comp="agentic-path">
-            <div class="tk-arrow tk-r1"><span class="tk-feeds tk-feeds-a">&#9312;&#9313;</span>&#8595;</div>
-            <div class="tk-sys tk-agentic tk-r2" data-comp="agentic-judge">
+      <div class="tkfig" role="img" aria-label="Arbiter: from a problem statement and one candidate solution, through a multi-turn sandbox trajectory, to a verdict, a diagnosis and a counterexample">
+        <div class="tk-grid">
+          <div class="tk-inbox" data-comp="inputs">
+            <div class="tk-chip tk-in tk-clickable" data-comp="problem">Problem</div>
+            <div class="tk-chip tk-in tk-clickable" data-comp="candidate">Candidate</div>
+            <div class="tk-unused">
+              <div class="tk-chip tk-held" data-comp="testdata">Test Data</div>
+              <div class="tk-chip tk-held" data-comp="checker">Checker</div>
+              <span class="tk-unused-lbl">&#10005; not needed</span>
+            </div>
+          </div>
+          <div class="tk-harrow">&#8594;</div>
+          <div class="tk-sys tk-agentic" data-comp="agentic-judge">
+            <div class="tk-top">
               <div class="tk-sys-h">Agentic Verifier</div>
               <div class="tk-sub">
                 <span class="tk-subchip" data-comp="llm">LLM</span>
                 <span class="tk-subchip" data-comp="sandbox-a">Sandbox</span>
               </div>
-              <div class="tk-turns" data-comp="trajectory">
-                <span class="tk-turns-cap">one real trajectory &#8212; example</span>
+            </div>
+            <div class="tk-turns" data-comp="trajectory">
+              <span class="tk-turns-cap">one real trajectory &#8212; example</span>
+              <span class="tk-turn-row">
                 <span class="tk-turn" data-turn="1">&#9312; analyze</span>
                 <span class="tk-turn-arr">&#8594;</span>
                 <span class="tk-turn" data-turn="2">&#9313; generate</span>
@@ -1238,39 +1145,25 @@
                 <span class="tk-turn" data-turn="3">&#9314; benchmark</span>
                 <span class="tk-turn-arr">&#8594;</span>
                 <span class="tk-turn" data-turn="4">&#9315; finalize</span>
-              </div>
-            </div>
-            <div class="tk-arrow tk-r3">&#8595;</div>
-            <div class="tk-outbox tk-agentic-out tk-r4" data-comp="agentic-outputs">
-              <div class="tk-otag tk-verdict tk-hoverable" data-comp="verdict-a">Verdict <small>accept, or not</small></div>
-              <div class="tk-otag tk-diag tk-hoverable" data-comp="diagnosis-a">Diagnosis <small>why it is wrong</small></div>
-              <div class="tk-otag tk-gen tk-hoverable" data-comp="counterexample-a">Counterexample <small>an input it fails on</small></div>
+              </span>
             </div>
           </div>
-          <div class="tk-col" data-comp="online-path">
-            <div class="tk-arrow tk-r1"><span class="tk-feeds tk-feeds-o">&#9313;&#9314;&#9315;</span>&#8595;</div>
-            <div class="tk-sys tk-online tk-r2" data-comp="online-judge">
-              <div class="tk-sys-h">Online Judge</div>
-              <div class="tk-sub">
-                <span class="tk-subchip" data-comp="sandbox-o">Sandbox</span>
-              </div>
-            </div>
-            <div class="tk-arrow tk-r3">&#8595;</div>
-            <div class="tk-outbox tk-online-out tk-r4" data-comp="online-outputs">
-              <div class="tk-otag tk-verdict tk-hoverable" data-comp="verdict-o">Verdict <small>accept, or not</small></div>
-              <div class="tk-otag tk-diag tk-absent" data-comp="diagnosis-o">Diagnosis <small>never given</small></div>
-              <div class="tk-otag tk-gen tk-absent" data-comp="counterexample-o">Counterexample <small>leaks tests</small></div>
-            </div>
+          <div class="tk-harrow">&#8594;</div>
+          <div class="tk-outbox tk-agentic-out" data-comp="agentic-outputs">
+            <div class="tk-otag tk-verdict tk-hoverable" data-comp="verdict-a">Verdict <small>accept, or not</small></div>
+            <div class="tk-otag tk-diag tk-hoverable" data-comp="diagnosis-a">Diagnosis <small>why it is wrong</small></div>
+            <div class="tk-otag tk-gen tk-hoverable" data-comp="counterexample-a">Counterexample <small>an input it fails on</small></div>
           </div>
         </div>
       </div>
       <div class="figtip tk-tip" id="figtip-tkturn"></div>
-      <div class="figcap"><b>An agentic verifier returns what an online judge cannot.</b> Both
-      systems take a candidate solution and run it; the online judge additionally needs the
-      problem's official test data and checker, which are typically withheld, and returns
-      only a verdict. Arbiter needs just the problem statement and the candidate, and returns
-      a verdict, a diagnosis of what is wrong, and a concrete counterexample the candidate
-      fails on — one response, not just a score.</div>
+      <div class="figcap"><b>Arbiter answers with evidence, not just a score.</b> It is given only
+      the problem statement and one candidate solution. The official test data and checker
+      &mdash; everything a judge would need &mdash; are crossed out because Arbiter never sees
+      them. From what it has it works a multi-turn trajectory in a sandbox, compiling the candidate and
+      probing it on inputs of its own devising, and returns three things: a verdict, a diagnosis
+      of what is wrong, and a concrete input the candidate fails on. Click the inputs or the
+      verifier box to open the real data behind this example.</div>
     </div>
 
     <div class="sec-lead" data-md="environment">Beyond IOI, Arbiter is an example of
@@ -1475,100 +1368,100 @@
     budget — the 75th percentile of length within each group's best-reward
     tier. Under it, response length comes down while reward keeps rising.</div>
 
-    <div class="figure" id="trainChartFig">
-      <div class="figtip tr-tip-mini" id="trTip0"></div>
-      <div class="figtip tr-tip-mini" id="trTip1"></div>
-      <div class="figtip tr-tip-mini" id="trTip2"></div>
-      <div class="figtip tr-tip-step" id="trTipStep"></div>
-<svg viewBox="0 0 900 748" role="img" aria-label="Training reward, response length, and abortion ratio, with vs without the length penalty">
+    <div class="figure fig-full" id="trainChartFig">
+      <div class="figtip tr-tip-all" id="trTipAll"></div>
+<svg viewBox="0 0 900 260" role="img" aria-label="Training reward, response length, and abortion ratio, with vs without the length penalty">
 <defs>
-<linearGradient id="trfade0" gradientUnits="userSpaceOnUse" x1="72.5" y1="0" x2="696.2" y2="0"><stop offset="0" stop-color="#808080" stop-opacity="0.95"/><stop offset="1" stop-color="#808080" stop-opacity="0.04"/></linearGradient>
-<linearGradient id="trfade1" gradientUnits="userSpaceOnUse" x1="72.5" y1="0" x2="696.2" y2="0"><stop offset="0" stop-color="#808080" stop-opacity="0.95"/><stop offset="1" stop-color="#808080" stop-opacity="0.04"/></linearGradient>
-<linearGradient id="trfade2" gradientUnits="userSpaceOnUse" x1="72.5" y1="0" x2="696.2" y2="0"><stop offset="0" stop-color="#808080" stop-opacity="0.95"/><stop offset="1" stop-color="#808080" stop-opacity="0.04"/></linearGradient>
+<linearGradient id="trfade0" gradientUnits="userSpaceOnUse" x1="45.1" y1="0" x2="231.5" y2="0"><stop offset="0" stop-color="#808080" stop-opacity="0.95"/><stop offset="1" stop-color="#808080" stop-opacity="0.04"/></linearGradient>
+<linearGradient id="trfade1" gradientUnits="userSpaceOnUse" x1="352.1" y1="0" x2="538.5" y2="0"><stop offset="0" stop-color="#808080" stop-opacity="0.95"/><stop offset="1" stop-color="#808080" stop-opacity="0.04"/></linearGradient>
+<linearGradient id="trfade2" gradientUnits="userSpaceOnUse" x1="659.1" y1="0" x2="845.5" y2="0"><stop offset="0" stop-color="#808080" stop-opacity="0.95"/><stop offset="1" stop-color="#808080" stop-opacity="0.04"/></linearGradient>
 </defs>
-<rect x="309.4" y="26" width="50.0" height="190" fill="#E3E9F2"/>
-<rect x="493.6" y="26" width="50.0" height="190" fill="#E3E9F2"/>
-<rect x="677.8" y="26" width="50.0" height="190" fill="#E3E9F2"/>
-<line x1="62" y1="201.38" x2="862" y2="201.38" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
-<text x="54" y="204.88" font-size="11" fill="#9a988f" text-anchor="end" font-family="inherit">0.4</text>
-<line x1="62" y1="164.85" x2="862" y2="164.85" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
-<text x="54" y="168.35" font-size="11" fill="#9a988f" text-anchor="end" font-family="inherit">0.5</text>
-<line x1="62" y1="128.31" x2="862" y2="128.31" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
-<text x="54" y="131.81" font-size="11" fill="#9a988f" text-anchor="end" font-family="inherit">0.6</text>
-<line x1="62" y1="91.77" x2="862" y2="91.77" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
-<text x="54" y="95.27" font-size="11" fill="#9a988f" text-anchor="end" font-family="inherit">0.7</text>
-<line x1="62" y1="55.23" x2="862" y2="55.23" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
-<text x="54" y="58.73" font-size="11" fill="#9a988f" text-anchor="end" font-family="inherit">0.8</text>
-<rect x="62" y="26" width="800" height="190" fill="none" stroke="rgba(11,11,11,.2)" stroke-width="0.75"/>
-<text x="72.5" y="232" font-size="11" fill="#9a988f" text-anchor="middle" font-family="inherit">0</text>
-<text x="335.7" y="232" font-size="11" fill="#9a988f" text-anchor="middle" font-family="inherit">100</text>
-<text x="598.8" y="232" font-size="11" fill="#9a988f" text-anchor="middle" font-family="inherit">200</text>
-<text x="862.0" y="232" font-size="11" fill="#9a988f" text-anchor="middle" font-family="inherit">300</text>
-<text x="62" y="17" font-size="13" font-weight="650" fill="var(--ink)" text-anchor="start" font-family="inherit">Mean Reward</text>
-<polyline points="72.5,171.13 75.2,204.93 77.8,194.92 80.4,200.25 83.1,193.35 85.7,191.88 88.3,205.73 90.9,179.79 93.6,192.32 96.2,186.44 98.8,165.47 101.5,154.40 104.1,173.83 106.7,152.28 109.4,164.15 112.0,145.26 114.6,159.04 117.3,146.03 119.9,167.70 122.5,131.52 125.2,126.33 127.8,135.43 130.4,153.01 133.1,131.30 135.7,147.34 138.3,139.34 140.9,144.02 143.6,169.12 146.2,141.46 148.8,149.57 151.5,139.16 154.1,129.88 156.7,144.31 159.4,142.38 162.0,132.03 164.6,147.23 167.3,117.13 169.9,122.13 172.5,116.87 175.2,123.12 177.8,128.86 180.4,102.11 183.1,112.71 185.7,133.20 188.3,126.26 190.9,101.42 193.6,120.16 196.2,109.75 198.8,121.40 201.5,114.42 204.1,107.63 206.7,91.66 209.4,115.78 212.0,101.42 214.6,112.41 217.3,116.29 219.9,111.13 222.5,109.45 225.2,129.00 227.8,94.18 230.4,103.46 233.1,90.27 235.7,121.00 238.3,113.25 240.9,106.20 243.6,89.18 246.2,116.47 248.8,79.05 251.5,125.71 254.1,84.64 256.7,88.88 259.4,95.09 262.0,108.61 264.6,81.36 267.3,90.64 269.9,95.97 272.5,94.51 275.2,89.14 277.8,94.77 280.4,89.47 283.1,116.87 280.4,89.47 283.1,116.87 285.7,79.13 288.3,120.38 290.9,88.26 293.6,93.71 296.2,88.85 298.8,85.96 301.5,94.47 304.1,103.86 306.7,106.13 309.4,86.62 312.0,69.04 314.6,96.88 317.3,81.10 319.9,93.63 322.5,108.54 325.2,109.16 327.8,116.32 330.4,107.41 333.1,108.61 335.7,68.17 338.3,77.92 340.9,79.09 343.6,78.51 346.2,99.84 348.8,98.89 351.5,77.92 354.1,73.17 356.7,81.03 359.4,91.55 362.0,92.79 364.6,87.06 367.3,118.11 369.9,91.11 372.5,82.45 375.2,75.80 377.8,107.74 380.4,84.10 383.1,99.88 385.7,78.65 388.3,86.40 390.9,101.42 393.6,112.38 396.2,108.50 398.8,95.02 401.5,99.70 404.1,96.08 406.7,97.40 409.4,96.63 412.0,91.84 414.6,90.09 417.3,91.22 419.9,103.50 422.5,124.25 425.2,104.16 427.8,82.23 430.4,103.39 433.1,109.78 435.7,107.88 438.3,125.64 440.9,100.72 443.6,88.85 446.2,99.15 448.8,121.33 451.5,102.84 454.1,104.81 456.7,106.57 459.4,106.60 462.0,97.03 464.6,102.51 467.3,134.30 469.9,113.22 472.5,140.11 475.2,132.36 477.8,99.62 480.4,104.85 483.1,113.84 485.7,98.86 488.3,121.07 490.9,116.62 488.3,121.07 490.9,116.62 493.6,99.52 496.2,133.97 498.8,133.97 501.5,126.70 504.1,132.47 506.7,112.74 509.4,115.52 512.0,130.97 514.6,142.52 517.3,117.24 519.9,121.99 522.5,129.18 525.2,137.26 527.8,131.05 530.4,126.48 533.1,126.77 535.7,139.42 538.3,139.85 540.9,151.88 543.6,121.84 546.2,164.33 548.8,175.11 551.5,124.62 554.1,143.47 556.7,131.38 559.4,131.74 562.0,135.25 564.6,149.32 567.3,133.83 569.9,147.38 572.5,151.88 575.2,154.91 577.8,149.32 580.4,136.97 583.1,122.57 585.7,168.32 588.3,158.12 590.9,145.85 593.6,129.22 596.2,138.43 598.8,143.03 601.5,158.42 604.1,160.61 606.7,174.38 609.4,169.16 612.0,184.91 614.6,163.35 617.3,172.19 619.9,143.87 622.5,166.38 625.2,170.98 627.8,149.24 630.4,124.43 633.1,162.47 635.7,185.56 638.3,171.64 640.9,161.08 643.6,179.72 646.2,184.43 648.8,156.44 651.5,157.68 654.1,136.20 656.7,158.49 659.4,180.38 662.0,162.00 664.6,177.20 667.3,143.87 669.9,149.32 672.5,132.73 675.2,160.17 677.8,144.68 680.4,140.11 683.1,154.10 685.7,146.10 688.3,172.59 690.9,153.45 693.6,165.72 696.2,146.28" fill="none" stroke="url(#trfade0)" stroke-width="0.7"/>
-<polyline points="72.5,171.13 75.2,204.93 77.8,194.92 80.4,200.25 83.1,193.35 85.7,191.88 88.3,205.73 90.9,179.79 93.6,192.32 96.2,186.44 98.8,165.47 101.5,154.40 104.1,173.83 106.7,152.28 109.4,164.15 112.0,145.26 114.6,159.04 117.3,146.03 119.9,167.70 122.5,131.52 125.2,126.33 127.8,135.43 130.4,153.01 133.1,131.30 135.7,147.34 138.3,139.34 140.9,144.02 143.6,169.12 146.2,141.46 148.8,149.57 151.5,139.16 154.1,129.88 156.7,144.31 159.4,142.38 162.0,132.03 164.6,147.23 167.3,117.13 169.9,122.13 172.5,116.87 175.2,123.12 177.8,128.86 180.4,102.11 183.1,112.71 185.7,133.20 188.3,126.26 190.9,101.42 193.6,120.16 196.2,109.75 198.8,121.40 201.5,114.42 204.1,107.63 206.7,91.66 209.4,115.78 212.0,101.42 214.6,112.41 217.3,116.29 219.9,111.13 222.5,109.45 225.2,129.00 227.8,94.18 230.4,103.46 233.1,90.27 235.7,121.00 238.3,113.25 240.9,106.20 243.6,89.18 246.2,116.47 248.8,79.05 251.5,125.71 254.1,84.64 256.7,88.88 259.4,95.09 262.0,108.61 264.6,81.36 267.3,90.64 269.9,95.97 272.5,94.51 275.2,89.14 277.8,94.77 280.4,89.47 283.1,116.87 285.7,79.13 288.3,120.38 290.9,88.26 293.6,93.71 296.2,88.85 298.8,85.96 301.5,94.47 304.1,103.86 306.7,106.13 309.4,64.88 312.0,69.99 314.6,61.41 317.3,74.45 319.9,80.04 322.5,81.72 325.2,87.86 327.8,82.34 330.4,85.78 333.1,63.74 335.7,67.36 338.3,77.74 340.9,69.96 343.6,69.37 346.2,79.05 348.8,82.78 351.5,60.35 354.1,67.03 356.7,68.68 359.4,72.26 362.0,64.69 364.6,76.09 367.3,75.77 369.9,62.94 372.5,57.13 375.2,66.08 377.8,71.23 380.4,69.85 383.1,57.64 385.7,64.37 388.3,73.90 390.9,59.65 393.6,69.96 396.2,66.01 398.8,58.15 401.5,67.73 404.1,72.55 406.7,72.37 409.4,66.63 412.0,66.70 414.6,83.99 417.3,51.36 419.9,71.75 422.5,72.81 425.2,63.93 427.8,56.33 430.4,91.66 433.1,67.40 435.7,87.93 438.3,65.43 440.9,71.89 443.6,64.15 446.2,73.13 448.8,62.87 451.5,75.11 454.1,55.82 456.7,72.55 459.4,64.58 462.0,75.69 464.6,98.09 467.3,76.06 469.9,74.67 472.5,94.44 475.2,61.04 477.8,74.38 480.4,68.93 483.1,65.46 485.7,78.29 488.3,74.23 490.9,67.76 493.6,72.70 496.2,77.56 498.8,77.34 501.5,77.45 504.1,68.57 506.7,81.61 509.4,86.73 512.0,76.42 514.6,94.47 517.3,78.43 519.9,68.28 522.5,84.50 525.2,64.29 527.8,78.03 530.4,89.61 533.1,72.62 535.7,91.59 538.3,59.03 540.9,114.79 543.6,76.82 546.2,54.43 548.8,67.62 551.5,63.01 554.1,78.18 556.7,74.05 559.4,63.78 562.0,90.89 564.6,59.14 567.3,92.21 569.9,76.28 572.5,63.53 575.2,62.10 577.8,74.74 580.4,66.16 583.1,66.48 585.7,70.32 588.3,62.39 590.9,72.04 593.6,71.16 596.2,77.01 598.8,60.38 601.5,64.26 604.1,75.36 606.7,66.41 609.4,69.33 612.0,63.16 614.6,70.07 617.3,82.12 619.9,56.51 622.5,52.53 625.2,79.20 627.8,64.69 630.4,84.06 633.1,69.37 635.7,92.79 638.3,79.93 640.9,92.17 643.6,69.44 646.2,62.61 648.8,82.01 651.5,89.91 654.1,67.51 656.7,76.09 659.4,64.22 662.0,94.11 664.6,74.27 667.3,91.04 669.9,88.59 672.5,82.82 675.2,78.94 677.8,69.08 680.4,80.00 683.1,88.01 685.7,77.92 688.3,76.50 690.9,103.75 693.6,88.41 696.2,82.93 698.8,76.28 701.5,78.03 704.1,95.35 706.7,61.33 709.4,55.23 712.0,57.13 714.6,66.12 717.3,69.01 719.9,61.11 722.5,61.77 725.2,64.44 727.8,71.71 730.4,28.70 733.1,62.87 735.7,68.06 738.3,50.44 740.9,55.19 743.6,60.24 746.2,55.60 748.8,55.82 751.5,45.47 754.1,43.17 756.7,35.83 759.4,62.10 762.0,39.70 764.6,50.92 767.3,59.80 769.9,67.73 772.5,60.46 775.2,63.49 777.8,48.54 780.4,57.17 783.1,60.38 785.7,65.83 788.3,39.67 790.9,44.38 793.6,54.03 796.2,60.78 798.8,44.38 801.5,44.67 804.1,63.78 806.7,53.18 809.4,62.72 812.0,49.75 814.6,62.61 817.3,51.65 819.9,40.14 822.5,39.74 825.2,55.67 827.8,62.98 830.4,57.42 833.1,52.31 835.7,61.95 838.3,62.94 840.9,42.33 843.6,55.23 846.2,67.80 848.8,69.77 851.5,67.76 854.1,56.18 856.7,43.50 859.4,59.18 862.0,57.97" fill="none" stroke="#D55E00" stroke-opacity="0.22" stroke-width="0.7"/>
-<polyline points="72.5,190.31 75.2,192.80 77.8,192.91 80.4,197.07 83.1,197.22 85.7,194.19 88.3,192.62 90.9,191.23 93.6,185.97 96.2,175.66 98.8,174.49 101.5,166.45 104.1,162.00 106.7,157.98 109.4,158.89 112.0,153.34 114.6,156.44 117.3,149.90 119.9,146.14 122.5,141.39 125.2,142.81 127.8,135.54 130.4,138.68 133.1,141.28 135.7,143.00 138.3,146.21 140.9,148.26 143.6,148.70 146.2,148.66 148.8,145.85 151.5,140.88 154.1,141.06 156.7,137.55 159.4,139.16 162.0,136.60 164.6,132.18 167.3,127.07 169.9,125.31 172.5,121.62 175.2,118.63 177.8,116.72 180.4,120.01 183.1,120.63 185.7,115.15 188.3,118.77 190.9,118.15 193.6,115.81 196.2,113.44 198.8,114.68 201.5,108.98 204.1,110.18 206.7,106.20 209.4,105.80 212.0,107.52 214.6,111.43 217.3,110.15 219.9,115.67 222.5,112.01 225.2,109.45 227.8,105.29 230.4,107.59 233.1,104.45 235.7,106.82 238.3,103.97 240.9,109.20 243.6,100.83 246.2,103.32 248.8,99.00 251.5,98.97 254.1,94.69 256.7,100.58 259.4,91.70 262.0,92.90 264.6,94.33 267.3,94.22 269.9,90.34 272.5,93.01 275.2,92.76 277.8,96.96 280.4,93.89 283.1,100.14 280.4,93.89 283.1,100.14 285.7,98.82 288.3,99.66 290.9,94.07 293.6,95.42 296.2,90.23 298.8,93.38 301.5,95.86 304.1,95.42 306.7,92.02 309.4,92.50 312.0,87.97 314.6,85.45 317.3,89.83 319.9,97.87 322.5,101.74 325.2,107.01 327.8,110.00 330.4,101.93 333.1,95.68 335.7,88.23 338.3,82.45 340.9,80.70 343.6,86.84 346.2,86.84 348.8,85.67 351.5,86.18 354.1,84.50 356.7,83.29 359.4,85.12 362.0,94.11 364.6,96.12 367.3,94.29 369.9,90.89 372.5,95.06 375.2,88.23 377.8,89.98 380.4,89.25 383.1,91.33 385.7,90.09 388.3,95.75 390.9,97.47 393.6,100.76 396.2,103.39 398.8,102.33 401.5,99.33 404.1,96.96 406.7,96.34 409.4,94.40 412.0,93.41 414.6,94.66 417.3,100.17 419.9,102.62 422.5,101.09 425.2,103.50 427.8,104.78 430.4,101.49 433.1,105.80 435.7,109.49 438.3,106.57 440.9,104.45 443.6,107.15 446.2,102.58 448.8,103.42 451.5,106.97 454.1,108.43 456.7,103.57 459.4,103.50 462.0,109.42 464.6,110.73 467.3,117.42 469.9,124.51 472.5,123.92 475.2,118.04 477.8,118.15 480.4,109.89 483.1,107.66 485.7,111.06 488.3,110.00 490.9,114.02 488.3,110.00 490.9,114.02 493.6,121.04 496.2,122.17 498.8,125.31 501.5,127.98 504.1,124.29 506.7,123.67 509.4,126.85 512.0,123.81 514.6,125.64 517.3,128.38 519.9,129.62 522.5,127.36 525.2,129.18 527.8,130.13 530.4,132.18 533.1,132.73 535.7,136.89 538.3,135.94 540.9,143.47 543.6,150.60 546.2,147.56 548.8,145.88 551.5,147.78 554.1,141.28 556.7,133.28 559.4,138.21 562.0,136.31 564.6,139.49 567.3,143.51 569.9,147.45 572.5,147.45 575.2,148.07 577.8,143.14 580.4,146.43 583.1,147.05 585.7,146.36 588.3,144.82 590.9,147.97 593.6,142.92 596.2,143.00 598.8,145.96 601.5,154.98 604.1,161.12 606.7,169.49 609.4,170.47 612.0,172.81 614.6,166.67 617.3,166.12 619.9,163.35 622.5,160.53 625.2,150.96 627.8,154.69 630.4,158.53 633.1,158.67 635.7,161.05 638.3,172.08 640.9,176.50 643.6,170.66 646.2,167.88 648.8,162.91 651.5,158.67 654.1,157.83 656.7,158.96 659.4,162.87 662.0,164.41 664.6,162.54 667.3,153.01 669.9,152.64 672.5,146.14 675.2,145.41 677.8,146.36 680.4,149.02 683.1,151.51 685.7,153.26 688.3,158.38 690.9,156.81 693.6,159.51 696.2,155.13" fill="none" stroke="url(#trfade0)" stroke-width="2" stroke-linejoin="round"/>
-<polyline points="72.5,190.31 75.2,192.80 77.8,192.91 80.4,197.07 83.1,197.22 85.7,194.19 88.3,192.62 90.9,191.23 93.6,185.97 96.2,175.66 98.8,174.49 101.5,166.45 104.1,162.00 106.7,157.98 109.4,158.89 112.0,153.34 114.6,156.44 117.3,149.90 119.9,146.14 122.5,141.39 125.2,142.81 127.8,135.54 130.4,138.68 133.1,141.28 135.7,143.00 138.3,146.21 140.9,148.26 143.6,148.70 146.2,148.66 148.8,145.85 151.5,140.88 154.1,141.06 156.7,137.55 159.4,139.16 162.0,136.60 164.6,132.18 167.3,127.07 169.9,125.31 172.5,121.62 175.2,118.63 177.8,116.72 180.4,120.01 183.1,120.63 185.7,115.15 188.3,118.77 190.9,118.15 193.6,115.81 196.2,113.44 198.8,114.68 201.5,108.98 204.1,110.18 206.7,106.20 209.4,105.80 212.0,107.52 214.6,111.43 217.3,110.15 219.9,115.67 222.5,112.01 225.2,109.45 227.8,105.29 230.4,107.59 233.1,104.45 235.7,106.82 238.3,103.97 240.9,109.20 243.6,100.83 246.2,103.32 248.8,99.00 251.5,98.97 254.1,94.69 256.7,100.58 259.4,91.70 262.0,92.90 264.6,94.33 267.3,94.22 269.9,90.34 272.5,93.01 275.2,92.76 277.8,96.96 280.4,93.89 283.1,100.14 285.7,98.82 288.3,99.66 290.9,94.07 293.6,95.42 296.2,90.23 298.8,93.38 301.5,95.86 304.1,95.42 306.7,87.86 309.4,81.25 312.0,75.36 314.6,70.14 317.3,73.54 319.9,77.08 322.5,81.28 325.2,83.55 327.8,80.30 330.4,77.41 333.1,75.40 335.7,72.92 338.3,69.63 340.9,72.70 343.6,75.77 346.2,72.29 348.8,71.71 351.5,71.56 354.1,70.21 356.7,66.59 359.4,69.74 362.0,71.49 364.6,70.36 367.3,67.32 369.9,67.62 372.5,66.63 375.2,65.46 377.8,64.40 380.4,65.83 383.1,67.40 385.7,65.10 388.3,65.10 390.9,66.78 393.6,65.53 396.2,64.29 398.8,66.89 401.5,67.36 404.1,67.47 406.7,69.19 409.4,72.44 412.0,68.20 414.6,68.09 417.3,69.33 419.9,68.75 422.5,63.23 425.2,71.31 427.8,70.43 430.4,73.46 433.1,73.76 435.7,76.86 438.3,71.34 440.9,72.51 443.6,67.51 446.2,69.44 448.8,66.23 451.5,67.91 454.1,66.19 456.7,68.75 459.4,73.35 462.0,77.41 464.6,77.81 467.3,83.80 469.9,80.88 472.5,76.13 475.2,74.71 477.8,72.84 480.4,69.63 483.1,72.26 485.7,70.94 488.3,71.67 490.9,74.08 493.6,73.90 496.2,74.56 498.8,74.71 501.5,76.50 504.1,78.32 506.7,78.14 509.4,81.57 512.0,83.55 514.6,80.84 517.3,80.41 519.9,77.99 522.5,74.71 525.2,76.93 527.8,77.81 530.4,79.24 533.1,78.18 535.7,85.52 538.3,82.96 540.9,79.35 543.6,74.56 546.2,75.33 548.8,68.02 551.5,67.47 554.1,69.33 556.7,73.97 559.4,73.21 562.0,76.02 564.6,76.46 567.3,76.42 569.9,70.65 572.5,73.79 575.2,68.57 577.8,66.59 580.4,67.98 583.1,68.02 585.7,67.47 588.3,68.49 590.9,70.58 593.6,68.60 596.2,68.97 598.8,69.63 601.5,68.68 604.1,67.14 606.7,67.69 609.4,68.86 612.0,70.21 614.6,68.24 617.3,64.88 619.9,68.09 622.5,67.00 625.2,67.40 627.8,69.96 630.4,78.03 633.1,78.18 635.7,83.66 638.3,80.73 640.9,79.38 643.6,77.23 646.2,79.24 648.8,74.30 651.5,75.62 654.1,75.95 656.7,78.36 659.4,75.25 662.0,79.97 664.6,82.45 667.3,86.18 669.9,83.15 672.5,82.09 675.2,79.89 677.8,79.78 680.4,78.80 683.1,78.29 685.7,85.23 688.3,86.91 690.9,85.89 693.6,85.56 696.2,85.89 698.8,84.21 701.5,78.76 704.1,73.24 706.7,69.41 709.4,67.03 712.0,61.77 714.6,61.70 717.3,63.01 719.9,64.47 722.5,65.61 725.2,57.57 727.8,57.90 730.4,59.18 733.1,56.36 735.7,53.04 738.3,59.36 740.9,57.90 743.6,55.45 746.2,54.46 748.8,52.05 751.5,47.19 754.1,48.47 756.7,45.26 759.4,46.35 762.0,49.68 764.6,56.03 767.3,55.71 769.9,60.46 772.5,59.98 775.2,59.47 777.8,58.01 780.4,59.07 783.1,54.32 785.7,53.48 788.3,52.86 790.9,52.93 793.6,48.65 796.2,49.64 798.8,53.55 801.5,53.37 804.1,53.77 806.7,54.83 809.4,58.41 812.0,56.00 814.6,53.40 817.3,48.80 819.9,49.97 822.5,50.04 825.2,51.17 827.8,53.62 830.4,58.08 833.1,59.51 835.7,55.38 838.3,54.94 840.9,58.04 843.6,59.62 846.2,60.60 848.8,63.34 851.5,61.00 854.1,59.29 856.7,56.91 859.4,54.21 862.0,53.55" fill="none" stroke="#D55E00" stroke-width="2.1" stroke-linejoin="round"/>
-<rect x="309.4" y="262" width="50.0" height="190" fill="#E3E9F2"/>
-<rect x="493.6" y="262" width="50.0" height="190" fill="#E3E9F2"/>
-<rect x="677.8" y="262" width="50.0" height="190" fill="#E3E9F2"/>
-<line x1="62" y1="436.80" x2="862" y2="436.80" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
-<text x="54" y="440.30" font-size="11" fill="#9a988f" text-anchor="end" font-family="inherit">15</text>
-<line x1="62" y1="398.80" x2="862" y2="398.80" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
-<text x="54" y="402.30" font-size="11" fill="#9a988f" text-anchor="end" font-family="inherit">20</text>
-<line x1="62" y1="360.80" x2="862" y2="360.80" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
-<text x="54" y="364.30" font-size="11" fill="#9a988f" text-anchor="end" font-family="inherit">25</text>
-<line x1="62" y1="322.80" x2="862" y2="322.80" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
-<text x="54" y="326.30" font-size="11" fill="#9a988f" text-anchor="end" font-family="inherit">30</text>
-<line x1="62" y1="284.80" x2="862" y2="284.80" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
-<text x="54" y="288.30" font-size="11" fill="#9a988f" text-anchor="end" font-family="inherit">35</text>
-<rect x="62" y="262" width="800" height="190" fill="none" stroke="rgba(11,11,11,.2)" stroke-width="0.75"/>
-<text x="72.5" y="468" font-size="11" fill="#9a988f" text-anchor="middle" font-family="inherit">0</text>
-<text x="335.7" y="468" font-size="11" fill="#9a988f" text-anchor="middle" font-family="inherit">100</text>
-<text x="598.8" y="468" font-size="11" fill="#9a988f" text-anchor="middle" font-family="inherit">200</text>
-<text x="862.0" y="468" font-size="11" fill="#9a988f" text-anchor="middle" font-family="inherit">300</text>
-<text x="62" y="253" font-size="13" font-weight="650" fill="var(--ink)" text-anchor="start" font-family="inherit">Response Length (K)</text>
-<polyline points="72.5,314.81 75.2,298.92 77.8,301.93 80.4,300.19 83.1,310.53 85.7,299.31 88.3,303.92 90.9,319.56 93.6,312.49 96.2,312.48 98.8,327.09 101.5,343.45 104.1,317.79 106.7,331.95 109.4,324.48 112.0,345.97 114.6,345.80 117.3,339.04 119.9,332.12 122.5,343.39 125.2,349.49 127.8,366.78 130.4,321.73 133.1,344.95 135.7,329.78 138.3,349.62 140.9,341.77 143.6,341.13 146.2,338.73 148.8,339.11 151.5,333.40 154.1,359.37 156.7,330.54 159.4,334.06 162.0,343.54 164.6,332.36 167.3,363.80 169.9,353.13 172.5,358.30 175.2,351.45 177.8,344.06 180.4,382.60 183.1,364.13 185.7,339.53 188.3,354.95 190.9,350.05 193.6,364.39 196.2,353.05 198.8,353.63 201.5,356.80 204.1,349.23 206.7,375.41 209.4,351.56 212.0,360.55 214.6,362.47 217.3,359.73 219.9,354.95 222.5,350.17 225.2,349.80 227.8,355.22 230.4,349.25 233.1,378.08 235.7,352.06 238.3,347.38 240.9,366.26 243.6,360.35 246.2,356.58 248.8,363.57 251.5,339.65 254.1,363.65 256.7,354.59 259.4,367.40 262.0,337.50 264.6,360.29 267.3,356.37 269.9,354.86 272.5,358.26 275.2,354.03 277.8,336.86 280.4,349.52 283.1,334.89 280.4,349.52 283.1,334.89 285.7,368.29 288.3,331.65 290.9,358.47 293.6,356.41 296.2,348.88 298.8,366.83 301.5,332.98 304.1,350.89 306.7,347.67 309.4,346.03 312.0,365.88 314.6,329.45 317.3,339.54 319.9,338.05 322.5,333.41 325.2,328.28 327.8,334.97 330.4,322.70 333.1,325.10 335.7,338.41 338.3,321.16 340.9,308.72 343.6,317.43 346.2,294.07 348.8,318.92 351.5,316.34 354.1,306.15 356.7,310.76 359.4,306.56 362.0,303.14 364.6,328.91 367.3,288.12 369.9,310.15 372.5,315.47 375.2,312.00 377.8,294.30 380.4,306.01 383.1,292.65 385.7,302.59 388.3,311.25 390.9,322.94 393.6,288.37 396.2,288.01 398.8,294.93 401.5,296.84 404.1,316.40 406.7,311.94 409.4,302.48 412.0,297.90 414.6,305.74 417.3,334.06 419.9,301.45 422.5,288.49 425.2,298.82 427.8,324.43 430.4,305.06 433.1,300.16 435.7,315.56 438.3,290.85 440.9,301.96 443.6,326.60 446.2,298.53 448.8,288.53 451.5,299.98 454.1,299.26 456.7,299.27 459.4,300.45 462.0,305.65 464.6,296.51 467.3,282.38 469.9,304.41 472.5,293.26 475.2,278.59 477.8,293.75 480.4,291.93 483.1,291.91 485.7,294.48 488.3,278.36 490.9,293.94 488.3,278.36 490.9,293.94 493.6,292.81 496.2,289.56 498.8,276.32 501.5,273.71 504.1,281.93 506.7,277.34 509.4,303.55 512.0,281.84 514.6,272.63 517.3,284.44 519.9,281.35 522.5,286.59 525.2,283.88 527.8,276.83 530.4,281.43 533.1,282.75 535.7,278.42 538.3,274.63 540.9,270.42 543.6,282.21 546.2,273.35 548.8,282.14 551.5,281.96 554.1,283.86 556.7,284.13 559.4,284.98 562.0,280.32 564.6,268.51 567.3,280.80 569.9,275.12 572.5,280.69 575.2,284.05 577.8,275.15 580.4,278.33 583.1,273.12 585.7,267.25 588.3,284.24 590.9,276.66 593.6,277.56 596.2,273.08 598.8,275.53 601.5,281.80 604.1,268.59 606.7,254.69 609.4,261.36 612.0,266.38 614.6,277.29 617.3,276.50 619.9,277.98 622.5,265.50 625.2,267.44 627.8,279.24 630.4,280.36 633.1,265.23 635.7,262.81 638.3,265.77 640.9,278.20 643.6,267.15 646.2,264.22 648.8,269.13 651.5,274.45 654.1,288.36 656.7,271.44 659.4,272.17 662.0,269.86 664.6,275.55 667.3,287.79 669.9,277.86 672.5,286.90 675.2,270.96 677.8,288.32 680.4,283.42 683.1,271.32 685.7,275.17 688.3,265.94 690.9,272.03 693.6,282.13 696.2,272.63" fill="none" stroke="url(#trfade1)" stroke-width="0.7"/>
-<polyline points="72.5,314.81 75.2,298.92 77.8,301.93 80.4,300.19 83.1,310.53 85.7,299.31 88.3,303.92 90.9,319.56 93.6,312.49 96.2,312.48 98.8,327.09 101.5,343.45 104.1,317.79 106.7,331.95 109.4,324.48 112.0,345.97 114.6,345.80 117.3,339.04 119.9,332.12 122.5,343.39 125.2,349.49 127.8,366.78 130.4,321.73 133.1,344.95 135.7,329.78 138.3,349.62 140.9,341.77 143.6,341.13 146.2,338.73 148.8,339.11 151.5,333.40 154.1,359.37 156.7,330.54 159.4,334.06 162.0,343.54 164.6,332.36 167.3,363.80 169.9,353.13 172.5,358.30 175.2,351.45 177.8,344.06 180.4,382.60 183.1,364.13 185.7,339.53 188.3,354.95 190.9,350.05 193.6,364.39 196.2,353.05 198.8,353.63 201.5,356.80 204.1,349.23 206.7,375.41 209.4,351.56 212.0,360.55 214.6,362.47 217.3,359.73 219.9,354.95 222.5,350.17 225.2,349.80 227.8,355.22 230.4,349.25 233.1,378.08 235.7,352.06 238.3,347.38 240.9,366.26 243.6,360.35 246.2,356.58 248.8,363.57 251.5,339.65 254.1,363.65 256.7,354.59 259.4,367.40 262.0,337.50 264.6,360.29 267.3,356.37 269.9,354.86 272.5,358.26 275.2,354.03 277.8,336.86 280.4,349.52 283.1,334.89 285.7,368.29 288.3,331.65 290.9,358.47 293.6,356.41 296.2,348.88 298.8,366.83 301.5,332.98 304.1,350.89 306.7,347.67 309.4,352.68 312.0,330.27 314.6,342.85 317.3,342.14 319.9,337.14 322.5,330.29 325.2,351.02 327.8,335.06 330.4,338.10 333.1,357.74 335.7,352.93 338.3,355.78 340.9,351.30 343.6,356.55 346.2,339.64 348.8,363.66 351.5,369.92 354.1,366.01 356.7,363.85 359.4,374.31 362.0,392.43 364.6,372.49 367.3,382.14 369.9,393.61 372.5,394.81 375.2,382.86 377.8,394.39 380.4,383.03 383.1,396.34 385.7,400.56 388.3,387.82 390.9,404.05 393.6,392.25 396.2,393.66 398.8,394.53 401.5,393.74 404.1,403.68 406.7,384.82 409.4,386.17 412.0,392.46 414.6,387.16 417.3,410.81 419.9,373.86 422.5,383.05 425.2,393.82 427.8,377.69 430.4,375.31 433.1,386.08 435.7,372.09 438.3,376.42 440.9,375.22 443.6,392.83 446.2,370.03 448.8,379.34 451.5,375.72 454.1,368.08 456.7,371.94 459.4,377.26 462.0,360.43 464.6,352.49 467.3,365.04 469.9,378.50 472.5,345.62 475.2,376.20 477.8,358.52 480.4,351.33 483.1,365.77 485.7,353.91 488.3,362.99 490.9,369.45 493.6,358.13 496.2,339.21 498.8,346.83 501.5,350.62 504.1,361.97 506.7,351.56 509.4,347.23 512.0,358.51 514.6,348.96 517.3,347.81 519.9,360.09 522.5,377.47 525.2,371.00 527.8,366.81 530.4,360.12 533.1,366.96 535.7,364.32 538.3,376.30 540.9,361.05 543.6,376.50 546.2,408.38 548.8,394.39 551.5,400.88 554.1,391.31 556.7,384.75 559.4,409.78 562.0,393.08 564.6,406.84 567.3,390.20 569.9,408.72 572.5,410.74 575.2,413.46 577.8,393.71 580.4,401.67 583.1,403.43 585.7,409.56 588.3,402.07 590.9,396.05 593.6,397.93 596.2,390.98 598.8,386.79 601.5,395.01 604.1,385.37 606.7,390.05 609.4,386.70 612.0,398.04 614.6,387.51 617.3,385.42 619.9,386.56 622.5,400.77 625.2,384.84 627.8,394.50 630.4,364.41 633.1,386.14 635.7,371.90 638.3,364.96 640.9,372.59 643.6,376.71 646.2,376.89 648.8,365.88 651.5,356.12 654.1,376.65 656.7,365.22 659.4,373.24 662.0,357.76 664.6,366.81 667.3,353.23 669.9,367.08 672.5,360.27 675.2,355.45 677.8,352.84 680.4,347.26 683.1,342.50 685.7,343.07 688.3,360.14 690.9,345.04 693.6,362.26 696.2,357.68 698.8,355.41 701.5,361.59 704.1,351.66 706.7,398.13 709.4,388.58 712.0,384.22 714.6,392.04 717.3,379.95 719.9,402.69 722.5,408.21 725.2,401.40 727.8,405.80 730.4,445.81 733.1,421.06 735.7,412.71 738.3,427.86 740.9,432.38 743.6,422.03 746.2,427.37 748.8,440.13 751.5,436.94 754.1,446.52 756.7,439.79 759.4,432.32 762.0,449.71 764.6,436.49 767.3,437.11 769.9,427.45 772.5,428.43 775.2,430.77 777.8,421.08 780.4,427.44 783.1,436.66 785.7,428.91 788.3,437.50 790.9,429.45 793.6,426.87 796.2,418.34 798.8,425.72 801.5,422.74 804.1,421.32 806.7,420.61 809.4,406.62 812.0,413.18 814.6,414.71 817.3,404.12 819.9,397.61 822.5,410.93 825.2,407.86 827.8,401.98 830.4,399.54 833.1,409.06 835.7,389.34 838.3,393.14 840.9,400.80 843.6,402.73 846.2,390.23 848.8,385.85 851.5,389.87 854.1,393.05 856.7,390.87 859.4,384.20 862.0,383.13" fill="none" stroke="#D55E00" stroke-opacity="0.22" stroke-width="0.7"/>
-<polyline points="72.5,305.22 75.2,303.96 77.8,305.27 80.4,302.17 83.1,303.18 85.7,306.70 88.3,309.16 90.9,309.55 93.6,315.11 96.2,323.02 98.8,322.66 101.5,326.55 104.1,328.95 106.7,332.73 109.4,333.20 112.0,337.45 114.6,337.48 117.3,341.27 119.9,341.97 122.5,346.16 125.2,342.70 127.8,345.27 130.4,342.54 133.1,342.57 135.7,337.57 138.3,341.45 140.9,340.20 143.6,342.07 146.2,338.83 148.8,342.35 151.5,340.23 154.1,339.29 156.7,340.18 159.4,339.97 162.0,340.86 164.6,345.38 167.3,350.23 169.9,351.81 172.5,354.15 175.2,357.91 177.8,360.11 180.4,356.36 183.1,357.06 185.7,358.25 188.3,354.61 190.9,352.39 193.6,355.21 196.2,355.58 198.8,355.42 201.5,357.62 204.1,357.32 206.7,358.71 209.4,359.84 212.0,361.94 214.6,357.85 217.3,357.57 219.9,355.43 222.5,353.98 225.2,351.88 227.8,356.50 230.4,356.88 233.1,356.40 235.7,358.61 238.3,360.83 240.9,356.53 243.6,358.83 246.2,357.28 248.8,356.76 251.5,355.61 254.1,357.77 256.7,352.56 259.4,356.68 262.0,355.23 264.6,355.28 267.3,353.45 269.9,356.76 272.5,352.07 275.2,350.70 277.8,346.71 280.4,348.72 283.1,344.24 280.4,348.72 283.1,344.24 285.7,348.56 288.3,349.94 290.9,352.74 293.6,352.45 296.2,352.71 298.8,351.20 301.5,349.45 304.1,348.88 306.7,348.69 309.4,347.98 312.0,345.71 314.6,343.79 317.3,341.26 319.9,333.74 322.5,334.85 325.2,331.48 327.8,328.89 330.4,329.89 333.1,328.47 335.7,323.22 338.3,322.17 340.9,315.96 343.6,312.06 346.2,311.10 348.8,310.58 351.5,309.25 354.1,311.75 356.7,308.59 359.4,311.10 362.0,307.50 364.6,307.38 367.3,309.16 369.9,310.93 372.5,304.01 375.2,307.59 377.8,304.09 380.4,301.51 383.1,301.36 385.7,307.09 388.3,303.56 390.9,302.63 393.6,301.10 396.2,298.22 398.8,296.91 401.5,301.63 404.1,304.52 406.7,305.11 409.4,306.89 412.0,310.43 414.6,308.33 417.3,305.53 419.9,305.71 422.5,309.45 425.2,303.65 427.8,303.39 430.4,308.81 433.1,307.21 435.7,302.72 438.3,307.03 440.9,306.70 443.6,301.30 446.2,303.12 448.8,302.58 451.5,297.11 454.1,297.50 456.7,300.92 459.4,300.23 462.0,296.85 464.6,297.88 467.3,296.44 469.9,291.03 472.5,290.48 475.2,292.39 477.8,289.89 480.4,290.13 483.1,290.09 485.7,290.12 488.3,290.30 490.9,289.83 488.3,290.30 490.9,289.83 493.6,286.20 496.2,285.27 498.8,282.87 501.5,279.77 504.1,282.57 506.7,283.68 509.4,283.46 512.0,283.96 514.6,284.76 517.3,281.37 519.9,281.78 522.5,282.62 525.2,282.01 527.8,282.29 530.4,280.66 533.1,278.81 535.7,277.53 538.3,277.69 540.9,275.81 543.6,276.55 546.2,278.01 548.8,280.70 551.5,281.09 554.1,283.41 556.7,283.05 559.4,280.36 562.0,279.75 564.6,277.95 567.3,277.09 569.9,277.83 572.5,279.16 575.2,278.67 577.8,278.27 580.4,275.58 583.1,275.62 585.7,275.92 588.3,275.77 590.9,275.76 593.6,277.42 596.2,276.93 598.8,275.31 601.5,270.74 604.1,268.39 606.7,266.56 609.4,265.66 612.0,267.24 614.6,271.90 617.3,272.73 619.9,272.94 622.5,273.33 625.2,274.10 627.8,271.55 630.4,271.02 633.1,270.68 635.7,270.47 638.3,267.83 640.9,267.63 643.6,268.89 646.2,270.63 648.8,272.66 651.5,273.52 654.1,275.11 656.7,275.26 659.4,275.48 662.0,275.36 664.6,276.65 667.3,279.59 669.9,279.81 672.5,282.37 675.2,281.49 677.8,280.18 680.4,277.84 683.1,276.83 685.7,273.58 688.3,273.32 690.9,273.58 693.6,273.18 696.2,275.60" fill="none" stroke="url(#trfade1)" stroke-width="2" stroke-linejoin="round"/>
-<polyline points="72.5,305.22 75.2,303.96 77.8,305.27 80.4,302.17 83.1,303.18 85.7,306.70 88.3,309.16 90.9,309.55 93.6,315.11 96.2,323.02 98.8,322.66 101.5,326.55 104.1,328.95 106.7,332.73 109.4,333.20 112.0,337.45 114.6,337.48 117.3,341.27 119.9,341.97 122.5,346.16 125.2,342.70 127.8,345.27 130.4,342.54 133.1,342.57 135.7,337.57 138.3,341.45 140.9,340.20 143.6,342.07 146.2,338.83 148.8,342.35 151.5,340.23 154.1,339.29 156.7,340.18 159.4,339.97 162.0,340.86 164.6,345.38 167.3,350.23 169.9,351.81 172.5,354.15 175.2,357.91 177.8,360.11 180.4,356.36 183.1,357.06 185.7,358.25 188.3,354.61 190.9,352.39 193.6,355.21 196.2,355.58 198.8,355.42 201.5,357.62 204.1,357.32 206.7,358.71 209.4,359.84 212.0,361.94 214.6,357.85 217.3,357.57 219.9,355.43 222.5,353.98 225.2,351.88 227.8,356.50 230.4,356.88 233.1,356.40 235.7,358.61 238.3,360.83 240.9,356.53 243.6,358.83 246.2,357.28 248.8,356.76 251.5,355.61 254.1,357.77 256.7,352.56 259.4,356.68 262.0,355.23 264.6,355.28 267.3,353.45 269.9,356.76 272.5,352.07 275.2,350.70 277.8,346.71 280.4,348.72 283.1,344.24 285.7,348.56 288.3,349.94 290.9,352.74 293.6,352.45 296.2,352.71 298.8,351.20 301.5,349.45 304.1,348.88 306.7,342.90 309.4,344.87 312.0,343.12 314.6,341.02 317.3,336.54 319.9,340.69 322.5,339.13 325.2,338.32 327.8,342.44 330.4,346.97 333.1,347.92 335.7,351.17 338.3,354.86 340.9,351.24 343.6,353.39 346.2,356.21 348.8,359.16 351.5,360.62 354.1,367.55 356.7,373.31 359.4,373.82 362.0,377.05 364.6,383.00 367.3,387.10 369.9,385.18 372.5,389.56 375.2,389.74 377.8,390.29 380.4,391.44 383.1,392.43 385.7,394.36 388.3,396.20 390.9,395.67 393.6,394.46 396.2,395.65 398.8,395.57 401.5,394.09 404.1,392.59 406.7,392.17 409.4,390.86 412.0,392.28 414.6,390.09 417.3,389.47 419.9,389.74 422.5,387.85 425.2,380.75 427.8,383.19 430.4,381.00 433.1,377.52 435.7,377.02 438.3,380.53 440.9,377.32 443.6,378.77 446.2,378.63 448.8,377.20 451.5,373.02 454.1,374.47 456.7,370.69 459.4,366.04 462.0,365.43 464.6,366.74 467.3,360.42 469.9,363.57 472.5,364.78 475.2,362.03 477.8,359.49 480.4,361.15 483.1,358.50 485.7,360.69 488.3,362.05 490.9,356.74 493.6,355.32 496.2,352.85 498.8,351.35 501.5,350.04 504.1,351.64 506.7,353.98 509.4,353.65 512.0,350.81 514.6,352.52 517.3,358.57 519.9,361.07 522.5,364.63 525.2,367.10 527.8,368.47 530.4,365.84 533.1,366.90 535.7,365.75 538.3,369.02 540.9,377.31 543.6,383.32 546.2,388.24 548.8,394.29 551.5,395.94 554.1,396.22 556.7,395.96 559.4,397.15 562.0,396.93 564.6,401.73 567.3,401.92 569.9,405.99 572.5,403.37 575.2,405.66 577.8,404.60 580.4,404.37 583.1,402.09 585.7,402.56 588.3,401.81 590.9,399.32 593.6,394.76 596.2,393.35 598.8,391.21 601.5,389.64 604.1,388.78 606.7,391.03 609.4,389.53 612.0,389.54 614.6,388.84 617.3,391.66 619.9,389.02 622.5,390.42 625.2,386.22 627.8,386.13 630.4,380.36 633.1,376.38 635.7,372.00 638.3,374.46 640.9,372.61 643.6,371.41 646.2,369.64 648.8,370.45 651.5,368.15 654.1,367.42 656.7,365.80 659.4,367.94 662.0,363.25 664.6,363.63 667.3,361.03 669.9,360.57 672.5,357.77 675.2,356.58 677.8,351.66 680.4,348.22 683.1,349.16 685.7,347.60 688.3,350.60 690.9,353.64 693.6,356.10 696.2,356.39 698.8,357.72 701.5,364.89 704.1,371.07 706.7,376.84 709.4,382.93 712.0,388.58 714.6,389.50 717.3,393.42 719.9,396.86 722.5,399.61 725.2,412.78 727.8,416.45 730.4,417.35 733.1,422.65 735.7,427.96 738.3,423.21 740.9,424.47 743.6,429.95 746.2,431.77 748.8,434.60 751.5,438.15 754.1,439.14 756.7,441.06 759.4,440.97 762.0,439.09 764.6,436.62 767.3,435.84 769.9,432.05 772.5,428.97 775.2,427.04 777.8,428.88 780.4,428.97 783.1,430.32 785.7,431.99 788.3,431.88 790.9,428.22 793.6,427.58 796.2,424.63 798.8,423.00 801.5,421.75 804.1,419.40 806.7,416.89 809.4,415.29 812.0,411.85 814.6,407.25 817.3,408.11 819.9,407.05 822.5,404.50 825.2,403.58 827.8,405.87 830.4,401.55 833.1,398.61 835.7,398.37 838.3,399.01 840.9,395.25 843.6,394.55 846.2,393.90 848.8,392.35 851.5,389.97 854.1,388.77 856.7,388.22 859.4,387.81 862.0,386.07" fill="none" stroke="#D55E00" stroke-width="2.1" stroke-linejoin="round"/>
-<rect x="309.4" y="498" width="50.0" height="190" fill="#E3E9F2"/>
-<rect x="493.6" y="498" width="50.0" height="190" fill="#E3E9F2"/>
-<rect x="677.8" y="498" width="50.0" height="190" fill="#E3E9F2"/>
-<line x1="62" y1="688.00" x2="862" y2="688.00" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
-<text x="54" y="691.50" font-size="11" fill="#9a988f" text-anchor="end" font-family="inherit">0</text>
-<line x1="62" y1="653.45" x2="862" y2="653.45" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
-<text x="54" y="656.95" font-size="11" fill="#9a988f" text-anchor="end" font-family="inherit">10</text>
-<line x1="62" y1="618.91" x2="862" y2="618.91" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
-<text x="54" y="622.41" font-size="11" fill="#9a988f" text-anchor="end" font-family="inherit">20</text>
-<line x1="62" y1="584.36" x2="862" y2="584.36" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
-<text x="54" y="587.86" font-size="11" fill="#9a988f" text-anchor="end" font-family="inherit">30</text>
-<line x1="62" y1="549.82" x2="862" y2="549.82" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
-<text x="54" y="553.32" font-size="11" fill="#9a988f" text-anchor="end" font-family="inherit">40</text>
-<line x1="62" y1="515.27" x2="862" y2="515.27" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
-<text x="54" y="518.77" font-size="11" fill="#9a988f" text-anchor="end" font-family="inherit">50</text>
-<rect x="62" y="498" width="800" height="190" fill="none" stroke="rgba(11,11,11,.2)" stroke-width="0.75"/>
-<text x="72.5" y="704" font-size="11" fill="#9a988f" text-anchor="middle" font-family="inherit">0</text>
-<text x="335.7" y="704" font-size="11" fill="#9a988f" text-anchor="middle" font-family="inherit">100</text>
-<text x="598.8" y="704" font-size="11" fill="#9a988f" text-anchor="middle" font-family="inherit">200</text>
-<text x="862.0" y="704" font-size="11" fill="#9a988f" text-anchor="middle" font-family="inherit">300</text>
-<text x="462.0" y="720" font-size="11.5" fill="#7d7b73" text-anchor="middle" font-family="inherit">Training Step</text>
-<text x="62" y="489" font-size="13" font-weight="650" fill="var(--ink)" text-anchor="start" font-family="inherit">Abortion Ratio (%)</text>
-<polyline points="72.5,662.02 75.2,651.40 77.8,646.84 80.4,649.54 83.1,655.11 85.7,641.78 88.3,634.87 90.9,642.62 93.6,646.33 96.2,643.47 98.8,654.60 101.5,653.76 104.1,647.18 106.7,655.95 109.4,647.69 112.0,654.10 114.6,644.31 117.3,653.08 119.9,639.25 122.5,647.52 125.2,657.81 127.8,634.87 130.4,636.89 133.1,649.88 135.7,628.29 138.3,634.70 140.9,626.09 143.6,624.58 146.2,639.25 148.8,631.16 151.5,628.62 154.1,633.18 156.7,638.41 159.4,625.59 162.0,636.22 164.6,629.47 167.3,634.70 169.9,638.91 172.5,637.40 175.2,640.60 177.8,629.97 180.4,657.47 183.1,650.72 185.7,635.54 188.3,642.96 190.9,655.44 193.6,647.52 196.2,650.38 198.8,647.52 201.5,644.65 204.1,643.64 206.7,646.50 209.4,652.24 212.0,661.18 214.6,651.06 217.3,645.66 219.9,632.67 222.5,645.16 225.2,637.90 227.8,651.40 230.4,650.21 233.1,646.67 235.7,635.71 238.3,644.14 240.9,647.85 243.6,651.40 246.2,639.25 248.8,648.36 251.5,629.97 254.1,648.87 256.7,646.50 259.4,636.55 262.0,629.80 264.6,653.25 267.3,645.66 269.9,638.07 272.5,633.01 275.2,641.78 277.8,629.80 280.4,642.12 283.1,629.97 280.4,642.12 283.1,629.97 285.7,641.28 288.3,615.81 290.9,646.84 293.6,645.49 296.2,636.05 298.8,631.32 301.5,634.36 304.1,627.95 306.7,628.62 309.4,634.53 312.0,641.78 314.6,617.83 317.3,629.30 319.9,630.48 322.5,612.94 325.2,607.71 327.8,612.26 330.4,606.87 333.1,610.58 335.7,659.83 338.3,645.32 340.9,636.55 343.6,640.60 346.2,622.72 348.8,627.11 351.5,632.51 354.1,636.05 356.7,625.59 359.4,624.24 362.0,625.42 364.6,629.80 367.3,600.62 369.9,626.09 372.5,642.46 375.2,633.35 377.8,600.96 380.4,628.96 383.1,612.26 385.7,632.34 388.3,623.90 390.9,600.96 393.6,604.00 396.2,608.89 398.8,613.44 401.5,605.69 404.1,611.25 406.7,610.41 409.4,614.12 412.0,613.11 414.6,614.12 417.3,608.55 419.9,605.69 422.5,587.64 425.2,610.24 427.8,619.69 430.4,595.39 433.1,605.01 435.7,601.64 438.3,591.01 440.9,603.49 443.6,619.85 446.2,604.33 448.8,588.31 451.5,600.96 454.1,606.53 456.7,594.38 459.4,592.19 462.0,603.83 464.6,598.94 467.3,566.55 469.9,591.35 472.5,567.73 475.2,568.91 477.8,599.44 480.4,591.85 483.1,579.20 485.7,597.76 488.3,573.97 490.9,585.95 488.3,573.97 490.9,585.95 493.6,593.54 496.2,572.96 498.8,566.21 501.5,570.60 504.1,568.91 506.7,582.41 509.4,583.92 512.0,569.92 514.6,553.90 517.3,584.94 519.9,573.47 522.5,565.54 525.2,562.84 527.8,570.60 530.4,567.23 533.1,572.96 535.7,556.09 538.3,557.78 540.9,547.83 543.6,568.91 546.2,534.67 548.8,526.07 551.5,572.12 554.1,551.71 556.7,565.54 559.4,564.02 562.0,554.41 564.6,546.14 567.3,559.47 569.9,551.54 572.5,549.34 575.2,547.32 577.8,548.50 580.4,555.93 583.1,572.12 585.7,526.07 588.3,536.69 590.9,546.65 593.6,563.35 596.2,557.10 598.8,550.19 601.5,533.83 604.1,535.68 606.7,519.66 609.4,517.80 612.0,506.84 614.6,522.53 617.3,514.60 619.9,546.31 622.5,522.19 625.2,523.20 627.8,544.12 630.4,564.36 633.1,540.74 635.7,509.54 638.3,520.84 640.9,531.30 643.6,516.62 646.2,505.99 648.8,533.32 651.5,530.46 654.1,550.36 656.7,533.15 659.4,512.07 662.0,529.95 664.6,518.65 667.3,545.97 669.9,543.78 672.5,553.39 675.2,533.32 677.8,551.20 680.4,548.00 683.1,539.73 685.7,545.47 688.3,517.47 690.9,539.56 693.6,522.02 696.2,540.57" fill="none" stroke="url(#trfade2)" stroke-width="0.7"/>
-<polyline points="72.5,662.02 75.2,651.40 77.8,646.84 80.4,649.54 83.1,655.11 85.7,641.78 88.3,634.87 90.9,642.62 93.6,646.33 96.2,643.47 98.8,654.60 101.5,653.76 104.1,647.18 106.7,655.95 109.4,647.69 112.0,654.10 114.6,644.31 117.3,653.08 119.9,639.25 122.5,647.52 125.2,657.81 127.8,634.87 130.4,636.89 133.1,649.88 135.7,628.29 138.3,634.70 140.9,626.09 143.6,624.58 146.2,639.25 148.8,631.16 151.5,628.62 154.1,633.18 156.7,638.41 159.4,625.59 162.0,636.22 164.6,629.47 167.3,634.70 169.9,638.91 172.5,637.40 175.2,640.60 177.8,629.97 180.4,657.47 183.1,650.72 185.7,635.54 188.3,642.96 190.9,655.44 193.6,647.52 196.2,650.38 198.8,647.52 201.5,644.65 204.1,643.64 206.7,646.50 209.4,652.24 212.0,661.18 214.6,651.06 217.3,645.66 219.9,632.67 222.5,645.16 225.2,637.90 227.8,651.40 230.4,650.21 233.1,646.67 235.7,635.71 238.3,644.14 240.9,647.85 243.6,651.40 246.2,639.25 248.8,648.36 251.5,629.97 254.1,648.87 256.7,646.50 259.4,636.55 262.0,629.80 264.6,653.25 267.3,645.66 269.9,638.07 272.5,633.01 275.2,641.78 277.8,629.80 280.4,642.12 283.1,629.97 285.7,641.28 288.3,615.81 290.9,646.84 293.6,645.49 296.2,636.05 298.8,631.32 301.5,634.36 304.1,627.95 306.7,628.62 309.4,655.28 312.0,648.53 314.6,653.59 317.3,655.95 319.9,642.62 322.5,644.82 325.2,643.30 327.8,640.27 330.4,644.82 333.1,662.02 335.7,652.58 338.3,649.88 340.9,654.26 343.6,658.99 346.2,651.90 348.8,654.10 351.5,660.00 354.1,660.84 356.7,655.11 359.4,661.35 362.0,676.02 364.6,665.57 367.3,671.30 369.9,677.20 372.5,671.30 375.2,670.80 377.8,664.05 380.4,669.61 383.1,674.17 385.7,671.97 388.3,663.54 390.9,666.24 393.6,667.93 396.2,669.78 398.8,669.61 401.5,668.77 404.1,662.19 406.7,664.38 409.4,666.91 412.0,662.87 414.6,656.80 417.3,665.06 419.9,658.65 422.5,661.01 425.2,661.18 427.8,656.29 430.4,649.88 433.1,654.43 435.7,646.67 438.3,652.24 440.9,660.67 443.6,657.47 446.2,654.43 448.8,664.22 451.5,662.36 454.1,657.98 456.7,639.42 459.4,654.43 462.0,638.24 464.6,626.43 467.3,643.64 469.9,647.18 472.5,627.45 475.2,653.59 477.8,636.89 480.4,641.28 483.1,637.23 485.7,632.51 488.3,641.61 490.9,644.48 493.6,643.30 496.2,631.32 498.8,639.25 501.5,636.72 504.1,649.21 506.7,631.16 509.4,624.58 512.0,642.29 514.6,627.45 517.3,644.14 519.9,643.64 522.5,627.45 525.2,641.78 527.8,635.88 530.4,631.83 533.1,645.16 535.7,632.00 538.3,650.89 540.9,626.09 543.6,647.52 546.2,666.07 548.8,660.17 551.5,654.43 554.1,655.11 556.7,649.88 559.4,657.64 562.0,650.38 564.6,656.46 567.3,650.55 569.9,656.80 572.5,662.36 575.2,655.95 577.8,652.07 580.4,657.64 583.1,654.26 585.7,658.31 588.3,656.12 590.9,649.21 593.6,650.38 596.2,649.37 598.8,656.12 601.5,653.42 604.1,643.30 606.7,648.70 609.4,644.48 612.0,658.65 614.6,641.11 617.3,643.98 619.9,653.93 622.5,649.88 625.2,644.31 627.8,646.33 630.4,633.52 633.1,648.19 635.7,633.52 638.3,637.40 640.9,626.26 643.6,635.54 646.2,640.43 648.8,638.41 651.5,622.05 654.1,638.75 656.7,632.00 659.4,640.60 662.0,622.22 664.6,626.77 667.3,611.76 669.9,629.64 672.5,617.15 675.2,626.77 677.8,640.10 680.4,633.18 683.1,618.67 685.7,625.42 688.3,637.06 690.9,607.88 693.6,624.24 696.2,634.19 698.8,629.47 701.5,628.12 704.1,614.96 706.7,648.19 709.4,655.78 712.0,650.05 714.6,656.63 717.3,651.56 719.9,660.00 722.5,658.14 725.2,663.03 727.8,659.83 730.4,680.91 733.1,672.82 735.7,667.76 738.3,675.69 740.9,674.34 743.6,668.94 746.2,671.30 748.8,678.39 751.5,674.34 754.1,679.57 756.7,678.22 759.4,673.49 762.0,681.93 764.6,681.42 767.3,682.27 769.9,677.71 772.5,673.49 775.2,674.68 777.8,674.84 780.4,682.43 783.1,678.22 785.7,671.13 788.3,674.84 790.9,677.20 793.6,678.89 796.2,668.77 798.8,672.99 801.5,676.53 804.1,670.96 806.7,673.33 809.4,673.49 812.0,669.28 814.6,669.45 817.3,669.11 819.9,668.77 822.5,670.80 825.2,667.76 827.8,663.71 830.4,668.26 833.1,671.81 835.7,664.38 838.3,651.56 840.9,670.29 843.6,664.38 846.2,664.05 848.8,647.69 851.5,648.87 854.1,661.52 856.7,663.54 859.4,661.01 862.0,657.47" fill="none" stroke="#D55E00" stroke-opacity="0.22" stroke-width="0.7"/>
-<polyline points="72.5,653.42 75.2,652.45 77.8,652.98 80.4,648.93 83.1,645.63 85.7,644.78 88.3,644.14 90.9,641.82 93.6,644.38 96.2,648.16 98.8,649.07 101.5,650.99 104.1,651.83 106.7,651.73 109.4,649.84 112.0,651.03 114.6,647.69 117.3,647.65 119.9,648.39 122.5,646.50 125.2,643.27 127.8,645.39 130.4,641.55 133.1,636.92 135.7,635.17 138.3,632.71 140.9,630.58 143.6,631.16 146.2,629.94 148.8,631.36 151.5,634.12 154.1,631.39 156.7,632.40 159.4,632.57 162.0,632.88 164.6,632.98 167.3,635.34 169.9,636.22 172.5,636.32 175.2,640.87 177.8,643.23 180.4,642.86 183.1,643.33 185.7,648.43 188.3,646.44 190.9,646.37 193.6,648.77 196.2,649.10 198.8,646.74 201.5,646.54 204.1,646.91 206.7,649.64 209.4,650.93 212.0,651.33 214.6,648.56 217.3,647.15 219.9,642.49 222.5,642.56 225.2,643.47 227.8,646.27 230.4,644.38 233.1,645.63 235.7,644.92 238.3,645.16 240.9,643.67 243.6,646.20 246.2,643.37 248.8,643.57 251.5,642.59 254.1,642.05 256.7,638.34 259.4,643.00 262.0,642.36 264.6,640.67 267.3,639.96 269.9,642.36 272.5,637.67 275.2,636.96 277.8,635.34 280.4,636.99 283.1,631.79 280.4,636.99 283.1,631.79 285.7,635.20 288.3,635.88 290.9,637.09 293.6,635.10 296.2,638.81 298.8,635.03 301.5,631.66 304.1,631.36 306.7,633.45 309.4,630.14 312.0,630.41 314.6,630.79 317.3,626.47 319.9,619.65 322.5,618.54 325.2,614.05 327.8,610.07 330.4,619.45 333.1,626.97 335.7,631.83 338.3,638.58 340.9,641.00 343.6,634.46 346.2,631.90 348.8,631.79 351.5,628.79 354.1,629.10 356.7,628.76 359.4,628.22 362.0,621.14 364.6,621.24 367.3,624.88 369.9,626.47 372.5,620.70 375.2,626.36 377.8,623.60 380.4,621.57 383.1,619.69 385.7,619.69 388.3,614.69 390.9,614.02 393.6,610.24 396.2,606.60 398.8,608.65 401.5,609.93 404.1,610.98 406.7,610.92 409.4,612.60 412.0,612.06 414.6,611.12 417.3,605.82 419.9,605.25 422.5,606.36 425.2,603.73 427.8,603.59 430.4,606.39 433.1,602.55 435.7,599.31 438.3,604.20 440.9,604.06 443.6,601.40 446.2,603.39 448.8,604.00 451.5,598.90 454.1,596.48 456.7,599.58 459.4,599.17 462.0,591.18 464.6,590.57 467.3,585.68 469.9,578.69 472.5,578.80 475.2,583.86 477.8,581.43 480.4,587.43 483.1,588.45 485.7,585.75 488.3,586.08 490.9,584.84 488.3,586.08 490.9,584.84 493.6,578.53 496.2,577.85 498.8,574.45 501.5,572.22 504.1,574.41 506.7,575.15 509.4,571.81 512.0,575.02 514.6,573.23 517.3,569.55 519.9,568.14 522.5,571.48 525.2,567.93 527.8,567.83 530.4,565.94 533.1,564.93 535.7,560.38 538.3,560.71 540.9,553.06 543.6,547.05 546.2,549.92 548.8,550.70 551.5,550.02 554.1,555.89 556.7,561.56 559.4,556.36 562.0,557.92 564.6,555.11 567.3,552.18 569.9,550.76 572.5,551.23 575.2,550.53 577.8,554.64 580.4,549.99 583.1,547.86 585.7,547.49 588.3,548.98 590.9,545.97 593.6,550.80 596.2,550.22 598.8,548.03 601.5,539.29 604.1,531.43 606.7,522.76 609.4,520.50 612.0,516.28 614.6,521.62 617.3,522.49 619.9,525.76 622.5,530.08 625.2,540.03 627.8,538.92 630.4,536.39 633.1,535.92 635.7,533.35 638.3,523.81 640.9,516.86 643.6,521.62 646.2,523.54 648.8,527.35 651.5,530.66 654.1,531.87 656.7,531.19 659.4,528.84 662.0,527.96 664.6,530.08 667.3,538.35 669.9,539.02 672.5,545.53 675.2,545.94 677.8,545.13 680.4,543.54 683.1,540.37 685.7,538.05 688.3,532.85 690.9,533.02 693.6,529.91 696.2,534.05" fill="none" stroke="url(#trfade2)" stroke-width="2" stroke-linejoin="round"/>
-<polyline points="72.5,653.42 75.2,652.45 77.8,652.98 80.4,648.93 83.1,645.63 85.7,644.78 88.3,644.14 90.9,641.82 93.6,644.38 96.2,648.16 98.8,649.07 101.5,650.99 104.1,651.83 106.7,651.73 109.4,649.84 112.0,651.03 114.6,647.69 117.3,647.65 119.9,648.39 122.5,646.50 125.2,643.27 127.8,645.39 130.4,641.55 133.1,636.92 135.7,635.17 138.3,632.71 140.9,630.58 143.6,631.16 146.2,629.94 148.8,631.36 151.5,634.12 154.1,631.39 156.7,632.40 159.4,632.57 162.0,632.88 164.6,632.98 167.3,635.34 169.9,636.22 172.5,636.32 175.2,640.87 177.8,643.23 180.4,642.86 183.1,643.33 185.7,648.43 188.3,646.44 190.9,646.37 193.6,648.77 196.2,649.10 198.8,646.74 201.5,646.54 204.1,646.91 206.7,649.64 209.4,650.93 212.0,651.33 214.6,648.56 217.3,647.15 219.9,642.49 222.5,642.56 225.2,643.47 227.8,646.27 230.4,644.38 233.1,645.63 235.7,644.92 238.3,645.16 240.9,643.67 243.6,646.20 246.2,643.37 248.8,643.57 251.5,642.59 254.1,642.05 256.7,638.34 259.4,643.00 262.0,642.36 264.6,640.67 267.3,639.96 269.9,642.36 272.5,637.67 275.2,636.96 277.8,635.34 280.4,636.99 283.1,631.79 285.7,635.20 288.3,635.88 290.9,637.09 293.6,635.10 296.2,638.81 298.8,635.03 301.5,631.66 304.1,631.36 306.7,638.95 309.4,642.79 312.0,648.39 314.6,651.20 317.3,649.10 319.9,648.06 322.5,645.39 325.2,643.16 327.8,647.05 330.4,648.60 333.1,649.91 335.7,652.71 338.3,655.54 340.9,653.52 343.6,653.82 346.2,655.85 348.8,657.16 351.5,656.39 354.1,658.28 356.7,662.66 359.4,663.78 362.0,665.87 364.6,670.29 367.3,672.28 369.9,671.23 372.5,670.93 375.2,670.59 377.8,669.98 380.4,670.12 383.1,668.67 385.7,669.11 388.3,668.77 390.9,667.89 393.6,667.42 396.2,668.47 398.8,667.66 401.5,666.95 404.1,666.37 406.7,665.03 409.4,662.63 412.0,663.20 414.6,662.06 417.3,660.87 419.9,660.54 422.5,660.44 425.2,657.40 427.8,656.56 430.4,653.69 433.1,651.90 435.7,652.78 438.3,654.30 440.9,654.30 443.6,657.81 446.2,659.83 448.8,659.29 451.5,655.68 454.1,655.68 456.7,650.49 459.4,643.30 462.0,640.43 464.6,641.99 467.3,636.59 469.9,639.66 472.5,641.75 475.2,641.28 477.8,639.28 480.4,640.30 483.1,637.90 485.7,639.42 488.3,639.83 490.9,638.64 493.6,640.00 496.2,639.01 498.8,639.96 501.5,637.53 504.1,636.18 506.7,636.79 509.4,634.93 512.0,633.92 514.6,636.42 517.3,636.99 519.9,636.89 522.5,638.58 525.2,636.11 527.8,636.42 530.4,637.33 533.1,639.15 535.7,637.19 538.3,640.33 540.9,644.51 543.6,650.15 546.2,650.86 548.8,656.66 551.5,657.13 554.1,655.44 556.7,653.49 559.4,653.89 562.0,652.98 564.6,654.37 567.3,655.31 569.9,656.42 572.5,655.54 575.2,656.96 577.8,656.46 580.4,655.65 583.1,655.68 585.7,655.11 588.3,653.66 590.9,652.68 593.6,652.24 596.2,651.70 598.8,650.52 601.5,650.18 604.1,649.21 606.7,649.71 609.4,647.25 612.0,647.38 614.6,648.43 617.3,649.51 619.9,646.64 622.5,647.69 625.2,645.60 627.8,644.45 630.4,641.17 633.1,639.79 635.7,635.78 638.3,636.18 640.9,634.63 643.6,635.61 646.2,632.54 648.8,635.03 651.5,634.33 654.1,634.36 656.7,631.12 659.4,632.07 662.0,626.67 664.6,626.19 667.3,621.51 669.9,622.42 672.5,625.08 675.2,629.37 677.8,627.18 680.4,628.83 683.1,630.89 685.7,624.44 688.3,622.65 690.9,625.76 693.6,626.57 696.2,624.78 698.8,626.19 701.5,630.99 704.1,635.30 706.7,639.42 709.4,645.12 712.0,652.44 714.6,654.81 717.3,655.28 719.9,657.87 722.5,658.52 725.2,664.38 727.8,666.95 730.4,668.87 733.1,671.40 735.7,674.30 738.3,671.91 740.9,671.60 743.6,673.73 746.2,673.46 748.8,674.51 751.5,676.36 754.1,676.80 756.7,677.51 759.4,678.92 762.0,679.46 764.6,679.36 767.3,679.36 769.9,677.91 772.5,676.60 775.2,676.63 777.8,676.73 780.4,676.26 783.1,676.29 785.7,676.77 788.3,676.06 790.9,674.17 793.6,674.54 796.2,674.88 798.8,673.63 801.5,672.52 804.1,673.46 806.7,672.72 809.4,671.30 812.0,670.93 814.6,670.02 817.3,669.48 819.9,669.18 822.5,668.03 825.2,667.86 827.8,668.47 830.4,667.19 833.1,663.95 835.7,665.26 838.3,664.48 840.9,662.93 843.6,659.59 846.2,659.05 848.8,657.30 851.5,657.13 854.1,656.53 856.7,658.48 859.4,660.89 862.0,660.67" fill="none" stroke="#D55E00" stroke-width="2.1" stroke-linejoin="round"/>
-
+<rect x="115.9" y="34" width="14.9" height="152" fill="#E3E9F2"/>
+<rect x="170.9" y="34" width="14.9" height="152" fill="#E3E9F2"/>
+<rect x="226.0" y="34" width="14.9" height="152" fill="#E3E9F2"/>
+<line x1="42" y1="174.31" x2="281" y2="174.31" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
+<text x="35" y="177.81" font-size="10.5" fill="#9a988f" text-anchor="end" font-family="inherit">0.4</text>
+<line x1="42" y1="145.08" x2="281" y2="145.08" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
+<text x="35" y="148.58" font-size="10.5" fill="#9a988f" text-anchor="end" font-family="inherit">0.5</text>
+<line x1="42" y1="115.85" x2="281" y2="115.85" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
+<text x="35" y="119.35" font-size="10.5" fill="#9a988f" text-anchor="end" font-family="inherit">0.6</text>
+<line x1="42" y1="86.62" x2="281" y2="86.62" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
+<text x="35" y="90.12" font-size="10.5" fill="#9a988f" text-anchor="end" font-family="inherit">0.7</text>
+<line x1="42" y1="57.38" x2="281" y2="57.38" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
+<text x="35" y="60.88" font-size="10.5" fill="#9a988f" text-anchor="end" font-family="inherit">0.8</text>
+<rect x="42" y="34" width="239" height="152" fill="none" stroke="rgba(11,11,11,.2)" stroke-width="0.75"/>
+<text x="45.1" y="201" font-size="10.5" fill="#9a988f" text-anchor="middle" font-family="inherit">0</text>
+<text x="123.8" y="201" font-size="10.5" fill="#9a988f" text-anchor="middle" font-family="inherit">100</text>
+<text x="202.4" y="201" font-size="10.5" fill="#9a988f" text-anchor="middle" font-family="inherit">200</text>
+<text x="281.0" y="201" font-size="10.5" fill="#9a988f" text-anchor="middle" font-family="inherit">300</text>
+<text x="161.5" y="217" font-size="11" fill="#7d7b73" text-anchor="middle" font-family="inherit">Training Step</text>
+<text x="42" y="25" font-size="12.5" font-weight="650" fill="var(--ink)" text-anchor="start" font-family="inherit">Mean Reward</text>
+<polyline points="45.1,150.10 45.9,177.14 46.7,169.13 47.5,173.40 48.3,167.88 49.1,166.71 49.9,177.79 50.6,157.03 51.4,167.06 52.2,162.35 53.0,145.57 53.8,136.72 54.6,152.27 55.4,135.02 56.2,144.52 56.9,129.41 57.7,140.43 58.5,130.02 59.3,147.36 60.1,118.42 60.9,114.27 61.7,121.55 62.4,135.61 63.2,118.24 64.0,131.08 64.8,124.67 65.6,128.42 66.4,148.50 67.2,126.37 67.9,132.86 68.7,124.53 69.5,117.10 70.3,128.65 71.1,127.10 71.9,118.83 72.7,130.99 73.4,106.90 74.2,110.91 75.0,106.70 75.8,111.70 76.6,116.28 77.4,94.89 78.2,103.36 79.0,119.76 79.7,114.21 80.5,94.33 81.3,109.33 82.1,101.00 82.9,110.32 83.7,104.74 84.5,99.30 85.2,86.53 86.0,105.82 86.8,94.33 87.6,103.13 88.4,106.23 89.2,102.11 90.0,100.76 90.7,116.40 91.5,88.54 92.3,95.97 93.1,85.42 93.9,110.00 94.7,103.80 95.5,98.16 96.2,84.54 97.0,106.38 97.8,76.44 98.6,113.77 99.4,80.92 100.2,84.31 101.0,89.28 101.8,100.09 102.5,78.28 103.3,85.71 104.1,89.98 104.9,88.81 105.7,84.51 106.5,89.01 107.3,84.77 108.0,106.70 107.3,84.77 108.0,106.70 108.8,76.50 109.6,109.50 110.4,83.81 111.2,88.16 112.0,84.28 112.8,81.97 113.5,88.78 114.3,96.29 115.1,98.10 115.9,82.49 116.7,68.43 117.5,90.71 118.3,78.08 119.0,88.11 119.8,100.03 120.6,100.53 121.4,106.26 122.2,99.13 123.0,100.09 123.8,67.73 124.5,75.54 125.3,76.47 126.1,76.00 126.9,93.08 127.7,92.32 128.5,75.54 129.3,71.74 130.1,78.02 130.8,86.44 131.6,87.43 132.4,82.84 133.2,107.69 134.0,86.09 134.8,79.16 135.6,73.84 136.3,99.39 137.1,80.48 137.9,93.10 138.7,76.12 139.5,82.32 140.3,94.33 141.1,103.10 141.8,100.00 142.6,89.22 143.4,92.96 144.2,90.06 145.0,91.12 145.8,90.50 146.6,86.67 147.3,85.27 148.1,86.18 148.9,96.00 149.7,112.60 150.5,96.52 151.3,78.99 152.1,95.91 152.9,101.03 153.6,99.51 154.4,113.71 155.2,93.78 156.0,84.28 156.8,92.52 157.6,110.26 158.4,95.47 159.1,97.05 159.9,98.45 160.7,98.48 161.5,90.82 162.3,95.21 163.1,120.64 163.9,103.77 164.6,125.29 165.4,119.09 166.2,92.90 167.0,97.08 167.8,104.27 168.6,92.29 169.4,110.06 170.1,106.49 169.4,110.06 170.1,106.49 170.9,92.81 171.7,120.38 172.5,120.38 173.3,114.56 174.1,119.18 174.9,103.39 175.7,105.62 176.4,117.98 177.2,127.22 178.0,106.99 178.8,110.79 179.6,116.55 180.4,123.01 181.2,118.04 181.9,114.38 182.7,114.62 183.5,124.73 184.3,125.08 185.1,134.70 185.9,110.67 186.7,144.67 187.4,153.29 188.2,112.89 189.0,127.98 189.8,118.30 190.6,118.59 191.4,121.40 192.2,132.65 192.9,120.26 193.7,131.10 194.5,134.70 195.3,137.13 196.1,132.65 196.9,122.77 197.7,111.26 198.5,147.85 199.2,139.70 200.0,129.88 200.8,116.58 201.6,123.94 202.4,127.63 203.2,139.93 204.0,141.69 204.7,152.71 205.5,148.53 206.3,161.12 207.1,143.88 207.9,150.95 208.7,128.30 209.5,146.30 210.2,149.99 211.0,132.60 211.8,112.75 212.6,143.18 213.4,161.65 214.2,150.51 215.0,142.07 215.7,156.97 216.5,160.74 217.3,138.35 218.1,139.35 218.9,122.16 219.7,139.99 220.5,157.50 221.2,142.80 222.0,154.96 222.8,128.30 223.6,132.65 224.4,119.38 225.2,141.34 226.0,128.94 226.8,125.29 227.5,136.48 228.3,130.08 229.1,151.27 229.9,135.96 230.7,145.78 231.5,130.23" fill="none" stroke="url(#trfade0)" stroke-width="0.7"/>
+<polyline points="45.1,150.10 45.9,177.14 46.7,169.13 47.5,173.40 48.3,167.88 49.1,166.71 49.9,177.79 50.6,157.03 51.4,167.06 52.2,162.35 53.0,145.57 53.8,136.72 54.6,152.27 55.4,135.02 56.2,144.52 56.9,129.41 57.7,140.43 58.5,130.02 59.3,147.36 60.1,118.42 60.9,114.27 61.7,121.55 62.4,135.61 63.2,118.24 64.0,131.08 64.8,124.67 65.6,128.42 66.4,148.50 67.2,126.37 67.9,132.86 68.7,124.53 69.5,117.10 70.3,128.65 71.1,127.10 71.9,118.83 72.7,130.99 73.4,106.90 74.2,110.91 75.0,106.70 75.8,111.70 76.6,116.28 77.4,94.89 78.2,103.36 79.0,119.76 79.7,114.21 80.5,94.33 81.3,109.33 82.1,101.00 82.9,110.32 83.7,104.74 84.5,99.30 85.2,86.53 86.0,105.82 86.8,94.33 87.6,103.13 88.4,106.23 89.2,102.11 90.0,100.76 90.7,116.40 91.5,88.54 92.3,95.97 93.1,85.42 93.9,110.00 94.7,103.80 95.5,98.16 96.2,84.54 97.0,106.38 97.8,76.44 98.6,113.77 99.4,80.92 100.2,84.31 101.0,89.28 101.8,100.09 102.5,78.28 103.3,85.71 104.1,89.98 104.9,88.81 105.7,84.51 106.5,89.01 107.3,84.77 108.0,106.70 108.8,76.50 109.6,109.50 110.4,83.81 111.2,88.16 112.0,84.28 112.8,81.97 113.5,88.78 114.3,96.29 115.1,98.10 115.9,65.10 116.7,69.19 117.5,62.32 118.3,72.76 119.0,77.23 119.8,78.58 120.6,83.49 121.4,79.07 122.2,81.82 123.0,64.20 123.8,67.09 124.5,75.39 125.3,69.16 126.1,68.70 126.9,76.44 127.7,79.42 128.5,61.48 129.3,66.83 130.1,68.14 130.8,71.01 131.6,64.96 132.4,74.08 133.2,73.81 134.0,63.55 134.8,58.90 135.6,66.07 136.3,70.19 137.1,69.08 137.9,59.31 138.7,64.69 139.5,72.32 140.3,60.92 141.1,69.16 141.8,66.01 142.6,59.72 143.4,67.38 144.2,71.24 145.0,71.09 145.8,66.50 146.6,66.56 147.3,80.39 148.1,54.29 148.9,70.60 149.7,71.44 150.5,64.34 151.3,58.26 152.1,86.53 152.9,67.12 153.6,83.55 154.4,65.54 155.2,70.71 156.0,64.52 156.8,71.71 157.6,63.49 158.4,73.29 159.1,57.85 159.9,71.24 160.7,64.87 161.5,73.75 162.3,91.67 163.1,74.05 163.9,72.94 164.6,88.75 165.4,62.03 166.2,72.70 167.0,68.35 167.8,65.57 168.6,75.83 169.4,72.58 170.1,67.41 170.9,71.36 171.7,75.24 172.5,75.07 173.3,75.16 174.1,68.05 174.9,78.49 175.7,82.58 176.4,74.34 177.2,88.78 178.0,75.95 178.8,67.82 179.6,80.80 180.4,64.63 181.2,75.62 181.9,84.89 182.7,71.30 183.5,86.47 184.3,60.42 185.1,105.03 185.9,74.66 186.7,56.74 187.4,67.29 188.2,63.61 189.0,75.74 189.8,72.44 190.6,64.22 191.4,85.91 192.2,60.51 192.9,86.97 193.7,74.22 194.5,64.02 195.3,62.88 196.1,72.99 196.9,66.12 197.7,66.39 198.5,69.46 199.2,63.11 200.0,70.83 200.8,70.13 201.6,74.81 202.4,61.51 203.2,64.60 204.0,73.49 204.7,66.33 205.5,68.67 206.3,63.73 207.1,69.25 207.9,78.90 208.7,58.41 209.5,55.22 210.2,76.56 211.0,64.96 211.8,80.45 212.6,68.70 213.4,87.43 214.2,77.14 215.0,86.94 215.7,68.76 216.5,63.29 217.3,78.81 218.1,85.12 218.9,67.21 219.7,74.08 220.5,64.58 221.2,88.49 222.0,72.61 222.8,86.03 223.6,84.07 224.4,79.45 225.2,76.36 226.0,68.46 226.8,77.20 227.5,83.60 228.3,75.54 229.1,74.40 229.9,96.20 230.7,83.93 231.5,79.54 232.3,74.22 233.0,75.62 233.8,89.48 234.6,62.27 235.4,57.38 236.2,58.90 237.0,66.10 237.8,68.40 238.5,62.09 239.3,62.62 240.1,64.75 240.9,70.57 241.7,36.16 242.5,63.49 243.3,67.64 244.0,53.56 244.8,57.36 245.6,61.39 246.4,57.68 247.2,57.85 248.0,49.58 248.8,47.74 249.6,41.86 250.3,62.88 251.1,44.96 251.9,53.94 252.7,61.04 253.5,67.38 254.3,61.56 255.1,63.99 255.8,52.04 256.6,58.93 257.4,61.51 258.2,65.86 259.0,44.93 259.8,48.70 260.6,56.42 261.3,61.83 262.1,48.70 262.9,48.94 263.7,64.22 264.5,55.75 265.3,63.38 266.1,53.00 266.8,63.29 267.6,54.52 268.4,45.31 269.2,44.99 270.0,57.74 270.8,63.58 271.6,59.14 272.4,55.05 273.1,62.76 273.9,63.55 274.7,47.07 275.5,57.38 276.3,67.44 277.1,69.02 277.9,67.41 278.6,58.14 279.4,48.00 280.2,60.54 281.0,59.58" fill="none" stroke="#D55E00" stroke-opacity="0.22" stroke-width="0.7"/>
+<polyline points="45.1,165.45 45.9,167.44 46.7,167.53 47.5,170.86 48.3,170.98 49.1,168.55 49.9,167.29 50.6,166.18 51.4,161.97 52.2,153.73 53.0,152.79 53.8,146.36 54.6,142.80 55.4,139.58 56.2,140.31 56.9,135.87 57.7,138.35 58.5,133.12 59.3,130.11 60.1,126.31 60.9,127.45 61.7,121.63 62.4,124.15 63.2,126.22 64.0,127.60 64.8,130.17 65.6,131.81 66.4,132.16 67.2,132.13 67.9,129.88 68.7,125.90 69.5,126.05 70.3,123.24 71.1,124.53 71.9,122.48 72.7,118.94 73.4,114.85 74.2,113.45 75.0,110.50 75.8,108.10 76.6,106.58 77.4,109.21 78.2,109.71 79.0,105.32 79.7,108.22 80.5,107.72 81.3,105.85 82.1,103.95 82.9,104.94 83.7,100.38 84.5,101.35 85.2,98.16 86.0,97.84 86.8,99.21 87.6,102.34 88.4,101.32 89.2,105.73 90.0,102.81 90.7,100.76 91.5,97.43 92.3,99.27 93.1,96.76 93.9,98.66 94.7,96.38 95.5,100.56 96.2,93.86 97.0,95.85 97.8,92.40 98.6,92.37 99.4,88.95 100.2,93.66 101.0,86.56 101.8,87.52 102.5,88.66 103.3,88.57 104.1,85.48 104.9,87.61 105.7,87.40 106.5,90.77 107.3,88.31 108.0,93.31 107.3,88.31 108.0,93.31 108.8,92.26 109.6,92.93 110.4,88.46 111.2,89.54 112.0,85.39 112.8,87.90 113.5,89.89 114.3,89.54 115.1,86.82 115.9,87.20 116.7,83.58 117.5,81.56 118.3,85.07 119.0,91.50 119.8,94.60 120.6,98.80 121.4,101.20 122.2,94.74 123.0,89.74 123.8,83.78 124.5,79.16 125.3,77.76 126.1,82.67 126.9,82.67 127.7,81.73 128.5,82.14 129.3,80.80 130.1,79.83 130.8,81.30 131.6,88.49 132.4,90.09 133.2,88.63 134.0,85.91 134.8,89.25 135.6,83.78 136.3,85.18 137.1,84.60 137.9,86.26 138.7,85.27 139.5,89.80 140.3,91.18 141.1,93.81 141.8,95.91 142.6,95.06 143.4,92.67 144.2,90.77 145.0,90.27 145.8,88.72 146.6,87.93 147.3,88.92 148.1,93.34 148.9,95.30 149.7,94.07 150.5,96.00 151.3,97.02 152.1,94.39 152.9,97.84 153.6,100.79 154.4,98.45 155.2,96.76 156.0,98.92 156.8,95.27 157.6,95.94 158.4,98.78 159.1,99.94 159.9,96.06 160.7,96.00 161.5,100.73 162.3,101.79 163.1,107.14 163.9,112.81 164.6,112.34 165.4,107.63 166.2,107.72 167.0,101.11 167.8,99.33 168.6,102.05 169.4,101.20 170.1,104.42 169.4,101.20 170.1,104.42 170.9,110.03 171.7,110.94 172.5,113.45 173.3,115.58 174.1,112.63 174.9,112.13 175.7,114.68 176.4,112.25 177.2,113.71 178.0,115.90 178.8,116.90 179.6,115.09 180.4,116.55 181.2,117.31 181.9,118.94 182.7,119.38 183.5,122.72 184.3,121.96 185.1,127.98 185.9,133.68 186.7,131.25 187.4,129.91 188.2,131.43 189.0,126.22 189.8,119.82 190.6,123.77 191.4,122.25 192.2,124.79 192.9,128.01 193.7,131.16 194.5,131.16 195.3,131.66 196.1,127.71 196.9,130.34 197.7,130.84 198.5,130.29 199.2,129.06 200.0,131.57 200.8,127.54 201.6,127.60 202.4,129.96 203.2,137.18 204.0,142.10 204.7,148.79 205.5,149.58 206.3,151.45 207.1,146.54 207.9,146.10 208.7,143.88 209.5,141.63 210.2,133.97 211.0,136.95 211.8,140.02 212.6,140.14 213.4,142.04 214.2,150.86 215.0,154.40 215.7,149.72 216.5,147.50 217.3,143.53 218.1,140.14 218.9,139.46 219.7,140.37 220.5,143.50 221.2,144.73 222.0,143.24 222.8,135.61 223.6,135.31 224.4,130.11 225.2,129.53 226.0,130.29 226.8,132.42 227.5,134.41 228.3,135.81 229.1,139.90 229.9,138.65 230.7,140.81 231.5,137.30" fill="none" stroke="url(#trfade0)" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="45.1,165.45 45.9,167.44 46.7,167.53 47.5,170.86 48.3,170.98 49.1,168.55 49.9,167.29 50.6,166.18 51.4,161.97 52.2,153.73 53.0,152.79 53.8,146.36 54.6,142.80 55.4,139.58 56.2,140.31 56.9,135.87 57.7,138.35 58.5,133.12 59.3,130.11 60.1,126.31 60.9,127.45 61.7,121.63 62.4,124.15 63.2,126.22 64.0,127.60 64.8,130.17 65.6,131.81 66.4,132.16 67.2,132.13 67.9,129.88 68.7,125.90 69.5,126.05 70.3,123.24 71.1,124.53 71.9,122.48 72.7,118.94 73.4,114.85 74.2,113.45 75.0,110.50 75.8,108.10 76.6,106.58 77.4,109.21 78.2,109.71 79.0,105.32 79.7,108.22 80.5,107.72 81.3,105.85 82.1,103.95 82.9,104.94 83.7,100.38 84.5,101.35 85.2,98.16 86.0,97.84 86.8,99.21 87.6,102.34 88.4,101.32 89.2,105.73 90.0,102.81 90.7,100.76 91.5,97.43 92.3,99.27 93.1,96.76 93.9,98.66 94.7,96.38 95.5,100.56 96.2,93.86 97.0,95.85 97.8,92.40 98.6,92.37 99.4,88.95 100.2,93.66 101.0,86.56 101.8,87.52 102.5,88.66 103.3,88.57 104.1,85.48 104.9,87.61 105.7,87.40 106.5,90.77 107.3,88.31 108.0,93.31 108.8,92.26 109.6,92.93 110.4,88.46 111.2,89.54 112.0,85.39 112.8,87.90 113.5,89.89 114.3,89.54 115.1,83.49 115.9,78.20 116.7,73.49 117.5,69.31 118.3,72.03 119.0,74.86 119.8,78.23 120.6,80.04 121.4,77.44 122.2,75.13 123.0,73.52 123.8,71.53 124.5,68.90 125.3,71.36 126.1,73.81 126.9,71.04 127.7,70.57 128.5,70.45 129.3,69.37 130.1,66.48 130.8,68.99 131.6,70.39 132.4,69.49 133.2,67.06 134.0,67.29 134.8,66.50 135.6,65.57 136.3,64.72 137.1,65.86 137.9,67.12 138.7,65.28 139.5,65.28 140.3,66.62 141.1,65.63 141.8,64.63 142.6,66.71 143.4,67.09 144.2,67.18 145.0,68.55 145.8,71.15 146.6,67.76 147.3,67.67 148.1,68.67 148.9,68.20 149.7,63.79 150.5,70.25 151.3,69.54 152.1,71.97 152.9,72.20 153.6,74.69 154.4,70.28 155.2,71.21 156.0,67.21 156.8,68.76 157.6,66.18 158.4,67.53 159.1,66.15 159.9,68.20 160.7,71.88 161.5,75.13 162.3,75.45 163.1,80.24 163.9,77.90 164.6,74.10 165.4,72.96 166.2,71.47 167.0,68.90 167.8,71.01 168.6,69.95 169.4,70.54 170.1,72.47 170.9,72.32 171.7,72.85 172.5,72.96 173.3,74.40 174.1,75.86 174.9,75.71 175.7,78.46 176.4,80.04 177.2,77.88 178.0,77.52 178.8,75.60 179.6,72.96 180.4,74.75 181.2,75.45 181.9,76.59 182.7,75.74 183.5,81.62 184.3,79.57 185.1,76.68 185.9,72.85 186.7,73.46 187.4,67.62 188.2,67.18 189.0,68.67 189.8,72.38 190.6,71.77 191.4,74.02 192.2,74.37 192.9,74.34 193.7,69.72 194.5,72.23 195.3,68.05 196.1,66.48 196.9,67.59 197.7,67.62 198.5,67.18 199.2,68.00 200.0,69.66 200.8,68.08 201.6,68.38 202.4,68.90 203.2,68.14 204.0,66.91 204.7,67.35 205.5,68.29 206.3,69.37 207.1,67.79 207.9,65.10 208.7,67.67 209.5,66.80 210.2,67.12 211.0,69.16 211.8,75.62 212.6,75.74 213.4,80.13 214.2,77.79 215.0,76.71 215.7,74.98 216.5,76.59 217.3,72.64 218.1,73.70 218.9,73.96 219.7,75.89 220.5,73.40 221.2,77.17 222.0,79.16 222.8,82.14 223.6,79.72 224.4,78.87 225.2,77.12 226.0,77.03 226.8,76.24 227.5,75.83 228.3,81.38 229.1,82.73 229.9,81.91 230.7,81.65 231.5,81.91 232.3,80.56 233.0,76.21 233.8,71.80 234.6,68.73 235.4,66.83 236.2,62.62 237.0,62.56 237.8,63.61 238.5,64.78 239.3,65.69 240.1,59.26 240.9,59.52 241.7,60.54 242.5,58.29 243.3,55.63 244.0,60.69 244.8,59.52 245.6,57.56 246.4,56.77 247.2,54.84 248.0,50.95 248.8,51.98 249.6,49.40 250.3,50.28 251.1,52.94 251.9,58.03 252.7,57.76 253.5,61.56 254.3,61.18 255.1,60.78 255.8,59.61 256.6,60.45 257.4,56.65 258.2,55.98 259.0,55.48 259.8,55.54 260.6,52.12 261.3,52.91 262.1,56.04 262.9,55.89 263.7,56.22 264.5,57.06 265.3,59.93 266.1,58.00 266.8,55.92 267.6,52.24 268.4,53.18 269.2,53.23 270.0,54.14 270.8,56.10 271.6,59.66 272.4,60.80 273.1,57.50 273.9,57.15 274.7,59.64 275.5,60.89 276.3,61.68 277.1,63.87 277.9,62.00 278.6,60.63 279.4,58.73 280.2,56.57 281.0,56.04" fill="none" stroke="#D55E00" stroke-width="2.1" stroke-linejoin="round"/>
+<rect x="422.9" y="34" width="14.9" height="152" fill="#E3E9F2"/>
+<rect x="477.9" y="34" width="14.9" height="152" fill="#E3E9F2"/>
+<rect x="533.0" y="34" width="14.9" height="152" fill="#E3E9F2"/>
+<line x1="349" y1="173.84" x2="588" y2="173.84" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
+<text x="342" y="177.34" font-size="10.5" fill="#9a988f" text-anchor="end" font-family="inherit">15</text>
+<line x1="349" y1="143.44" x2="588" y2="143.44" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
+<text x="342" y="146.94" font-size="10.5" fill="#9a988f" text-anchor="end" font-family="inherit">20</text>
+<line x1="349" y1="113.04" x2="588" y2="113.04" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
+<text x="342" y="116.54" font-size="10.5" fill="#9a988f" text-anchor="end" font-family="inherit">25</text>
+<line x1="349" y1="82.64" x2="588" y2="82.64" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
+<text x="342" y="86.14" font-size="10.5" fill="#9a988f" text-anchor="end" font-family="inherit">30</text>
+<line x1="349" y1="52.24" x2="588" y2="52.24" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
+<text x="342" y="55.74" font-size="10.5" fill="#9a988f" text-anchor="end" font-family="inherit">35</text>
+<rect x="349" y="34" width="239" height="152" fill="none" stroke="rgba(11,11,11,.2)" stroke-width="0.75"/>
+<text x="352.1" y="201" font-size="10.5" fill="#9a988f" text-anchor="middle" font-family="inherit">0</text>
+<text x="430.8" y="201" font-size="10.5" fill="#9a988f" text-anchor="middle" font-family="inherit">100</text>
+<text x="509.4" y="201" font-size="10.5" fill="#9a988f" text-anchor="middle" font-family="inherit">200</text>
+<text x="588.0" y="201" font-size="10.5" fill="#9a988f" text-anchor="middle" font-family="inherit">300</text>
+<text x="468.5" y="217" font-size="11" fill="#7d7b73" text-anchor="middle" font-family="inherit">Training Step</text>
+<text x="349" y="25" font-size="12.5" font-weight="650" fill="var(--ink)" text-anchor="start" font-family="inherit">Response Length (K)</text>
+<polyline points="352.1,76.25 352.9,63.53 353.7,65.95 354.5,64.55 355.3,72.82 356.1,63.85 356.9,67.54 357.6,80.05 358.4,74.39 359.2,74.39 360.0,86.07 360.8,99.16 361.6,78.63 362.4,89.96 363.2,83.98 363.9,101.18 364.7,101.04 365.5,95.63 366.3,90.10 367.1,99.11 367.9,103.99 368.7,117.82 369.4,81.79 370.2,100.36 371.0,88.22 371.8,104.10 372.6,97.81 373.4,97.30 374.2,95.38 374.9,95.69 375.7,91.12 376.5,111.89 377.3,88.83 378.1,91.64 378.9,99.23 379.7,90.29 380.4,115.44 381.2,106.91 382.0,111.04 382.8,105.56 383.6,99.65 384.4,130.48 385.2,115.71 386.0,96.03 386.7,108.36 387.5,104.44 388.3,115.91 389.1,106.84 389.9,107.30 390.7,109.84 391.5,103.78 392.2,124.72 393.0,105.65 393.8,112.84 394.6,114.38 395.4,112.19 396.2,108.36 397.0,104.53 397.7,104.24 398.5,108.57 399.3,103.80 400.1,126.87 400.9,106.05 401.7,102.31 402.5,117.41 403.2,112.68 404.0,109.66 404.8,115.26 405.6,96.12 406.4,115.32 407.2,108.07 408.0,118.32 408.8,94.40 409.5,112.63 410.3,109.49 411.1,108.29 411.9,111.01 412.7,107.63 413.5,93.88 414.3,104.01 415.0,92.31 414.3,104.01 415.0,92.31 415.8,119.03 416.6,89.72 417.4,111.18 418.2,109.53 419.0,103.50 419.8,117.86 420.5,90.78 421.3,105.11 422.1,102.54 422.9,101.23 423.7,117.10 424.5,87.96 425.3,96.03 426.0,94.84 426.8,91.13 427.6,87.02 428.4,92.37 429.2,82.56 430.0,84.48 430.8,95.13 431.5,81.33 432.3,71.38 433.1,78.34 433.9,59.66 434.7,79.53 435.5,77.48 436.3,69.32 437.1,73.01 437.8,69.65 438.6,66.91 439.4,87.53 440.2,54.90 441.0,72.52 441.8,76.77 442.6,74.00 443.3,59.84 444.1,69.21 444.9,58.52 445.7,66.47 446.5,73.40 447.3,82.75 448.1,55.09 448.8,54.81 449.6,60.34 450.4,61.87 451.2,77.52 452.0,73.95 452.8,66.38 453.6,62.72 454.3,68.99 455.1,91.65 455.9,65.56 456.7,55.19 457.5,63.46 458.3,83.95 459.1,68.45 459.9,64.52 460.6,76.85 461.4,57.08 462.2,65.97 463.0,85.68 463.8,63.23 464.6,55.23 465.4,64.38 466.1,63.80 466.9,63.82 467.7,64.76 468.5,68.92 469.3,61.61 470.1,50.31 470.9,67.93 471.6,59.01 472.4,47.28 473.2,59.40 474.0,57.94 474.8,57.92 475.6,59.99 476.4,47.09 477.1,59.55 476.4,47.09 477.1,59.55 477.9,58.65 478.7,56.05 479.5,45.46 480.3,43.37 481.1,49.95 481.9,46.27 482.7,67.24 483.4,49.87 484.2,42.50 485.0,51.95 485.8,49.48 486.6,53.67 487.4,51.50 488.2,45.87 488.9,49.54 489.7,50.60 490.5,47.14 491.3,44.10 492.1,40.74 492.9,50.17 493.7,43.08 494.4,50.11 495.2,49.97 496.0,51.49 496.8,51.70 497.6,52.39 498.4,48.66 499.2,39.21 499.9,49.04 500.7,44.49 501.5,48.96 502.3,51.64 503.1,44.52 503.9,47.06 504.7,42.90 505.5,38.20 506.2,51.79 507.0,45.73 507.8,46.45 508.6,42.86 509.4,44.82 510.2,49.84 511.0,39.28 511.7,28.15 512.5,33.48 513.3,37.50 514.1,46.23 514.9,45.60 515.7,46.79 516.5,36.80 517.2,38.35 518.0,47.79 518.8,48.69 519.6,36.58 520.4,34.65 521.2,37.02 522.0,46.96 522.7,38.12 523.5,35.77 524.3,39.70 525.1,43.96 525.9,55.09 526.7,41.55 527.5,42.14 528.2,40.28 529.0,44.84 529.8,54.63 530.6,46.69 531.4,53.92 532.2,41.17 533.0,55.06 533.8,51.14 534.5,41.45 535.3,44.54 536.1,37.15 536.9,42.02 537.7,50.11 538.5,42.51" fill="none" stroke="url(#trfade1)" stroke-width="0.7"/>
+<polyline points="352.1,76.25 352.9,63.53 353.7,65.95 354.5,64.55 355.3,72.82 356.1,63.85 356.9,67.54 357.6,80.05 358.4,74.39 359.2,74.39 360.0,86.07 360.8,99.16 361.6,78.63 362.4,89.96 363.2,83.98 363.9,101.18 364.7,101.04 365.5,95.63 366.3,90.10 367.1,99.11 367.9,103.99 368.7,117.82 369.4,81.79 370.2,100.36 371.0,88.22 371.8,104.10 372.6,97.81 373.4,97.30 374.2,95.38 374.9,95.69 375.7,91.12 376.5,111.89 377.3,88.83 378.1,91.64 378.9,99.23 379.7,90.29 380.4,115.44 381.2,106.91 382.0,111.04 382.8,105.56 383.6,99.65 384.4,130.48 385.2,115.71 386.0,96.03 386.7,108.36 387.5,104.44 388.3,115.91 389.1,106.84 389.9,107.30 390.7,109.84 391.5,103.78 392.2,124.72 393.0,105.65 393.8,112.84 394.6,114.38 395.4,112.19 396.2,108.36 397.0,104.53 397.7,104.24 398.5,108.57 399.3,103.80 400.1,126.87 400.9,106.05 401.7,102.31 402.5,117.41 403.2,112.68 404.0,109.66 404.8,115.26 405.6,96.12 406.4,115.32 407.2,108.07 408.0,118.32 408.8,94.40 409.5,112.63 410.3,109.49 411.1,108.29 411.9,111.01 412.7,107.63 413.5,93.88 414.3,104.01 415.0,92.31 415.8,119.03 416.6,89.72 417.4,111.18 418.2,109.53 419.0,103.50 419.8,117.86 420.5,90.78 421.3,105.11 422.1,102.54 422.9,106.54 423.7,88.62 424.5,98.68 425.3,98.12 426.0,94.11 426.8,88.63 427.6,105.22 428.4,92.45 429.2,94.88 430.0,110.59 430.8,106.74 431.5,109.02 432.3,105.44 433.1,109.64 433.9,96.11 434.7,115.33 435.5,120.34 436.3,117.21 437.1,115.48 437.8,123.85 438.6,138.35 439.4,122.39 440.2,130.11 441.0,139.29 441.8,140.25 442.6,130.68 443.3,139.91 444.1,130.83 444.9,141.47 445.7,144.85 446.5,134.65 447.3,147.64 448.1,138.20 448.8,139.33 449.6,140.03 450.4,139.39 451.2,147.35 452.0,132.26 452.8,133.33 453.6,138.37 454.3,134.13 455.1,153.05 455.9,123.49 456.7,130.84 457.5,139.46 458.3,126.55 459.1,124.65 459.9,133.26 460.6,122.07 461.4,125.54 462.2,124.58 463.0,138.66 463.8,120.42 464.6,127.87 465.4,124.98 466.1,118.87 466.9,121.96 467.7,126.21 468.5,112.74 469.3,106.39 470.1,116.43 470.9,127.20 471.6,100.89 472.4,125.36 473.2,111.22 474.0,105.46 474.8,117.01 475.6,107.53 476.4,114.79 477.1,119.96 477.9,110.90 478.7,95.77 479.5,101.86 480.3,104.90 481.1,113.98 481.9,105.65 482.7,102.18 483.4,111.21 484.2,103.57 485.0,102.65 485.8,112.47 486.6,126.37 487.4,121.20 488.2,117.85 488.9,112.49 489.7,117.96 490.5,115.86 491.3,125.44 492.1,113.24 492.9,125.60 493.7,151.10 494.4,139.92 495.2,145.10 496.0,137.45 496.8,132.20 497.6,152.23 498.4,138.86 499.2,149.88 499.9,136.56 500.7,151.38 501.5,152.99 502.3,155.17 503.1,139.36 503.9,145.74 504.7,147.14 505.5,152.05 506.2,146.06 507.0,141.24 507.8,142.74 508.6,137.18 509.4,133.83 510.2,140.41 511.0,132.70 511.7,136.44 512.5,133.76 513.3,142.83 514.1,134.40 514.9,132.73 515.7,133.65 516.5,145.02 517.2,132.27 518.0,140.00 518.8,115.93 519.6,133.31 520.4,121.92 521.2,116.37 522.0,122.47 522.7,125.77 523.5,125.91 524.3,117.11 525.1,109.29 525.9,125.72 526.7,116.58 527.5,122.99 528.2,110.61 529.0,117.85 529.8,106.98 530.6,118.06 531.4,112.61 532.2,108.76 533.0,106.67 533.8,102.20 534.5,98.40 535.3,98.86 536.1,112.51 536.9,100.43 537.7,114.21 538.5,110.55 539.3,108.73 540.0,113.67 540.8,105.72 541.6,142.90 542.4,135.27 543.2,131.78 544.0,138.04 544.8,128.36 545.5,146.55 546.3,150.97 547.1,145.52 547.9,149.04 548.7,181.05 549.5,161.25 550.3,154.57 551.0,166.69 551.8,170.31 552.6,162.02 553.4,166.29 554.2,176.50 555.0,173.95 555.8,181.61 556.6,176.23 557.3,170.25 558.1,184.17 558.9,173.59 559.7,174.09 560.5,166.36 561.3,167.14 562.1,169.01 562.8,161.27 563.6,166.35 564.4,173.73 565.2,167.53 566.0,174.40 566.8,167.96 567.6,165.90 568.3,159.07 569.1,164.98 569.9,162.59 570.7,161.46 571.5,160.89 572.3,149.70 573.1,154.94 573.8,156.17 574.6,147.70 575.4,142.49 576.2,153.15 577.0,150.69 577.8,145.98 578.6,144.03 579.4,151.65 580.1,135.87 580.9,138.91 581.7,145.04 582.5,146.58 583.3,136.59 584.1,133.08 584.9,136.29 585.6,138.84 586.4,137.09 587.2,131.76 588.0,130.90" fill="none" stroke="#D55E00" stroke-opacity="0.22" stroke-width="0.7"/>
+<polyline points="352.1,68.58 352.9,67.57 353.7,68.62 354.5,66.14 355.3,66.94 356.1,69.76 356.9,71.73 357.6,72.04 358.4,76.49 359.2,82.81 360.0,82.53 360.8,85.64 361.6,87.56 362.4,90.58 363.2,90.96 363.9,94.36 364.7,94.39 365.5,97.41 366.3,97.98 367.1,101.33 367.9,98.56 368.7,100.61 369.4,98.44 370.2,98.46 371.0,94.45 371.8,97.56 372.6,96.56 373.4,98.06 374.2,95.46 374.9,98.28 375.7,96.58 376.5,95.84 377.3,96.54 378.1,96.38 378.9,97.09 379.7,100.70 380.4,104.58 381.2,105.85 382.0,107.72 382.8,110.73 383.6,112.49 384.4,109.48 385.2,110.04 386.0,111.00 386.7,108.09 387.5,106.31 388.3,108.57 389.1,108.87 389.9,108.73 390.7,110.50 391.5,110.26 392.2,111.37 393.0,112.27 393.8,113.96 394.6,110.68 395.4,110.46 396.2,108.74 397.0,107.58 397.7,105.90 398.5,109.60 399.3,109.91 400.1,109.52 400.9,111.29 401.7,113.06 402.5,109.62 403.2,111.46 404.0,110.23 404.8,109.81 405.6,108.89 406.4,110.62 407.2,106.45 408.0,109.75 408.8,108.58 409.5,108.62 410.3,107.16 411.1,109.81 411.9,106.06 412.7,104.96 413.5,101.77 414.3,103.37 415.0,99.79 414.3,103.37 415.0,99.79 415.8,103.25 416.6,104.35 417.4,106.59 418.2,106.36 419.0,106.57 419.8,105.36 420.5,103.96 421.3,103.50 422.1,103.35 422.9,102.79 423.7,100.97 424.5,99.43 425.3,97.41 426.0,91.39 426.8,92.28 427.6,89.58 428.4,87.51 429.2,88.31 430.0,87.18 430.8,82.98 431.5,82.13 432.3,77.17 433.1,74.05 433.9,73.28 434.7,72.87 435.5,71.80 436.3,73.80 437.1,71.27 437.8,73.28 438.6,70.40 439.4,70.30 440.2,71.73 441.0,73.14 441.8,67.61 442.6,70.47 443.3,67.67 444.1,65.61 444.9,65.49 445.7,70.07 446.5,67.25 447.3,66.50 448.1,65.28 448.8,62.97 449.6,61.93 450.4,65.70 451.2,68.02 452.0,68.49 452.8,69.92 453.6,72.74 454.3,71.06 455.1,68.82 455.9,68.97 456.7,71.96 457.5,67.32 458.3,67.11 459.1,71.45 459.9,70.17 460.6,66.57 461.4,70.02 462.2,69.76 463.0,65.44 463.8,66.90 464.6,66.46 465.4,62.09 466.1,62.40 466.9,65.14 467.7,64.58 468.5,61.88 469.3,62.70 470.1,61.56 470.9,57.23 471.6,56.78 472.4,58.31 473.2,56.31 474.0,56.51 474.8,56.47 475.6,56.50 476.4,56.64 477.1,56.26 476.4,56.64 477.1,56.26 477.9,53.36 478.7,52.61 479.5,50.69 480.3,48.22 481.1,50.46 481.9,51.34 482.7,51.17 483.4,51.57 484.2,52.21 485.0,49.49 485.8,49.82 486.6,50.49 487.4,50.01 488.2,50.24 488.9,48.93 489.7,47.45 490.5,46.42 491.3,46.55 492.1,45.04 492.9,45.64 493.7,46.81 494.4,48.96 495.2,49.27 496.0,51.13 496.8,50.84 497.6,48.69 498.4,48.20 499.2,46.76 499.9,46.07 500.7,46.67 501.5,47.73 502.3,47.33 503.1,47.02 503.9,44.86 504.7,44.90 505.5,45.14 506.2,45.01 507.0,45.01 507.8,46.33 508.6,45.94 509.4,44.65 510.2,40.99 511.0,39.12 511.7,37.65 512.5,36.93 513.3,38.19 514.1,41.92 514.9,42.58 515.7,42.75 516.5,43.07 517.2,43.68 518.0,41.64 518.8,41.21 519.6,40.95 520.4,40.78 521.2,38.67 522.0,38.50 522.7,39.52 523.5,40.90 524.3,42.53 525.1,43.22 525.9,44.49 526.7,44.60 527.5,44.78 528.2,44.69 529.0,45.72 529.8,48.07 530.6,48.25 531.4,50.29 532.2,49.59 533.0,48.55 533.8,46.67 534.5,45.87 535.3,43.26 536.1,43.05 536.9,43.27 537.7,42.95 538.5,44.88" fill="none" stroke="url(#trfade1)" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="352.1,68.58 352.9,67.57 353.7,68.62 354.5,66.14 355.3,66.94 356.1,69.76 356.9,71.73 357.6,72.04 358.4,76.49 359.2,82.81 360.0,82.53 360.8,85.64 361.6,87.56 362.4,90.58 363.2,90.96 363.9,94.36 364.7,94.39 365.5,97.41 366.3,97.98 367.1,101.33 367.9,98.56 368.7,100.61 369.4,98.44 370.2,98.46 371.0,94.45 371.8,97.56 372.6,96.56 373.4,98.06 374.2,95.46 374.9,98.28 375.7,96.58 376.5,95.84 377.3,96.54 378.1,96.38 378.9,97.09 379.7,100.70 380.4,104.58 381.2,105.85 382.0,107.72 382.8,110.73 383.6,112.49 384.4,109.48 385.2,110.04 386.0,111.00 386.7,108.09 387.5,106.31 388.3,108.57 389.1,108.87 389.9,108.73 390.7,110.50 391.5,110.26 392.2,111.37 393.0,112.27 393.8,113.96 394.6,110.68 395.4,110.46 396.2,108.74 397.0,107.58 397.7,105.90 398.5,109.60 399.3,109.91 400.1,109.52 400.9,111.29 401.7,113.06 402.5,109.62 403.2,111.46 404.0,110.23 404.8,109.81 405.6,108.89 406.4,110.62 407.2,106.45 408.0,109.75 408.8,108.58 409.5,108.62 410.3,107.16 411.1,109.81 411.9,106.06 412.7,104.96 413.5,101.77 414.3,103.37 415.0,99.79 415.8,103.25 416.6,104.35 417.4,106.59 418.2,106.36 419.0,106.57 419.8,105.36 420.5,103.96 421.3,103.50 422.1,98.72 422.9,100.30 423.7,98.90 424.5,97.21 425.3,93.63 426.0,96.95 426.8,95.71 427.6,95.06 428.4,98.35 429.2,101.98 430.0,102.74 430.8,105.33 431.5,108.29 432.3,105.39 433.1,107.11 433.9,109.37 434.7,111.72 435.5,112.89 436.3,118.44 437.1,123.04 437.8,123.46 438.6,126.04 439.4,130.80 440.2,134.08 441.0,132.54 441.8,136.05 442.6,136.19 443.3,136.63 444.1,137.55 444.9,138.34 445.7,139.89 446.5,141.36 447.3,140.93 448.1,139.97 448.8,140.92 449.6,140.86 450.4,139.67 451.2,138.47 452.0,138.14 452.8,137.09 453.6,138.23 454.3,136.47 455.1,135.97 455.9,136.19 456.7,134.68 457.5,129.00 458.3,130.95 459.1,129.20 459.9,126.41 460.6,126.02 461.4,128.82 462.2,126.26 463.0,127.42 463.8,127.30 464.6,126.16 465.4,122.82 466.1,123.98 466.9,120.95 467.7,117.23 468.5,116.75 469.3,117.80 470.1,112.73 470.9,115.26 471.6,116.22 472.4,114.03 473.2,111.99 474.0,113.32 474.8,111.20 475.6,112.95 476.4,114.04 477.1,109.79 477.9,108.66 478.7,106.68 479.5,105.48 480.3,104.43 481.1,105.71 481.9,107.58 482.7,107.32 483.4,105.05 484.2,106.42 485.0,111.25 485.8,113.25 486.6,116.11 487.4,118.08 488.2,119.18 488.9,117.07 489.7,117.92 490.5,117.00 491.3,119.62 492.1,126.25 492.9,131.06 493.7,134.99 494.4,139.83 495.2,141.15 496.0,141.38 496.8,141.17 497.6,142.12 498.4,141.94 499.2,145.78 499.9,145.93 500.7,149.19 501.5,147.09 502.3,148.93 503.1,148.08 503.9,147.89 504.7,146.07 505.5,146.44 506.2,145.84 507.0,143.85 507.8,140.21 508.6,139.08 509.4,137.37 510.2,136.11 511.0,135.43 511.7,137.23 512.5,136.03 513.3,136.03 514.1,135.48 514.9,137.73 515.7,135.62 516.5,136.74 517.2,133.37 518.0,133.31 518.8,128.69 519.6,125.51 520.4,122.00 521.2,123.97 522.0,122.49 522.7,121.53 523.5,120.11 524.3,120.76 525.1,118.92 525.9,118.34 526.7,117.04 527.5,118.75 528.2,115.00 529.0,115.30 529.8,113.22 530.6,112.85 531.4,110.62 532.2,109.66 533.0,105.73 533.8,102.98 534.5,103.73 535.3,102.48 536.1,104.88 536.9,107.31 537.7,109.28 538.5,109.52 539.3,110.57 540.0,116.31 540.8,121.26 541.6,125.87 542.4,130.74 543.2,135.27 544.0,136.00 544.8,139.14 545.5,141.89 546.3,144.09 547.1,154.62 547.9,157.56 548.7,158.28 549.5,162.52 550.3,166.77 551.0,162.96 551.8,163.97 552.6,168.36 553.4,169.82 554.2,172.08 555.0,174.92 555.8,175.71 556.6,177.24 557.3,177.17 558.1,175.67 558.9,173.69 559.7,173.07 560.5,170.04 561.3,167.58 562.1,166.03 562.8,167.50 563.6,167.58 564.4,168.66 565.2,170.00 566.0,169.90 566.8,166.97 567.6,166.46 568.3,164.10 569.1,162.80 569.9,161.80 570.7,159.92 571.5,157.92 572.3,156.63 573.1,153.88 573.8,150.20 574.6,150.89 575.4,150.04 576.2,148.00 577.0,147.27 577.8,149.10 578.6,145.64 579.4,143.29 580.1,143.10 580.9,143.61 581.7,140.60 582.5,140.04 583.3,139.52 584.1,138.28 584.9,136.38 585.6,135.41 586.4,134.98 587.2,134.65 588.0,133.25" fill="none" stroke="#D55E00" stroke-width="2.1" stroke-linejoin="round"/>
+<rect x="729.9" y="34" width="14.9" height="152" fill="#E3E9F2"/>
+<rect x="784.9" y="34" width="14.9" height="152" fill="#E3E9F2"/>
+<rect x="840.0" y="34" width="14.9" height="152" fill="#E3E9F2"/>
+<line x1="656" y1="186.00" x2="895" y2="186.00" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
+<text x="649" y="189.50" font-size="10.5" fill="#9a988f" text-anchor="end" font-family="inherit">0</text>
+<line x1="656" y1="158.36" x2="895" y2="158.36" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
+<text x="649" y="161.86" font-size="10.5" fill="#9a988f" text-anchor="end" font-family="inherit">10</text>
+<line x1="656" y1="130.73" x2="895" y2="130.73" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
+<text x="649" y="134.23" font-size="10.5" fill="#9a988f" text-anchor="end" font-family="inherit">20</text>
+<line x1="656" y1="103.09" x2="895" y2="103.09" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
+<text x="649" y="106.59" font-size="10.5" fill="#9a988f" text-anchor="end" font-family="inherit">30</text>
+<line x1="656" y1="75.45" x2="895" y2="75.45" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
+<text x="649" y="78.95" font-size="10.5" fill="#9a988f" text-anchor="end" font-family="inherit">40</text>
+<line x1="656" y1="47.82" x2="895" y2="47.82" stroke="rgba(11,11,11,.08)" stroke-width="1"/>
+<text x="649" y="51.32" font-size="10.5" fill="#9a988f" text-anchor="end" font-family="inherit">50</text>
+<rect x="656" y="34" width="239" height="152" fill="none" stroke="rgba(11,11,11,.2)" stroke-width="0.75"/>
+<text x="659.1" y="201" font-size="10.5" fill="#9a988f" text-anchor="middle" font-family="inherit">0</text>
+<text x="737.8" y="201" font-size="10.5" fill="#9a988f" text-anchor="middle" font-family="inherit">100</text>
+<text x="816.4" y="201" font-size="10.5" fill="#9a988f" text-anchor="middle" font-family="inherit">200</text>
+<text x="895.0" y="201" font-size="10.5" fill="#9a988f" text-anchor="middle" font-family="inherit">300</text>
+<text x="775.5" y="217" font-size="11" fill="#7d7b73" text-anchor="middle" font-family="inherit">Training Step</text>
+<text x="656" y="25" font-size="12.5" font-weight="650" fill="var(--ink)" text-anchor="start" font-family="inherit">Abortion Ratio (%)</text>
+<polyline points="659.1,165.22 659.9,156.72 660.7,153.07 661.5,155.23 662.3,159.69 663.1,149.03 663.9,143.49 664.6,149.70 665.4,152.67 666.2,150.37 667.0,159.28 667.8,158.61 668.6,153.34 669.4,160.36 670.2,153.75 670.9,158.88 671.7,151.05 672.5,158.07 673.3,147.00 674.1,153.61 674.9,161.85 675.7,143.49 676.4,145.11 677.2,155.50 678.0,138.23 678.8,143.36 679.6,136.48 680.4,135.26 681.2,147.00 681.9,140.52 682.7,138.50 683.5,142.14 684.3,146.33 685.1,136.07 685.9,144.57 686.7,139.18 687.4,143.36 688.2,146.73 689.0,145.52 689.8,148.08 690.6,139.58 691.4,161.57 692.2,156.18 693.0,144.03 693.7,149.97 694.5,159.96 695.3,153.61 696.1,155.91 696.9,153.61 697.7,151.32 698.5,150.51 699.2,152.80 700.0,157.39 700.8,164.54 701.6,156.45 702.4,152.13 703.2,141.74 704.0,151.73 704.7,145.92 705.5,156.72 706.3,155.77 707.1,152.94 707.9,144.17 708.7,150.92 709.5,153.88 710.2,156.72 711.0,147.00 711.8,154.29 712.6,139.58 713.4,154.69 714.2,152.80 715.0,144.84 715.8,139.44 716.5,158.20 717.3,152.13 718.1,146.06 718.9,142.01 719.7,149.03 720.5,139.44 721.3,149.30 722.0,139.58 721.3,149.30 722.0,139.58 722.8,148.62 723.6,128.25 724.4,153.07 725.2,151.99 726.0,144.44 726.8,140.66 727.5,143.09 728.3,137.96 729.1,138.50 729.9,143.22 730.7,149.03 731.5,129.87 732.3,139.04 733.0,139.99 733.8,125.95 734.6,121.77 735.4,125.41 736.2,121.09 737.0,124.06 737.8,163.47 738.5,151.86 739.3,144.84 740.1,148.08 740.9,133.78 741.7,137.29 742.5,141.60 743.3,144.44 744.1,136.07 744.8,134.99 745.6,135.94 746.4,139.44 747.2,116.10 748.0,136.48 748.8,149.56 749.6,142.28 750.3,116.37 751.1,138.77 751.9,125.41 752.7,141.47 753.5,134.72 754.3,116.37 755.1,118.80 755.8,122.71 756.6,126.36 757.4,120.15 758.2,124.60 759.0,123.93 759.8,126.89 760.6,126.08 761.3,126.89 762.1,122.44 762.9,120.15 763.7,105.71 764.5,123.79 765.3,131.35 766.1,111.92 766.9,119.61 767.6,116.91 768.4,108.41 769.2,118.39 770.0,131.48 770.8,119.07 771.6,106.25 772.4,116.37 773.1,120.82 773.9,111.11 774.7,109.35 775.5,118.66 776.3,114.75 777.1,88.84 777.9,108.68 778.6,89.79 779.4,90.73 780.2,115.15 781.0,109.08 781.8,98.96 782.6,113.81 783.4,94.78 784.1,104.36 783.4,94.78 784.1,104.36 784.9,110.43 785.7,93.97 786.5,88.57 787.3,92.08 788.1,90.73 788.9,101.53 789.7,102.74 790.4,91.54 791.2,78.72 792.0,103.55 792.8,94.37 793.6,88.03 794.4,85.87 795.2,92.08 795.9,89.38 796.7,93.97 797.5,80.47 798.3,81.82 799.1,73.86 799.9,90.73 800.7,63.34 801.4,56.45 802.2,93.29 803.0,76.97 803.8,88.03 804.6,86.82 805.4,79.12 806.2,72.51 806.9,83.17 807.7,76.83 808.5,75.08 809.3,73.46 810.1,74.40 810.9,80.34 811.7,93.29 812.5,56.45 813.2,64.96 814.0,72.92 814.8,86.28 815.6,81.28 816.4,75.75 817.2,62.66 818.0,64.15 818.7,51.33 819.5,49.84 820.3,41.07 821.1,53.62 821.9,47.28 822.7,72.65 823.5,53.35 824.2,54.16 825.0,70.89 825.8,87.09 826.6,68.19 827.4,43.23 828.2,52.27 829.0,60.64 829.7,48.90 830.5,40.40 831.3,62.26 832.1,59.96 832.9,75.89 833.7,62.12 834.5,45.25 835.2,59.56 836.0,50.52 836.8,72.38 837.6,70.62 838.4,78.31 839.2,62.26 840.0,76.56 840.8,74.00 841.5,67.38 842.3,71.97 843.1,49.57 843.9,67.25 844.7,53.22 845.5,68.06" fill="none" stroke="url(#trfade2)" stroke-width="0.7"/>
+<polyline points="659.1,165.22 659.9,156.72 660.7,153.07 661.5,155.23 662.3,159.69 663.1,149.03 663.9,143.49 664.6,149.70 665.4,152.67 666.2,150.37 667.0,159.28 667.8,158.61 668.6,153.34 669.4,160.36 670.2,153.75 670.9,158.88 671.7,151.05 672.5,158.07 673.3,147.00 674.1,153.61 674.9,161.85 675.7,143.49 676.4,145.11 677.2,155.50 678.0,138.23 678.8,143.36 679.6,136.48 680.4,135.26 681.2,147.00 681.9,140.52 682.7,138.50 683.5,142.14 684.3,146.33 685.1,136.07 685.9,144.57 686.7,139.18 687.4,143.36 688.2,146.73 689.0,145.52 689.8,148.08 690.6,139.58 691.4,161.57 692.2,156.18 693.0,144.03 693.7,149.97 694.5,159.96 695.3,153.61 696.1,155.91 696.9,153.61 697.7,151.32 698.5,150.51 699.2,152.80 700.0,157.39 700.8,164.54 701.6,156.45 702.4,152.13 703.2,141.74 704.0,151.73 704.7,145.92 705.5,156.72 706.3,155.77 707.1,152.94 707.9,144.17 708.7,150.92 709.5,153.88 710.2,156.72 711.0,147.00 711.8,154.29 712.6,139.58 713.4,154.69 714.2,152.80 715.0,144.84 715.8,139.44 716.5,158.20 717.3,152.13 718.1,146.06 718.9,142.01 719.7,149.03 720.5,139.44 721.3,149.30 722.0,139.58 722.8,148.62 723.6,128.25 724.4,153.07 725.2,151.99 726.0,144.44 726.8,140.66 727.5,143.09 728.3,137.96 729.1,138.50 729.9,159.82 730.7,154.42 731.5,158.47 732.3,160.36 733.0,149.70 733.8,151.45 734.6,150.24 735.4,147.81 736.2,151.45 737.0,165.22 737.8,157.66 738.5,155.50 739.3,159.01 740.1,162.79 740.9,157.12 741.7,158.88 742.5,163.60 743.3,164.28 744.1,159.69 744.8,164.68 745.6,176.42 746.4,168.05 747.2,172.64 748.0,177.36 748.8,172.64 749.6,172.24 750.3,166.84 751.1,171.29 751.9,174.93 752.7,173.18 753.5,166.43 754.3,168.59 755.1,169.94 755.8,171.43 756.6,171.29 757.4,170.62 758.2,165.35 759.0,167.11 759.8,169.13 760.6,165.89 761.3,161.04 762.1,167.65 762.9,162.52 763.7,164.41 764.5,164.54 765.3,160.63 766.1,155.50 766.9,159.15 767.6,152.94 768.4,157.39 769.2,164.14 770.0,161.57 770.8,159.15 771.6,166.97 772.4,165.49 773.1,161.98 773.9,147.14 774.7,159.15 775.5,146.19 776.3,136.75 777.1,150.51 777.9,153.34 778.6,137.56 779.4,158.47 780.2,145.11 781.0,148.62 781.8,145.38 782.6,141.60 783.4,148.89 784.1,151.18 784.9,150.24 785.7,140.66 786.5,147.00 787.3,144.98 788.1,154.96 788.9,140.52 789.7,135.26 790.4,149.43 791.2,137.56 792.0,150.92 792.8,150.51 793.6,137.56 794.4,149.03 795.2,144.30 795.9,141.06 796.7,151.73 797.5,141.20 798.3,156.31 799.1,136.48 799.9,153.61 800.7,168.46 801.4,163.73 802.2,159.15 803.0,159.69 803.8,155.50 804.6,161.71 805.4,155.91 806.2,160.77 806.9,156.04 807.7,161.04 808.5,165.49 809.3,160.36 810.1,157.26 810.9,161.71 811.7,159.01 812.5,162.25 813.2,160.49 814.0,154.96 814.8,155.91 815.6,155.10 816.4,160.49 817.2,158.34 818.0,150.24 818.7,154.56 819.5,151.18 820.3,162.52 821.1,148.49 821.9,150.78 822.7,158.74 823.5,155.50 824.2,151.05 825.0,152.67 825.8,142.41 826.6,154.15 827.4,142.41 828.2,145.52 829.0,136.61 829.7,144.03 830.5,147.94 831.3,146.33 832.1,133.24 832.9,146.60 833.7,141.20 834.5,148.08 835.2,133.37 836.0,137.01 836.8,125.01 837.6,139.31 838.4,129.32 839.2,137.01 840.0,147.68 840.8,142.14 841.5,130.54 842.3,135.94 843.1,145.25 843.9,121.90 844.7,134.99 845.5,142.95 846.3,139.18 847.0,138.10 847.8,127.57 848.6,154.15 849.4,160.23 850.2,155.64 851.0,160.90 851.8,156.85 852.5,163.60 853.3,162.11 854.1,166.03 854.9,163.47 855.7,180.33 856.5,173.85 857.3,169.81 858.0,176.15 858.8,175.07 859.6,170.75 860.4,172.64 861.2,178.31 862.0,175.07 862.8,179.25 863.6,178.17 864.3,174.40 865.1,181.14 865.9,180.74 866.7,181.41 867.5,177.77 868.3,174.40 869.1,175.34 869.8,175.47 870.6,181.55 871.4,178.17 872.2,172.51 873.0,175.47 873.8,177.36 874.6,178.71 875.3,170.62 876.1,173.99 876.9,176.82 877.7,172.37 878.5,174.26 879.3,174.40 880.1,171.02 880.8,171.16 881.6,170.89 882.4,170.62 883.2,172.24 884.0,169.81 884.8,166.57 885.6,170.21 886.4,173.04 887.1,167.11 887.9,156.85 888.7,171.83 889.5,167.11 890.3,166.84 891.1,153.75 891.9,154.69 892.6,164.81 893.4,166.43 894.2,164.41 895.0,161.57" fill="none" stroke="#D55E00" stroke-opacity="0.22" stroke-width="0.7"/>
+<polyline points="659.1,158.34 659.9,157.56 660.7,157.99 661.5,154.75 662.3,152.10 663.1,151.43 663.9,150.92 664.6,149.05 665.4,151.10 666.2,154.13 667.0,154.85 667.8,156.39 668.6,157.07 669.4,156.99 670.2,155.48 670.9,156.42 671.7,153.75 672.5,153.72 673.3,154.31 674.1,152.80 674.9,150.21 675.7,151.91 676.4,148.84 677.2,145.14 678.0,143.74 678.8,141.77 679.6,140.07 680.4,140.52 681.2,139.55 681.9,140.69 682.7,142.90 683.5,140.71 684.3,141.52 685.1,141.66 685.9,141.90 686.7,141.98 687.4,143.87 688.2,144.57 689.0,144.65 689.8,148.30 690.6,150.19 691.4,149.89 692.2,150.27 693.0,154.34 693.7,152.75 694.5,152.70 695.3,154.61 696.1,154.88 696.9,152.99 697.7,152.83 698.5,153.13 699.2,155.31 700.0,156.34 700.8,156.66 701.6,154.45 702.4,153.32 703.2,149.59 704.0,149.65 704.7,150.37 705.5,152.62 706.3,151.10 707.1,152.10 707.9,151.53 708.7,151.73 709.5,150.54 710.2,152.56 711.0,150.29 711.8,150.46 712.6,149.67 713.4,149.24 714.2,146.27 715.0,150.00 715.8,149.48 716.5,148.14 717.3,147.57 718.1,149.48 718.9,145.73 719.7,145.17 720.5,143.87 721.3,145.19 722.0,141.04 721.3,145.19 722.0,141.04 722.8,143.76 723.6,144.30 724.4,145.28 725.2,143.68 726.0,146.65 726.8,143.63 727.5,140.93 728.3,140.69 729.1,142.36 729.9,139.71 730.7,139.93 731.5,140.23 732.3,136.77 733.0,131.32 733.8,130.43 734.6,126.84 735.4,123.66 736.2,131.16 737.0,137.18 737.8,141.06 738.5,146.46 739.3,148.40 740.1,143.17 740.9,141.12 741.7,141.04 742.5,138.63 743.3,138.88 744.1,138.61 744.8,138.18 745.6,132.51 746.4,132.59 747.2,135.51 748.0,136.77 748.8,132.16 749.6,136.69 750.3,134.48 751.1,132.86 751.9,131.35 752.7,131.35 753.5,127.35 754.3,126.81 755.1,123.79 755.8,120.88 756.6,122.52 757.4,123.55 758.2,124.38 759.0,124.33 759.8,125.68 760.6,125.25 761.3,124.49 762.1,120.26 762.9,119.80 763.7,120.69 764.5,118.58 765.3,118.47 766.1,120.71 766.9,117.64 767.6,115.05 768.4,118.96 769.2,118.85 770.0,116.72 770.8,118.31 771.6,118.80 772.4,114.72 773.1,112.78 773.9,115.26 774.7,114.94 775.5,108.54 776.3,108.06 777.1,104.14 777.9,98.56 778.6,98.64 779.4,102.69 780.2,100.74 781.0,105.55 781.8,106.36 782.6,104.20 783.4,104.47 784.1,103.47 783.4,104.47 784.1,103.47 784.9,98.42 785.7,97.88 786.5,95.16 787.3,93.37 788.1,95.13 788.9,95.72 789.7,93.05 790.4,95.62 791.2,94.18 792.0,91.24 792.8,90.11 793.6,92.78 794.4,89.95 795.2,89.87 795.9,88.36 796.7,87.55 797.5,83.90 798.3,84.17 799.1,78.05 799.9,73.24 800.7,75.53 801.4,76.16 802.2,75.62 803.0,80.31 803.8,84.85 804.6,80.69 805.4,81.93 806.2,79.69 806.9,77.34 807.7,76.21 808.5,76.59 809.3,76.02 810.1,79.31 810.9,75.59 811.7,73.89 812.5,73.59 813.2,74.78 814.0,72.38 814.8,76.24 815.6,75.78 816.4,74.02 817.2,67.03 818.0,60.75 818.7,53.81 819.5,52.00 820.3,48.63 821.1,52.89 821.9,53.59 822.7,56.21 823.5,59.67 824.2,67.63 825.0,66.74 825.8,64.71 826.6,64.34 827.4,62.28 828.2,54.65 829.0,49.09 829.7,52.89 830.5,54.43 831.3,57.48 832.1,60.12 832.9,61.10 833.7,60.56 834.5,58.67 835.2,57.97 836.0,59.67 836.8,66.28 837.6,66.82 838.4,72.03 839.2,72.35 840.0,71.70 840.8,70.44 841.5,67.90 842.3,66.04 843.1,61.88 843.9,62.01 844.7,59.52 845.5,62.84" fill="none" stroke="url(#trfade2)" stroke-width="2" stroke-linejoin="round"/>
+<polyline points="659.1,158.34 659.9,157.56 660.7,157.99 661.5,154.75 662.3,152.10 663.1,151.43 663.9,150.92 664.6,149.05 665.4,151.10 666.2,154.13 667.0,154.85 667.8,156.39 668.6,157.07 669.4,156.99 670.2,155.48 670.9,156.42 671.7,153.75 672.5,153.72 673.3,154.31 674.1,152.80 674.9,150.21 675.7,151.91 676.4,148.84 677.2,145.14 678.0,143.74 678.8,141.77 679.6,140.07 680.4,140.52 681.2,139.55 681.9,140.69 682.7,142.90 683.5,140.71 684.3,141.52 685.1,141.66 685.9,141.90 686.7,141.98 687.4,143.87 688.2,144.57 689.0,144.65 689.8,148.30 690.6,150.19 691.4,149.89 692.2,150.27 693.0,154.34 693.7,152.75 694.5,152.70 695.3,154.61 696.1,154.88 696.9,152.99 697.7,152.83 698.5,153.13 699.2,155.31 700.0,156.34 700.8,156.66 701.6,154.45 702.4,153.32 703.2,149.59 704.0,149.65 704.7,150.37 705.5,152.62 706.3,151.10 707.1,152.10 707.9,151.53 708.7,151.73 709.5,150.54 710.2,152.56 711.0,150.29 711.8,150.46 712.6,149.67 713.4,149.24 714.2,146.27 715.0,150.00 715.8,149.48 716.5,148.14 717.3,147.57 718.1,149.48 718.9,145.73 719.7,145.17 720.5,143.87 721.3,145.19 722.0,141.04 722.8,143.76 723.6,144.30 724.4,145.28 725.2,143.68 726.0,146.65 726.8,143.63 727.5,140.93 728.3,140.69 729.1,146.76 729.9,149.84 730.7,154.31 731.5,156.56 732.3,154.88 733.0,154.05 733.8,151.91 734.6,150.13 735.4,153.24 736.2,154.48 737.0,155.53 737.8,157.77 738.5,160.04 739.3,158.42 740.1,158.66 740.9,160.28 741.7,161.33 742.5,160.71 743.3,162.22 744.1,165.73 744.8,166.62 745.6,168.30 746.4,171.83 747.2,173.42 748.0,172.59 748.8,172.34 749.6,172.07 750.3,171.59 751.1,171.70 751.9,170.53 752.7,170.89 753.5,170.62 754.3,169.92 755.1,169.54 755.8,170.37 756.6,169.72 757.4,169.16 758.2,168.70 759.0,167.62 759.8,165.70 760.6,166.16 761.3,165.25 762.1,164.30 762.9,164.03 763.7,163.95 764.5,161.52 765.3,160.85 766.1,158.55 766.9,157.12 767.6,157.82 768.4,159.04 769.2,159.04 770.0,161.85 770.8,163.47 771.6,163.03 772.4,160.15 773.1,160.15 773.9,155.99 774.7,150.24 775.5,147.94 776.3,149.19 777.1,144.87 777.9,147.33 778.6,149.00 779.4,148.62 780.2,147.03 781.0,147.84 781.8,145.92 782.6,147.14 783.4,147.46 784.1,146.52 784.9,147.60 785.7,146.81 786.5,147.57 787.3,145.63 788.1,144.55 788.9,145.03 789.7,143.55 790.4,142.74 791.2,144.73 792.0,145.19 792.8,145.11 793.6,146.46 794.4,144.49 795.2,144.73 795.9,145.46 796.7,146.92 797.5,145.36 798.3,147.86 799.1,151.21 799.9,155.72 800.7,156.29 801.4,160.93 802.2,161.30 803.0,159.96 803.8,158.39 804.6,158.71 805.4,157.99 806.2,159.09 806.9,159.85 807.7,160.74 808.5,160.04 809.3,161.17 810.1,160.77 810.9,160.12 811.7,160.15 812.5,159.69 813.2,158.53 814.0,157.74 814.8,157.39 815.6,156.96 816.4,156.01 817.2,155.75 818.0,154.96 818.7,155.37 819.5,153.40 820.3,153.51 821.1,154.34 821.9,155.20 822.7,152.91 823.5,153.75 824.2,152.08 825.0,151.16 825.8,148.54 826.6,147.43 827.4,144.22 828.2,144.55 829.0,143.30 829.7,144.09 830.5,141.63 831.3,143.63 832.1,143.06 832.9,143.09 833.7,140.50 834.5,141.25 835.2,136.93 836.0,136.56 836.8,132.81 837.6,133.54 838.4,135.67 839.2,139.09 840.0,137.34 840.8,138.66 841.5,140.31 842.3,135.15 843.1,133.72 843.9,136.20 844.7,136.85 845.5,135.42 846.3,136.56 847.0,140.39 847.8,143.84 848.6,147.14 849.4,151.70 850.2,157.55 851.0,159.44 851.8,159.82 852.5,161.90 853.3,162.41 854.1,167.11 854.9,169.16 855.7,170.70 856.5,172.72 857.3,175.04 858.0,173.13 858.8,172.88 859.6,174.58 860.4,174.37 861.2,175.21 862.0,176.69 862.8,177.04 863.6,177.61 864.3,178.74 865.1,179.17 865.9,179.09 866.7,179.09 867.5,177.93 868.3,176.88 869.1,176.90 869.8,176.99 870.6,176.61 871.4,176.63 872.2,177.01 873.0,176.45 873.8,174.93 874.6,175.23 875.3,175.50 876.1,174.50 876.9,173.61 877.7,174.37 878.5,173.77 879.3,172.64 880.1,172.34 880.8,171.62 881.6,171.18 882.4,170.94 883.2,170.02 884.0,169.89 884.8,170.37 885.6,169.35 886.4,166.76 887.1,167.81 887.9,167.19 888.7,165.95 889.5,163.27 890.3,162.84 891.1,161.44 891.9,161.30 892.6,160.82 893.4,162.38 894.2,164.31 895.0,164.14" fill="none" stroke="#D55E00" stroke-width="2.1" stroke-linejoin="round"/>
 <g font-size="12" font-family="inherit" fill="#3a3934">
-  <line x1="230.0" y1="738" x2="252.0" y2="738" stroke="#D55E00" stroke-width="2.1"/>
-  <text x="259.0" y="742">Length Penalty (Ours)</text>
-  <line x1="425.0" y1="738" x2="447.0" y2="738" stroke="#808080" stroke-width="2"/>
-  <text x="454.0" y="742">Baseline</text>
-  <rect x="550.0" y="732" width="20" height="12" fill="#E3E9F2"/>
-  <text x="575.0" y="742">Penalty Engaged</text>
+  <line x1="230.0" y1="244" x2="252.0" y2="244" stroke="#D55E00" stroke-width="2.1"/>
+  <text x="259.0" y="248">Length Penalty (Ours)</text>
+  <line x1="425.0" y1="244" x2="447.0" y2="244" stroke="#808080" stroke-width="2"/>
+  <text x="454.0" y="248">Baseline</text>
+  <rect x="550.0" y="238" width="20" height="12" fill="#E3E9F2"/>
+  <text x="575.0" y="248">Penalty Engaged</text>
 </g>
 <g id="trCrossG" class="tr-crossg">
-  <line id="trCross" class="tr-cross" x1="0" y1="26" x2="0" y2="688"/>
+  <line id="trCross0" class="tr-cross" x1="0" y1="34" x2="0" y2="186"/>
+  <line id="trCross1" class="tr-cross" x1="0" y1="34" x2="0" y2="186"/>
+  <line id="trCross2" class="tr-cross" x1="0" y1="34" x2="0" y2="186"/>
   <circle id="trDotOurs0" class="tr-dot tr-dot-ours" r="3.4"/>
   <circle id="trDotBase0" class="tr-dot tr-dot-base" r="3.4"/>
   <circle id="trDotOurs1" class="tr-dot tr-dot-ours" r="3.4"/>
@@ -1576,7 +1469,7 @@
   <circle id="trDotOurs2" class="tr-dot tr-dot-ours" r="3.4"/>
   <circle id="trDotBase2" class="tr-dot tr-dot-base" r="3.4"/>
 </g>
-<rect id="trHit" x="62" y="26" width="800" height="662" fill="transparent"/>
+<rect id="trHit" x="0" y="34" width="900" height="152" fill="transparent"/>
 </svg>
       <div class="figcap" data-md="training-cap"><b>The length penalty shortens responses without costing reward.</b>
       One run continued two ways from the same checkpoint, differing only in whether a length
@@ -1595,7 +1488,7 @@
     <div class="sec-lead" data-md="results">The IOI result above rests on Arbiter's judging
     quality. We measure that capability directly on two complementary benchmarks.
     <b>UOJ-Bench</b> is an existing public hacking benchmark:
-    every candidate is known to be wrong (479 Easy / 1,005 Hard), so it probes
+    every candidate is known to be wrong (479 Easy / 1,046 Hard), so it probes
     depth — covert bugs that survive an official test suite.
     <b>USACO-Judge</b> is a benchmark we built from the held-out 2026 USACO
     contests: 900 candidates (270 Easy / 630 Hard) over 39 problems spanning
@@ -1693,130 +1586,6 @@
     up to ~45× larger.</div>
   </section>
 
-  <template id="old-rtbl"><!-- retired multi-column hack/label table, kept for reference
-      <table class="rtbl">
-        <thead>
-          <tr class="groups">
-            <th rowspan="3" class="mdl">Model</th>
-            <th colspan="4" class="grp sepd">UOJ-Bench (Hacking)</th>
-            <th colspan="4" class="grp sepd">USACO-Judge</th>
-            <th rowspan="3" class="sepd">Overall<br>Hack Succ.</th>
-          </tr>
-          <tr>
-            <th colspan="2" class="sepd">✓ Label Acc.</th>
-            <th colspan="2" class="sep">⛊ Hack Succ.</th>
-            <th colspan="2" class="sepd">✓ Label Acc.</th>
-            <th colspan="2" class="sep">⛊ Hack Succ.</th>
-          </tr>
-          <tr class="cols">
-            <th class="sepd">Easy</th><th>Hard</th>
-            <th class="sep">Easy</th><th>Hard</th>
-            <th class="sepd">Easy</th><th>Hard</th>
-            <th class="sep">Easy</th><th>Hard</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr class="band"><td colspan="10">⚡ Non-agentic · single-shot</td></tr>
-          <tr>
-            <td class="mdl"><span class="m"><img src="figs/logos/qwen.png" alt="">Qwen3.6-35B-A3B</span></td>
-            <td class="sepd">86.85</td><td>87.56</td>
-            <td class="sep">16.70</td><td>10.85</td>
-            <td class="sepd">66.42</td><td>64.55</td>
-            <td class="sep">32.04</td><td>21.65</td>
-            <td class="sepd">16.20</td>
-          </tr>
-          <tr>
-            <td class="mdl"><span class="m"><img src="figs/logos/openai.png" alt="">GPT-OSS-120B</span></td>
-            <td class="sepd">79.12</td><td>77.05</td>
-            <td class="sep">29.09</td><td>20.07</td>
-            <td class="sepd">60.74</td><td>66.88</td>
-            <td class="sep">33.89</td><td>36.84</td>
-            <td class="sepd">26.72</td>
-          </tr>
-          <tr>
-            <td class="mdl"><span class="m"><img src="figs/logos/deepseek.png" alt="">DeepSeek-V4-Flash-Preview</span></td>
-            <td class="sepd">73.49</td><td>73.08</td>
-            <td class="sep">33.49</td><td>22.03</td>
-            <td class="sepd">74.89</td><td>68.64</td>
-            <td class="sep">55.00</td><td>41.52</td>
-            <td class="sepd">31.44</td>
-          </tr>
-          <tr>
-            <td class="mdl"><span class="m"><img src="figs/logos/qwen.png" alt="">Qwen3.5-397B-A17B</span></td>
-            <td class="sepd"><u>88.87</u></td><td><u>88.33</u></td>
-            <td class="sep">41.68</td><td>30.78</td>
-            <td class="sepd">85.31</td><td>74.23</td>
-            <td class="sep">77.31</td><td>58.88</td>
-            <td class="sepd">42.97</td>
-          </tr>
-          <tr>
-            <td class="mdl"><span class="m"><img src="figs/logos/zai.png" alt="">GLM-5.2</span></td>
-            <td class="sepd">80.17</td><td>76.77</td>
-            <td class="sep">65.34</td><td>57.33</td>
-            <td class="sepd">94.07</td><td>80.63</td>
-            <td class="sep">91.16</td><td><b>79.03</b></td>
-            <td class="sepd">66.47</td>
-          </tr>
-          <tr>
-            <td class="mdl"><span class="m"><img src="figs/logos/kimi.png" alt="">Kimi-K2.5</span></td>
-            <td class="sepd">72.44</td><td>68.66</td>
-            <td class="sep">46.76</td><td>30.95</td>
-            <td class="sepd">83.33</td><td>72.86</td>
-            <td class="sep">70.56</td><td>57.24</td>
-            <td class="sepd">43.30</td>
-          </tr>
-          <tr>
-            <td class="mdl"><span class="m"><img src="figs/logos/deepseek.png" alt="">DeepSeek-V4-Pro-Preview</span></td>
-            <td class="sepd">76.06</td><td>75.45</td>
-            <td class="sep">51.15</td><td>38.94</td>
-            <td class="sepd">90.74</td><td>82.86</td>
-            <td class="sep">84.85</td><td>70.95</td>
-            <td class="sepd">52.16</td>
-          </tr>
-          <tr>
-            <td class="mdl"><span class="m"><img src="figs/logos/claude.png" alt="">Claude-Opus-4.8</span></td>
-            <td class="sepd">84.97</td><td>75.72</td>
-            <td class="sep"><u>77.04</u></td><td><u>67.06</u></td>
-            <td class="sepd"><b><u>94.81</u></b></td><td>82.38</td>
-            <td class="sep"><b><u>94.48</u></b></td><td><u>87.61</u></td>
-            <td class="sepd"><u>75.86</u></td>
-          </tr>
-          <tr>
-            <td class="mdl"><span class="m"><img src="figs/logos/openai.png" alt="">GPT-5.5</span></td>
-            <td class="sepd"><b>91.86</b></td><td><b>89.85</b></td>
-            <td class="sep"><b>78.71</b></td><td><b>77.01</b></td>
-            <td class="sepd"><b>94.44</b></td><td><b>90.79</b></td>
-            <td class="sep"><b>90.66</b></td><td><b>91.97</b></td>
-            <td class="sepd"><b>81.59</b></td>
-          </tr>
-          <tr class="band"><td colspan="10">⚙ Agentic · tool-using</td></tr>
-          <tr>
-            <td class="mdl"><span class="m"><img src="figs/logos/qwen.png" alt="">Qwen3.6-35B-A3B</span></td>
-            <td class="sepd">71.82</td><td>67.43</td>
-            <td class="sep">41.34</td><td>31.47</td>
-            <td class="sepd">85.56</td><td>65.34</td>
-            <td class="sep">79.44</td><td>45.88</td>
-            <td class="sepd">40.79</td>
-          </tr>
-          <tr>
-            <td class="mdl"><span class="m"><img src="figs/logos/deepseek.png" alt="">DeepSeek-V4-Flash-Preview</span></td>
-            <td class="sepd">65.55</td><td>63.18</td>
-            <td class="sep">56.37</td><td><b>49.35</b></td>
-            <td class="sepd"><b>96.30</b></td><td>77.62</td>
-            <td class="sep">92.78</td><td>65.27</td>
-            <td class="sepd">57.92</td>
-          </tr>
-          <tr class="ours">
-            <td class="mdl"><span class="m"><img src="figs/coding.png" alt="">Arbiter (Ours)</span></td>
-            <td class="sepd"><b>87.55</b></td><td><b>83.39</b></td>
-            <td class="sep"><b>61.48</b></td><td><b>50.66</b></td>
-            <td class="sepd"><b>94.17</b></td><td><u>84.48</u></td>
-            <td class="sep"><b>96.64</b></td><td><b>79.38</b></td>
-            <td class="sepd"><b>62.91</b></td>
-          </tr>
-        </tbody>
-      </table>
-  --></template>
 
   <section id="refinement">
     <h2 class="sec-h">The Climb to IOI Gold</h2>
@@ -1947,101 +1716,6 @@
     </div>
   </section>
 
-  <template id="old-token-fig"><div class="figure interactive">
-      <svg viewBox="0 0 900 330" role="img"
-           aria-label="Contest score versus total tokens spent, with and without the verifier">
-        <rect class="colhi" x="0" y="26" width="0" height="248" fill="var(--full)" fill-opacity="0" rx="3"/>
-        <!-- horizontal gridlines, score 200..400 -->
-        <g stroke="rgba(11,11,11,.06)" stroke-width="1">
-          <line x1="70" y1="26"  x2="850" y2="26"/>
-          <line x1="70" y1="88"  x2="850" y2="88"/>
-          <line x1="70" y1="150" x2="850" y2="150"/>
-          <line x1="70" y1="212" x2="850" y2="212"/>
-          <line x1="70" y1="274" x2="850" y2="274"/>
-        </g>
-        <g fill="#9a988f" font-size="12" font-family="inherit" text-anchor="end">
-          <text x="60" y="30">400</text><text x="60" y="92">350</text>
-          <text x="60" y="154">300</text><text x="60" y="216">250</text>
-          <text x="60" y="278">200</text>
-        </g>
-        <!-- gold-medal threshold -->
-        <line x1="70" y1="74.2" x2="850" y2="74.2" stroke="#c9a227" stroke-width="1.25" stroke-dasharray="4 4"/>
-        <image href="figs/gold-medal.png" x="150" y="52" width="20" height="20"/>
-        <text x="174" y="67" fill="#a8851d" font-size="11" font-weight="600" font-family="inherit">gold medal · 361</text>
-
-        <!-- WITHOUT verifier: score@k (dashed, muted) -->
-        <polyline fill="none" stroke="#b6b3ab" stroke-width="2" stroke-dasharray="6 4"
-          stroke-linejoin="round" stroke-linecap="round"
-          points="230.1,143.1 390.1,91.8 710.1,57.9"/>
-        <g fill="#fff" stroke="#b6b3ab" stroke-width="2">
-          <circle class="dot" cx="230.1" cy="143.1" r="3.5"/>
-          <circle class="dot" cx="390.1" cy="91.8" r="3.5"/>
-          <circle class="dot" cx="710.1" cy="57.9" r="3.5"/>
-        </g>
-
-        <!-- WITH verifier, GENERATION-ONLY tokens (solid, vermillion = "Ours",
-             matching the length-penalty figure) -->
-        <polyline fill="none" stroke="#D55E00" stroke-width="2.5"
-          stroke-linejoin="round" stroke-linecap="round"
-          points="228.5,184.1 296.9,79.4 343.1,79.9 377.1,80.0 405.2,44.0 431.1,44.0"/>
-        <g fill="#D55E00">
-          <circle class="dot" cx="228.5" cy="184.1" r="4"/>
-          <circle class="dot" cx="296.9" cy="79.4" r="4"/>
-          <circle class="dot" cx="343.1" cy="79.9" r="4"/>
-          <circle class="dot" cx="377.1" cy="80.0" r="4"/>
-          <circle class="dot" cx="405.2" cy="44.0" r="4"/>
-          <circle class="dot" cx="431.1" cy="44.0" r="4"/>
-        </g>
-
-        <!-- WITH verifier: gen + verifier tokens (solid, lighter vermillion) -->
-        <polyline fill="none" stroke="#E8965A" stroke-width="2.5"
-          stroke-linejoin="round" stroke-linecap="round"
-          points="389.8,184.1 530.4,79.4 621.0,79.9 693.1,80.0 755.2,44.0 812.7,44.0"/>
-        <g fill="#E8965A">
-          <circle class="dot" cx="389.8" cy="184.1" r="4"/>
-          <circle class="dot" cx="530.4" cy="79.4" r="4"/>
-          <circle class="dot" cx="621.0" cy="79.9" r="4"/>
-          <circle class="dot" cx="693.1" cy="80.0" r="4"/>
-          <circle class="dot" cx="755.2" cy="44.0" r="4"/>
-          <circle class="dot" cx="812.7" cy="44.0" r="4"/>
-        </g>
-        <!-- round labels on the verifier points -->
-        <g fill="var(--ink3)" font-size="10" font-family="inherit" text-anchor="middle">
-          <text x="389.8" y="199">R0</text>
-          <text x="530.4" y="72">R1</text>
-          <text x="755.2" y="37">R4</text>
-        </g>
-
-        <!-- interactive hit-targets (one per plotted point) -->
-        <g class="hits">
-          <rect class="hit" data-x="230.1" data-tip="No verifier · k=50" data-tok="102.6M" data-score="305.59" x="0" y="26" width="310" height="248"/>
-          <rect class="hit" data-x="390.1" data-tip="No verifier · k=100 / Arbiter · R0" data-tok="205M" data-score="—" x="310" y="26" width="140" height="248"/>
-          <rect class="hit" data-x="710.1" data-tip="No verifier · k=200" data-tok="410.3M" data-score="374.27" x="450" y="26" width="120" height="248"/>
-        </g>
-
-        <!-- x labels: total tokens (millions) -->
-        <g fill="#9a988f" font-size="12" font-family="inherit" text-anchor="middle">
-          <text x="70" y="296">0</text><text x="226" y="296">100M</text>
-          <text x="382" y="296">200M</text><text x="538" y="296">300M</text>
-          <text x="694" y="296">400M</text><text x="850" y="296">500M</text>
-        </g>
-        <text x="460" y="320" fill="#7d7b73" font-size="12.5" font-family="inherit" text-anchor="middle">total tokens (generation + verifier)</text>
-        <text x="18" y="150" fill="#7d7b73" font-size="12.5" font-family="inherit" text-anchor="middle" transform="rotate(-90 18 150)">contest score (/600)</text>
-      </svg>
-      <div class="figlegend">
-        <span><span class="lg-line" style="border-top-color:#D55E00"></span>with Arbiter — generation tokens only</span>
-        <span><span class="lg-line" style="border-top-color:#E8965A"></span>with Arbiter — generation + verifier tokens</span>
-        <span><span class="lg-dash"></span>no verifier (score@k, k=50/100/200)</span>
-      </div>
-      <div class="figcap"><b>The verifier turns tokens into score more efficiently.</b>
-      Contest score against <b>tokens spent</b>. Plain sampling (<b>dashed</b>,
-      no verifier) needs ~410M tokens at k=200 to reach 374. Arbiter-gated
-      refinement clears the gold line at <b>385.46</b> by R4 — counting only the
-      model's <b style="color:#D55E00">generation tokens</b> that costs just
-      <b>~215M</b>; counting the <b style="color:#E8965A">verifier's tokens too</b>
-      it is ~439M, still reaching a higher score than sampling ever does. All
-      counts are exact gpt-oss-120b tokens.</div>
-    </div></template>
 
   <section id="artifacts">
     <h2 class="sec-h"><img src="figs/ioi_social.jpg" alt="IOI logo">IOI Artifacts</h2>
@@ -2176,11 +1850,10 @@ const apiURL={
 
 const ABBR={'Accepted':'AC','Wrong Answer':'WA','Time Limit Exceeded':'TLE',
   'Memory Limit Exceeded':'MLE','Runtime Error':'RE','Compile Error':'CE'};
-const CAP=5;                     // this replay's shortened round budget
+const CAP=5;                     // refinement rounds per trajectory
 const DAYNAME={1:'Day 1',2:'Day 2'};
-// Which problems have a merged final submission on disk (merge_final_submission/
-// day{N}/p{M}/) -- checked when deciding whether to show the badge next to a
-// problem's score. Extend as more days/problems get merged.
+// Which problems have a merged final submission -- checked when deciding
+// whether to show the badge next to a problem's score.
 const MERGED_SUBMISSIONS={1:[1,2,3],2:[1,2,3]};
 let DATA={};
 // currentMerge: the {day,p} of the final-submission view currently (or most
@@ -2386,13 +2059,9 @@ function fanFor(s,day,where){
       </div>`).join('')}</div></div>`;
 }
 
-// Summing each subtask's own best-ever-recorded score answers "what's
-// achievable in principle from the trajectory pool" -- for most problems
-// that coincides with what actually gets submitted, but not when the real
-// submission strategy runs into a limited budget it can't spend with
-// certainty (see day2 Problem 4's strategy.json). final_score, when a task
-// carries one, is that strategy's own real expected/achieved score, and
-// overrides the naive per-subtask sum so the totals stay honest about it.
+// A task's total is the sum of its subtask scores, except where the task
+// carries its own final_score -- that value is authoritative and is used as
+// given.
 function dayScore(d){
   let tot=0,ns=0,nt=0;
   d.tasks.forEach(t=>{
@@ -2876,7 +2545,6 @@ function evTableHtml(rows){
 // subtask's own condition isn't observable from what the grader passes, or
 // its accepted pool contains no true AC at all) -- the answer there is
 // several files, each submitted its own number of times, not one merge.
-// See P4_submission_strategy.md for the reasoning this mirrors.
 function renderMergeMulti(d,ctx){
   const task=DATA[ctx.day]?.tasks?.[ctx.p-1];
   document.getElementById('dt').textContent=
@@ -3144,7 +2812,7 @@ wireFigure(document.querySelector('.teaser.interactive'), {
   const matchesGroup=document.getElementById('rfMatchesGroup');
 
   // Nodes that exist on every scenario (Arbiter always returns all three of
-  // its outputs; the online judge always runs) -- everything else is drawn
+  // its outputs) -- everything else is drawn
   // dimmed until the current controls put it on the active path.
   const ALWAYS_NODES=new Set(['cand','prob','arb','oj','vd','cx','dg','rf','sw']);
 
@@ -3238,20 +2906,25 @@ wireFigure(document.querySelector('.teaser.interactive'), {
   const fig=document.getElementById('trainChartFig');
   if(!fig) return;
   const svg=fig.querySelector('svg');
-  const tips=[0,1,2].map(i=>document.getElementById('trTip'+i));
-  const tipStep=document.getElementById('trTipStep');
+  const tipAll=document.getElementById('trTipAll');
   const crossG=document.getElementById('trCrossG');
-  const cross=document.getElementById('trCross');
   const hit=document.getElementById('trHit');
   const dotsOurs=[0,1,2].map(i=>document.getElementById('trDotOurs'+i));
   const dotsBase=[0,1,2].map(i=>document.getElementById('trDotBase'+i));
 
-  const XMIN=-4, XMAX=300, PLOT_L=62, PLOT_R=862;
-  const ROW_H=190, ROW_GAP=46, TOP0=26;
-  const rowTop=i=>TOP0+i*(ROW_H+ROW_GAP);
-  const rowBot=i=>rowTop(i)+ROW_H;
-  const pxOf=x=>PLOT_L+(x-XMIN)/(XMAX-XMIN)*(PLOT_R-PLOT_L);
-  const pyOf=(i,y,ymin,ymax)=>{const t=rowTop(i),b=rowBot(i);return b-(y-ymin)/(ymax-ymin)*(b-t);};
+  // Three panels side by side share the training-step domain but each has its
+  // own plot-area x range, so a single crosshair cannot span them: hovering
+  // resolves a step from whichever panel the pointer is over, then drives all
+  // three crosshairs to that same step for comparison.
+  const XMIN=-4, XMAX=300;
+  const crosses=[0,1,2].map(i=>document.getElementById('trCross'+i));
+  // Plot-area geometry, mirroring build_trainreward_row.py. Hard-coded rather
+  // than scraped from the DOM: reading it back off rect[fill="none"] would
+  // silently pick up any other unfilled rect added to the figure later.
+  const GEO=[{l:42,w:239},{l:349,w:239},{l:656,w:239}];
+  const TOPY=34, ROW_H=152, BOTY=TOPY+ROW_H;   // mirrors build_trainreward_row.py
+  const pxOf=(i,x)=>GEO[i].l+(x-XMIN)/(XMAX-XMIN)*GEO[i].w;
+  const pyOf=(y,ymin,ymax)=>BOTY-(y-ymin)/(ymax-ymin)*ROW_H;
 
   const vb=svg.viewBox.baseVal;
   function toViewBoxX(clientX){
@@ -3266,93 +2939,66 @@ wireFigure(document.querySelector('.teaser.interactive'), {
     const r=svg.getBoundingClientRect();
     return r.top+(vy-vb.y)/vb.height*r.height;
   }
-
   function fmt(v){ return v==null?'—':v.toFixed(v<10?3:2); }
 
   function onMove(ev){
     const vx=toViewBoxX(ev.clientX);
-    let step=Math.round(XMIN+(vx-PLOT_L)/(PLOT_R-PLOT_L)*(XMAX-XMIN));
+    // nearest panel by plot-area centre, so the gutters still resolve sensibly
+    let pi=0, best=Infinity;
+    GEO.forEach((g,i)=>{const d=Math.abs(vx-(g.l+g.w/2)); if(d<best){best=d;pi=i;}});
+    let step=Math.round(XMIN+(vx-GEO[pi].l)/GEO[pi].w*(XMAX-XMIN));
     step=Math.max(0,Math.min(300,step));
-    const xPix=pxOf(step);
 
-    cross.setAttribute('x1',xPix); cross.setAttribute('x2',xPix);
     crossG.classList.add('on');
-
-    const figBox=fig.getBoundingClientRect();
-    const cursorScreenX=screenX(xPix);
-    const cursorRel=cursorScreenX-figBox.left;
-    const leftOfMid=cursorRel > figBox.width*0.55;
-    // Clear the crosshair AND the dot sitting on it (r=3.4 viewBox units, ~3px
-    // on screen) plus the card's own 12px-blur shadow. Position by the card's
-    // measured width rather than translate(-100%), so its right edge lands
-    // exactly TIP_GAP px left of the line whatever the content width is.
-    const TIP_GAP=16;
-    // body carries zoom:1.15, and the three APIs below disagree about it:
-    // getBoundingClientRect() reports zoomed (visual) px, offsetWidth reports
-    // unzoomed layout px, and style.left/top are interpreted as layout px.
-    // Do every measurement in rect-space, then divide by Z on the way out.
-    const Z=fig.offsetWidth ? figBox.width/fig.offsetWidth : 1;
-    const placeX=el=>{
-      const w=el.getBoundingClientRect().width;
-      const x=leftOfMid ? cursorRel-TIP_GAP-w : cursorRel+TIP_GAP;
-      el.style.left=(Math.max(0,Math.min(x,figBox.width-w))/Z)+'px';
-    };
-
-    tipStep.textContent=`Step ${step}`;
-    tipStep.style.top=((screenY(rowTop(0))-figBox.top-10)/Z)+'px';
-    tipStep.style.transform='translate(0,-100%)';
-    placeX(tipStep);
-    tipStep.classList.add('on');
-
+    let rows=`<div class="tr-tip-step">Step ${step}</div>`;
     TRD.forEach((p,i)=>{
+      const x=pxOf(i,step);
+      crosses[i].setAttribute('x1',x);
+      crosses[i].setAttribute('x2',x);
       const oursMa=p.ours_ma[step], oursRaw=p.ours_raw[step];
       const baseMa=p.baseline_ma[step], baseRaw=p.baseline_raw[step];
-      const oursY=pyOf(i,oursMa,p.ymin,p.ymax);
-      dotsOurs[i].setAttribute('cx',xPix);
-      dotsOurs[i].setAttribute('cy',oursY);
+      dotsOurs[i].setAttribute('cx',x);
+      dotsOurs[i].setAttribute('cy',pyOf(oursMa,p.ymin,p.ymax));
       dotsOurs[i].style.display='';
       if(baseMa!=null){
-        dotsBase[i].setAttribute('cx',xPix);
-        dotsBase[i].setAttribute('cy',pyOf(i,baseMa,p.ymin,p.ymax));
+        dotsBase[i].setAttribute('cx',x);
+        dotsBase[i].setAttribute('cy',pyOf(baseMa,p.ymin,p.ymax));
         dotsBase[i].style.display='';
-      }else{
-        dotsBase[i].style.display='none';
-      }
-
-      // A box tall enough to list every panel would sit on top of the ones
-      // above it -- one small box per panel, parked right next to that
-      // panel's own dot instead, flipped above/below depending on which half
-      // of the panel the dot is currently in so it never spills into the
-      // neighbouring panel.
-      const tip=tips[i];
-      tip.innerHTML=`<div class="tr-tip-h">${p.title}</div>`+
+      }else dotsBase[i].style.display='none';
+      rows+=`<div class="tr-tip-h">${p.title}</div>`+
         `<div class="tr-tip-row" style="color:#D55E00">Ours ${fmt(oursRaw)} <small>(MA ${fmt(oursMa)})</small></div>`+
         (baseMa!=null
           ? `<div class="tr-tip-row" style="color:#808080">Baseline ${fmt(baseRaw)} <small>(MA ${fmt(baseMa)})</small></div>`
           : '');
-      const dotScreenY=screenY(oursY)-figBox.top;
-      const upperHalf=(oursY-rowTop(i)) < ROW_H/2;
-      tip.style.top=((dotScreenY+(upperHalf?10:-10))/Z)+'px';
-      tip.style.transform=upperHalf?'translate(0,0)':'translate(0,-100%)';
-      placeX(tip);
-      tip.classList.add('on');
     });
+
+    // place the card beside the cursor, flipped once past mid-figure so it
+    // never covers the panel being read; rect-space -> CSS px via Z (body zoom)
+    const figBox=fig.getBoundingClientRect();
+    tipAll.innerHTML=rows;
+    const Z=fig.offsetWidth ? figBox.width/fig.offsetWidth : 1;
+    const tb=tipAll.getBoundingClientRect();
+    const relX=ev.clientX-figBox.left, relY=ev.clientY-figBox.top;
+    const flip=relX > figBox.width*0.5;
+    const x=Math.max(0,Math.min(flip?relX-16-tb.width:relX+16, figBox.width-tb.width));
+    const y=Math.max(0,Math.min(relY-tb.height/2, figBox.height-tb.height));
+    tipAll.style.left=(x/Z)+'px';
+    tipAll.style.top=(y/Z)+'px';
+    tipAll.style.transform='translate(0,0)';
+    tipAll.classList.add('on');
   }
   function onLeave(){
     crossG.classList.remove('on');
-    tips.forEach(t=>t.classList.remove('on'));
-    tipStep.classList.remove('on');
+    tipAll.classList.remove('on');
   }
   hit.addEventListener('mousemove',onMove);
   hit.addEventListener('mouseenter',onMove);
   hit.addEventListener('mouseleave',onLeave);
 })();
 
-// Agentic Judge trajectory: a real hack-agent rollout (USACO 2026 Bronze
-// "Photoshoot", label c6_p551_NAC_913419 -- independently confirmed
-// hack_success:true, verdict_label_match:true against a multiset-based
-// candidate) across its 5 actual turns, plus the 3 outputs it actually
-// submitted, both hoverable to show what "multi-turn" concretely looks like.
+// Agentic Verifier trajectory: a real hack-agent episode on USACO 2026 Bronze
+// Problem 3 "Photoshoot", condensed to its beats, plus the three outputs it
+// submitted -- both hoverable, to show what "multi-turn" concretely looks like.
 (function(){
   const fig=document.querySelector('.tkfig');
   const tip=document.getElementById('figtip-tkturn');
@@ -3379,8 +3025,8 @@ wireFigure(document.querySelector('.teaser.interactive'), {
     4:{h:'Turn 4 &middot; finalize &amp; submit',
        b:'Rewrites the generator with a fresh seed (12345, distinct from the 42 used while '+
          'debugging), then calls <code>submit_hack(label, code, verdict)</code> with it &#8212; '+
-         'the 3 outputs below are exactly what that call submitted, hover them too. An '+
-         'independently-logged <code>hack_success:true</code> flag later confirms the OJ agreed.'},
+         'the 3 outputs below are exactly what that call submitted, hover them too. '+
+         'Replaying the generated input on the live judge confirms the break.'},
   };
   // Python syntax highlighting, just enough for these short generators: no
   // external lib (artifacts must be self-contained), so a small ordered
@@ -3396,7 +3042,6 @@ wireFigure(document.querySelector('.teaser.interactive'), {
   }
   const OUT={
     'verdict-a':{label:'Time Limit Exceeded'},
-    'verdict-o':{label:'Time Limit Exceeded, 54/100'},
     'diagnosis-a':{b:'The candidate maintains all K&times;K subgrid sums in a multiset to fetch '+
          'the max. Each update touches up to K&sup2;=625 subgrids; each touch costs O(log M&sup2;) '+
          'for a multiset find+erase+insert. With N=500, K=25, Q=30000 this is '+
@@ -3414,9 +3059,16 @@ wireFigure(document.querySelector('.teaser.interactive'), {
       (d.b?`<div class="tt-turn-b">${d.b}</div>`:'')+
       (d.code?`<code class="tt-turn-code${d.pycode?' ln-pre':''}">${d.pycode?numberedCode(d.code,pyHi):d.code}</code>`:'')+
       (d.b2?`<div class="tt-turn-b" style="margin-top:5px">${d.b2}</div>`:'');
+    // Measure after the content is in, and clamp by the card's actual half
+    // width -- a hard-coded 130 was a stale guess at it and pushed the wider
+    // card off the figure. body carries zoom:1.15, so rect-space values have
+    // to be divided by Z before they can be written back as CSS px.
     const r=el.getBoundingClientRect(), b=figure.getBoundingClientRect();
-    tip.style.left=Math.min(Math.max(r.left+r.width/2-b.left,130),b.width-130)+'px';
-    tip.style.top=(r.top-b.top-6)+'px';
+    const Z=figure.offsetWidth ? b.width/figure.offsetWidth : 1;
+    const half=tip.getBoundingClientRect().width/2;
+    const x=Math.min(Math.max(r.left+r.width/2-b.left,half),b.width-half);
+    tip.style.left=(x/Z)+'px';
+    tip.style.top=((r.top-b.top-6)/Z)+'px';
     tip.classList.add('on');
   }
   fig.querySelectorAll('.tk-turn').forEach(el=>{
