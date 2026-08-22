@@ -295,7 +295,7 @@
   .tk-cue-in .tk-sys.tk-clickable:hover .tk-sys-h::after,
   .tk-cue .tk-turns:hover .tk-turn{animation:none}
   @media (prefers-reduced-motion:reduce){
-    .tk-cue-in .tk-clickable,.tk-cue .tk-turn,
+    .tk-cue-in .tk-clickable,.tk-cue .tk-turn,.tk-cue .tk-loop-dot,
     .tk-cue-in .tk-chip.tk-clickable::after,
     .tk-cue-in .tk-sys.tk-clickable .tk-sys-h::after{animation:none}
   }
@@ -334,23 +334,70 @@
      of interactivity don't look identical. The 2 permanently-absent output
      tags (online judge's diagnosis/counterexample) get neither cue: they
      really do have nothing behind them. */
-  .tk-turn,.tk-hoverable{text-decoration:underline dotted;
-    text-underline-offset:2px;text-decoration-color:currentColor}
-  .tk-hoverable{transition:box-shadow .12s,border-color .12s}
-  .tk-otag.tk-hoverable:hover{box-shadow:0 1px 8px rgba(11,11,11,.14)}
+  /* No dotted underline: these are already pills with their own border, fill
+     and colour, so a rule under the text is a second badge saying the same
+     thing and just reads as noise. cursor:help is the browser's own "there is
+     an explanation here" signal and costs no pixels; the payoff on arrival is
+     carried by a deliberately strong hover state instead. */
+  .tk-turn,.tk-hoverable{cursor:help}
+  /* A circled "?" marks hover-for-detail, deliberately a different glyph from
+     the "↗" that marks click-to-open, so the two invitations never blur into
+     one. Inline on the beats (they are one line); parked in the corner on the
+     output tags so it does not disturb their two centred lines. */
+  .tk-turn::after,.tk-otag.tk-hoverable::after{content:'?';
+    display:inline-flex;align-items:center;justify-content:center;
+    width:9px;height:9px;border-radius:50%;flex:none;
+    border:.9px solid currentColor;font-size:6.5px;font-weight:700;line-height:1;
+    opacity:.4;transition:opacity .12s}
+  .tk-turn{display:inline-flex;align-items:center;gap:4px}
+  .tk-otag.tk-hoverable{position:relative}
+  .tk-otag.tk-hoverable::after{position:absolute;top:4px;right:6px}
+  .tk-turn:hover::after,.tk-otag.tk-hoverable:hover::after{opacity:1}
+  .tk-hoverable{transition:box-shadow .12s,border-color .12s,transform .12s,
+    background-color .12s}
+  .tk-otag.tk-hoverable:hover{box-shadow:0 3px 10px rgba(11,11,11,.16);
+    transform:translateY(-1px)}
   /* Two blocks, each flex:1 and self-centred: the title/tool pair and the
      trajectory each own half the box, so both look vertically centred in
      their own half rather than the whole stack being centred as one lump. */
-  .tk-top{flex:1;display:flex;flex-direction:column;justify-content:center;gap:6px}
+  .tk-top{flex:1.25;display:flex;flex-direction:column;justify-content:center;gap:9px}
   .tk-sys-h{font-size:14px;font-weight:700}
-  .tk-sub{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+  .tk-sub{display:flex;gap:13px;justify-content:center;align-items:center;
+    flex-wrap:wrap}
+  /* LLM and the sandbox are not two separate stages, they are one loop: the
+     model writes code, the sandbox runs it, the result comes back and informs
+     the next write. Two opposed arrows say that statically; a dot travelling
+     each way says it is continuous. The two dots are half a cycle apart, so
+     the pair reads as call-then-answer rather than as two unrelated blips. */
+  /* Must out-specify `.figure svg{width:100%}` above (0,1,1) -- as a bare
+     `.tk-loop` (0,1,0) it lost and this connector was stretched figure-wide. */
+  .figure svg.tk-loop{display:inline-block;width:34px;height:30px;flex:none}
+  .tk-loop-line{stroke:#e6bd85;stroke-width:1.1;fill:none}
+  .tk-loop-head{fill:#e6bd85}
+  /* Two open arcs, not a closed ring: a ring reads as information circling in
+     a void. Each arc leaves one chip and lands an arrowhead in the other, so
+     the direction is legible even standing still. The dot's motion path adds
+     two short vertical hops the arcs do not draw -- that is the dot entering a
+     chip -- and it fades across them, so it disappears into Sandbox and comes
+     back out of it rather than sliding through empty space. */
+  .tk-loop-dot{fill:#FF9900;
+    offset-path:path("M2,13 Q18,2 34,13 L34,19 Q18,30 2,19 L2,13 Z");
+    offset-rotate:0deg;opacity:0}
+  @keyframes tkFlow{
+    0%{offset-distance:0%;opacity:0}     6%{opacity:1}
+    39%{opacity:1}   45%{opacity:0}
+    50%{opacity:0}   56%{opacity:1}
+    89%{opacity:1}   96%{opacity:0}
+    100%{offset-distance:100%;opacity:0}
+  }
+  .tk-cue .tk-loop-dot{animation:tkFlow 3s linear infinite}
   .tk-subchip{border:1px dotted;border-radius:3px;padding:2px 7px;
     font-size:9.5px;background:#fff}
   /* one real trajectory, all 5 actual turns as hoverable beats -- lets the
      agentic box visibly sprout a multi-turn process the online judge never
      has; the 3 output tags below reuse the same tooltip to show what this
      trajectory actually submitted. */
-  .tk-turns{flex:1;display:flex;flex-direction:column;align-items:stretch;
+  .tk-turns{flex:.8;display:flex;flex-direction:column;align-items:stretch;
     justify-content:center;margin-top:7px;padding-top:7px;
     border-top:1px dashed rgba(255,153,0,.35)}
   .tk-turns-cap{font-size:9px;color:var(--ink3);font-style:italic;
@@ -399,6 +446,12 @@
     transition:box-shadow .12s;display:flex;flex-direction:column;
     justify-content:center;gap:1px}
   .tk-otag:hover{box-shadow:0 1px 6px rgba(11,11,11,.10)}
+  .tk-otag.tk-verdict.tk-hoverable:hover{background:rgba(142,131,117,.20);
+    border-color:#6f665a}
+  .tk-otag.tk-diag.tk-hoverable:hover{background:rgba(200,122,0,.18);
+    border-color:#a06200}
+  .tk-otag.tk-gen.tk-hoverable:hover{background:rgba(168,50,29,.18);
+    border-color:#8a2818}
   .tk-otag small{display:block;font-weight:400;font-style:normal;opacity:.75}
   .tk-otag.tk-verdict{border-color:#8E8375;background:rgba(142,131,117,.08);
     color:#5b544a}
@@ -1246,19 +1299,25 @@
               <div class="tk-sys-h">Agentic Verifier</div>
               <div class="tk-sub">
                 <span class="tk-subchip" data-comp="llm">LLM</span>
-                <span class="tk-subchip" data-comp="sandbox-a">Sandbox</span>
+                <svg class="tk-loop" viewBox="0 0 36 32" aria-hidden="true">
+                  <path class="tk-loop-line" d="M2,13 Q18,2 34,13"/>
+                  <path class="tk-loop-head" d="M-4,-2 L0,0 L-4,2 Z" transform="translate(34,13) rotate(34.5)"/>
+                  <path class="tk-loop-line" d="M34,19 Q18,30 2,19"/>
+                  <path class="tk-loop-head" d="M-4,-2 L0,0 L-4,2 Z" transform="translate(2,19) rotate(-145.5)"/>
+                  <circle class="tk-loop-dot" cx="0" cy="0" r="1.8"/>
+                </svg>              <span class="tk-subchip" data-comp="sandbox-a">Sandbox</span>
               </div>
             </div>
             <div class="tk-turns" data-comp="trajectory">
               <span class="tk-turns-cap">one real trajectory &#8212; example</span>
               <span class="tk-turn-row">
-                <span class="tk-turn" data-turn="1">&#9312; analyze</span>
+                <span class="tk-turn" data-turn="1">&#9312; Analyze</span>
                 <span class="tk-turn-arr">&#8594;</span>
-                <span class="tk-turn" data-turn="2">&#9313; generate</span>
+                <span class="tk-turn" data-turn="2">&#9313; Generate</span>
                 <span class="tk-turn-arr">&#8594;</span>
-                <span class="tk-turn" data-turn="3">&#9314; benchmark</span>
+                <span class="tk-turn" data-turn="3">&#9314; Benchmark</span>
                 <span class="tk-turn-arr">&#8594;</span>
-                <span class="tk-turn" data-turn="4">&#9315; finalize</span>
+                <span class="tk-turn" data-turn="4">&#9315; Finalize</span>
               </span>
             </div>
           </div>
@@ -3122,24 +3181,24 @@ wireFigure(document.querySelector('.teaser.interactive'), {
   const figure=fig&&fig.closest('.figure');
   if(!fig||!tip||!figure) return;
   const TURN={
-    1:{h:'Turn 1 &middot; analyze complexity',
+    1:{h:'Turn 1 &middot; Analyze complexity',
        b:'Reads the candidate’s <code>multiset&lt;long long&gt;</code> approach: every update '+
          'touches up to K&sup2;=625 of the M&sup2; subgrid sums, and each touched subgrid costs '+
          'O(log M&sup2;) for a find + erase + insert. Computes Q&middot;K&sup2;&middot;log(M&sup2;) '+
          '&approx; 30000&middot;625&middot;18 &approx; 3.375&times;10&#8312; operations &#8212; flags it '+
          'as likely too slow for the 2s limit, then calls <code>execute_code</code> to draft a '+
          'worst-case random generator (N=500, K=25, Q=30000).'},
-    2:{h:'Turn 2 &middot; generate input',
+    2:{h:'Turn 2 &middot; Generate input',
        b:'Re-runs the draft generator, writes its stdout to a file, and checks the size before '+
          'spending compile+run time on it:',
        code:'Input generated.\nInput size: 344805 bytes'},
-    3:{h:'Turn 3 &middot; benchmark',
+    3:{h:'Turn 3 &middot; Benchmark',
        b:'Compiles the candidate with <code>g++ -O2</code> and runs it against the generated '+
          'input under a 2.5s wall-clock timeout:',
        code:'Execution time: 2.50s\nReturn code: 124  (TIMEOUT)\nOutput lines: 7228  (of 30000)',
        b2:'Empirical confirmation, not just complexity math &#8212; the candidate genuinely stalls '+
           'partway through.'},
-    4:{h:'Turn 4 &middot; finalize &amp; submit',
+    4:{h:'Turn 4 &middot; Finalize &amp; submit',
        b:'Rewrites the generator with a fresh seed (12345, distinct from the 42 used while '+
          'debugging), then calls <code>submit_hack(label, code, verdict)</code> with it &#8212; '+
          'the 3 outputs below are exactly what that call submitted, hover them too. '+
