@@ -90,6 +90,10 @@
   .sec-lead a{color:inherit;text-decoration:none;
     border-bottom:1px solid rgba(29,90,168,.35);transition:color .12s}
   .sec-lead a:hover{color:var(--full);border-bottom-color:var(--full)}
+  /* pull-quote callout for a load-bearing claim: warm "ours" accent, quiet tint */
+  .callout{margin:16px 28px;padding:12px 18px;border-left:3px solid #D55E00;
+    background:#faf5f0;border-radius:0 8px 8px 0;color:var(--ink);
+    font-size:15px;line-height:1.6}
   /* sticky left-side section nav (mirrors meta-harness): fixed, vertically
      centred, fades in after a little scroll, highlights the active section, and
      hides on narrow screens where there is no room beside the centred column. */
@@ -1276,10 +1280,11 @@
     hands the solver a metal detector instead. It reads the problem and one
     candidate, decides Accept or Reject, and on rejection returns a diagnosis
     plus a concrete input that breaks the code — a bearing on where to dig
-    next. A solver refining against that signal
-    does not redraw from scratch; it corrects its prior mistake, so test-time
-    compute scales with the depth of a revision chain rather than the width of
-    a sample pool.</div>
+    next.
+    <div class="callout">A solver refining against that signal does not redraw
+    from scratch; it corrects its prior mistake, so test-time compute scales
+    with the <b>depth of a revision chain</b> rather than the <b>width of a
+    sample pool</b>.</div></div>
 
     <div class="figure">
       <div class="tkfig" role="img" aria-label="Arbiter: from a problem statement and one candidate solution, through a multi-turn sandbox trajectory, to a verdict, a diagnosis and a counterexample">
