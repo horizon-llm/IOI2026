@@ -131,6 +131,20 @@
      a full-width line of 12.5px text is past a comfortable reading length. */
   .figure.fig-full .figcap{margin-left:40px;margin-right:40px}
   .figure svg{display:block;width:100%;height:auto}
+  /* collapsible figure: the toggle sits flush-left with the section prose; the
+     figure inside keeps the normal 40px figure inset when expanded. */
+  details.fold{margin:0 0 26px}
+  details.fold > summary{list-style:none;cursor:pointer;display:inline-flex;
+    align-items:center;gap:7px;font-size:12.5px;font-weight:600;color:var(--ink2);
+    padding:6px 12px;border:1px solid var(--line);border-radius:8px;
+    transition:border-color .12s,color .12s;user-select:none}
+  details.fold > summary::-webkit-details-marker{display:none}
+  details.fold > summary::before{content:"▸";color:var(--ink3);font-size:11px;
+    transition:transform .12s}
+  details.fold[open] > summary::before{transform:rotate(90deg)}
+  details.fold > summary:hover{border-color:var(--ink3);color:var(--ink)}
+  details.fold[open] > summary{margin-bottom:14px}
+  details.fold .figure{margin-left:40px;margin-right:40px}
   .figcap{font-size:12.5px;color:var(--ink2);line-height:1.55;margin-top:6px}
   .figcap b{color:var(--ink)}
   /* Search vs refinement: the two standalone Palm prototypes become one
@@ -558,7 +572,7 @@
   table.rtbl2{width:100%;border-collapse:collapse;font-size:12.5px;line-height:1.4;
     font-variant-numeric:lining-nums tabular-nums;color:var(--ink);table-layout:fixed}
   /* the numeric columns are narrow and equal; the model column takes the rest */
-  table.rtbl2 col.num{width:12%}
+  table.rtbl2 col.num{width:9%}
   /* numbers right-align so digits line up on a clean vertical edge; the group
      headers (colspan 2) stay centred over their pair */
   table.rtbl2 th{font-weight:650;text-align:right;padding:7px 20px 7px 6px;
@@ -1300,6 +1314,8 @@
     set (100 problems, 400 candidates) to pick checkpoints.
 </div>
 
+    <details class="fold" id="tdFold">
+      <summary>Show the 20K training-pool breakdown (score band → verdict)</summary>
     <div class="figure" id="tdFig">
         <svg viewBox="0 0 900 294" role="img" aria-label="The 20K Arbiter training candidates: sampling score band on the left, actual judge verdict on the right, ribbon thickness proportional to count">
           <g class="td-hdr">
@@ -1355,6 +1371,7 @@
       guess. The score-0 band pools genuinely-zero submissions with programs that
       fail to compile &mdash; both score 0, and only the verdict tells them apart.</div>
     </div>
+    </details>
 
     <div class="sec-lead" data-md="training-reward">
     <b>Reward design.</b> Every Arbiter output includes a verdict (AC/no-AC),
@@ -1470,7 +1487,7 @@
 
     <div class="figure fig-full" id="trainChartFig">
       <div class="figtip tr-tip-all" id="trTipAll"></div>
-<svg viewBox="0 0 900 260" role="img" aria-label="Training reward, response length, and abortion ratio, with vs without the length penalty">
+<svg viewBox="30 0 900 260" role="img" aria-label="Training reward, response length, and abortion ratio, with vs without the length penalty">
 <defs>
 <linearGradient id="trfade0" gradientUnits="userSpaceOnUse" x1="45.1" y1="0" x2="231.5" y2="0"><stop offset="0" stop-color="#808080" stop-opacity="0.95"/><stop offset="1" stop-color="#808080" stop-opacity="0.04"/></linearGradient>
 <linearGradient id="trfade1" gradientUnits="userSpaceOnUse" x1="352.1" y1="0" x2="538.5" y2="0"><stop offset="0" stop-color="#808080" stop-opacity="0.95"/><stop offset="1" stop-color="#808080" stop-opacity="0.04"/></linearGradient>
