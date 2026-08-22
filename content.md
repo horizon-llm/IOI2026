@@ -20,7 +20,8 @@ Arbiter: Sample-Efficient Test-Time Scaling with an Agentic Verifier
 
 ## verifier
 Prior attempts at IOI-level competitive programming scale test-time compute in parallel: overgenerate, then search. <a href="https://storage.googleapis.com/deepmind-media/AlphaCode2/AlphaCode2_Tech_Report.pdf" target="_blank" rel="noopener">AlphaCode</a> drew up to a million candidate programs per problem and distilled them to ten submissions with filtering and clustering. OpenAI's <a href="https://arxiv.org/abs/2502.06807" target="_blank" rel="noopener">o1-ioi</a> sampled 10,000 solutions per subtask at IOI 2024, then picked 50 with clustering and a learned reranker. NVIDIA's <a href="https://arxiv.org/abs/2510.14232" target="_blank" rel="noopener">GenCluster</a> reached the IOI 2025 gold line with an open-weight model by drawing 5,000 solutions per subtask from gpt-oss-120b — the same solver we refine — and selecting 50 through behavioral clustering and a tournament. The paradigm works the way gold panning works: scoop blind, sift everything, keep the rare fleck that glitters — while each verdict spends one of the 50 submissions a contestant is allowed. How can we do better than search?
-<br><br>
+
+## verifier-refinement
 **Arbiter** (<span style="color:var(--ink3)"><b>A</b>gentic <b>R</b>einforcement-learned <b>B</b>ug-finding <b>I</b>nteractive <b>T</b>est <b>E</b>xamine<b>R</b></span>) hands the solver a metal detector instead. It reads the problem and one candidate, decides Accept or Reject, and on rejection returns a diagnosis plus a concrete input that breaks the code — a bearing on where to dig next. A solver refining against that signal does not redraw from scratch; it corrects its prior mistake, so test-time compute scales with the depth of a revision chain rather than the width of a sample pool. 
 
 ## environment

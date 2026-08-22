@@ -1,0 +1,723 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sift dots animation — prototype</title>
+  <script>
+    if (new URLSearchParams(window.location.search).has("embed")) {
+      document.documentElement.classList.add("embed");
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f0efeb;
+      --text: #58402e;
+      --secondary: rgba(88, 64, 46, 0.85);
+      --grid: rgba(88, 64, 46, 0.16);
+      --green: #43593b;
+      --yellow: #f2d17e;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .preview {
+      width: min(1040px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 48px 0 40px;
+    }
+
+    .eyebrow,
+    .source,
+    .phase {
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow {
+      color: var(--secondary);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      max-width: 700px;
+      margin: 0 0 7px;
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      max-width: 780px;
+      margin: 0;
+      color: var(--secondary);
+      font-size: 11.5px;
+      line-height: 1.55;
+    }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      min-height: 42px;
+      margin: 20px 0 4px;
+      border-top: 1.25px solid var(--grid);
+      border-bottom: 1.25px solid var(--grid);
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      color: var(--secondary);
+      font-size: 10.5px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .key {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--yellow);
+    }
+
+    .key.correct {
+      background: var(--green);
+    }
+
+    .replay {
+      appearance: none;
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--grid);
+      border-radius: 50%;
+      padding: 0;
+      background: transparent;
+      color: var(--secondary);
+      font: 600 17px/1 "Inter", system-ui, sans-serif;
+      cursor: pointer;
+      transition: color 160ms ease, border-color 160ms ease, transform 160ms ease;
+    }
+
+    .replay:hover,
+    .replay:focus-visible {
+      color: var(--green);
+      border-color: var(--green);
+    }
+
+    .replay:active { transform: rotate(-24deg); }
+
+    .replay:focus-visible,
+    #sift:focus-visible {
+      outline: 2px solid var(--green);
+      outline-offset: 4px;
+    }
+
+    .chart-wrap {
+      position: relative;
+    }
+
+    #sift {
+      display: block;
+      width: 100%;
+      height: auto;
+      min-height: 430px;
+      cursor: pointer;
+    }
+
+    #sift text {
+      font-family: "Inter", system-ui, sans-serif;
+    }
+
+    .candidate circle {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    .source {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      margin-top: 5px;
+      color: var(--secondary);
+      font-weight: 500;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    html.embed,
+    html.embed body {
+      min-height: 0;
+    }
+
+    html.embed .preview {
+      width: 100%;
+      padding: 0;
+    }
+
+    html.embed .eyebrow,
+    html.embed h1,
+    html.embed .subtitle,
+    html.embed .legend,
+    html.embed .source {
+      display: none;
+    }
+
+    html.embed .meta {
+      display: none;
+    }
+
+    html.embed #sift {
+      min-height: 0;
+    }
+
+    html.embed #sift text {
+      font-size: 1.125rem;
+    }
+
+    @media (max-width: 640px) {
+      .preview {
+        width: min(100% - 28px, 1040px);
+        padding-top: 28px;
+      }
+
+      .meta,
+      .source {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .meta {
+        padding: 11px 0;
+      }
+
+      #sift {
+        min-height: 350px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="preview">
+    <div class="eyebrow">Prototype 01 · over-generate, cluster, then select</div>
+    <h1>Behavioral clustering compresses breadth into a few representatives.</h1>
+    <p class="subtitle">
+      GenCluster abstraction · one dot = one candidate solution · the longest-thinking solution
+      represents each behavior cluster · randomized pairwise comparisons rank clusters by
+      representative wins · color shows ground-truth correctness, unseen during selection.
+    </p>
+
+    <div class="meta" aria-label="Legend and animation controls">
+      <div class="legend">
+        <span class="legend-item"><span class="key" aria-hidden="true"></span>incorrect</span>
+        <span class="legend-item"><span class="key correct" aria-hidden="true"></span>correct</span>
+      </div>
+      <button class="replay" id="replay" type="button" aria-label="Replay animation" title="Replay animation">
+        <span aria-hidden="true">↻</span>
+      </button>
+    </div>
+
+    <div class="chart-wrap">
+      <svg
+        id="sift"
+        viewBox="0 38 1000 482"
+        preserveAspectRatio="xMidYMid meet"
+        role="img"
+        tabindex="0"
+        aria-labelledby="sift-title sift-desc"
+      >
+        <title id="sift-title">Animated clustering of one hundred candidate solutions</title>
+        <desc id="sift-desc">
+          One hundred solution dots enter a dense grid, shake, and move into ten behavioral
+          clusters. The longest-thinking solution represents each cluster. Randomized pairwise
+          comparisons rank the clusters by representative wins, and all ten representatives
+          fall into a submission row. Four are correct and six are incorrect.
+        </desc>
+      </svg>
+      <p class="sr-only" id="live-status" aria-live="polite"></p>
+    </div>
+
+    <div class="source">
+      <span>Hundred Field L14 · Palm · GenCluster analogy</span>
+      <span>100 generated → 10 clusters → pairwise tournament → 10 submitted</span>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      // Lieflat Palm palette: one consistent color system for the whole preview.
+      const PALM = {
+        bg: "#F0EFEB",
+        text: "#58402E",
+        secondary: "rgba(88,64,46,.85)",
+        grid: "rgba(88,64,46,.16)",
+        correct: "#43593B",
+        incorrect: "#F2D17E"
+      };
+
+      const NS = "http://www.w3.org/2000/svg";
+      const svg = document.getElementById("sift");
+      const replay = document.getElementById("replay");
+      const liveStatus = document.getElementById("live-status");
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const embedded = document.documentElement.classList.contains("embed");
+      const timers = [];
+      const runningAnimations = [];
+
+      if (embedded) svg.setAttribute("viewBox", "50 38 900 482");
+
+      const correctIds = new Set([0, 7, 15, 22, 30, 34, 41, 50, 60, 72, 85, 94]);
+      const clusters = [
+        { size: 18, x: 190, y: 150, selected: true },
+        { size: 16, x: 345, y: 142, selected: true },
+        { size: 14, x: 500, y: 158, selected: true },
+        { size: 12, x: 655, y: 142, selected: true },
+        { size: 10, x: 810, y: 158, selected: true },
+        { size: 8, x: 255, y: 315, selected: true },
+        { size: 7, x: 400, y: 305, selected: true },
+        { size: 6, x: 545, y: 318, selected: true },
+        { size: 5, x: 685, y: 306, selected: true },
+        { size: 4, x: 815, y: 318, selected: true }
+      ];
+
+      const rnd = (i, k) =>
+        Math.abs(((i * 73856093) ^ (k * 19349663)) % 1000) / 1000;
+
+      const makeSvg = (tag, attributes = {}, text = "") => {
+        const node = document.createElementNS(NS, tag);
+        Object.entries(attributes).forEach(([name, value]) => node.setAttribute(name, value));
+        if (text) node.textContent = text;
+        return node;
+      };
+
+      const keepTimer = (callback, delay) => {
+        const timer = window.setTimeout(callback, delay);
+        timers.push(timer);
+        return timer;
+      };
+
+      const animate = (node, keyframes, options) => {
+        const animation = node.animate(keyframes, options);
+        runningAnimations.push(animation);
+        return animation;
+      };
+
+      const cancelRun = () => {
+        timers.splice(0).forEach((timer) => window.clearTimeout(timer));
+        runningAnimations.splice(0).forEach((animation) => animation.cancel());
+      };
+
+      const setPhase = (_phase, _detail, announcement = "") => {
+        if (announcement) liveStatus.textContent = announcement;
+      };
+
+      const candidateSpecs = (() => {
+        let id = 0;
+        return clusters.flatMap((cluster, clusterId) =>
+          Array.from({ length: cluster.size }, (_, localIndex) => ({
+            id: id++,
+            cluster,
+            clusterId,
+            localIndex
+          }))
+        );
+      })();
+
+      const clusterPoint = ({ cluster, clusterId, localIndex }) => {
+        if (localIndex === 0) return [cluster.x, cluster.y];
+        const index = localIndex - 1;
+        const angle = (index * 137.508 + clusterId * 31) * Math.PI / 180;
+        const radius = 30 + Math.sqrt(index) * 9.5 + rnd(localIndex + 1, clusterId + 3) * 2;
+        return [
+          cluster.x + Math.cos(angle) * radius,
+          cluster.y + Math.sin(angle) * radius
+        ];
+      };
+
+      const buildCandidate = (spec) => {
+        const { id, cluster, clusterId, localIndex } = spec;
+        const column = id % 10;
+        const row = Math.floor(id / 10);
+        const x = 371.75 + column * 28.5;
+        const y = 80 + row * 28.5;
+        const [clusterX, clusterY] = clusterPoint(spec);
+        const isCorrect = correctIds.has(id);
+        const isSelected = cluster.selected && localIndex === 0;
+        const group = makeSvg("g", {
+          class: "candidate",
+          "data-id": id,
+          "data-cluster": clusterId
+        });
+        const position = makeSvg("g", { transform: `translate(${x} ${y})` });
+        const dot = makeSvg("circle", {
+          cx: 0,
+          cy: 0,
+          r: 10.5,
+          fill: isCorrect ? PALM.correct : PALM.incorrect,
+          opacity: 0
+        });
+        dot.appendChild(makeSvg(
+          "title",
+          {},
+          `Candidate ${id + 1}: ${isCorrect ? "correct" : "incorrect"}; cluster ${clusterId + 1} of size ${cluster.size}${isSelected ? "; selected representative" : ""}`
+        ));
+        position.appendChild(dot);
+        group.appendChild(position);
+        return {
+          id,
+          group,
+          dot,
+          x,
+          y,
+          clusterX,
+          clusterY,
+          cluster,
+          clusterId,
+          localIndex,
+          isCorrect,
+          isSelected
+        };
+      };
+
+      const clusterExtent = (size) => {
+        if (size <= 1) return 10.5;
+        return 30 + Math.sqrt(Math.max(0, size - 2)) * 9.5 + 12.5;
+      };
+
+      const addClusterLabels = (instant = false) => {
+        const layer = makeSvg("g", { id: "cluster-labels", opacity: instant ? 1 : 0 });
+        clusters.forEach((cluster, index) => {
+          const labelY = cluster.y + clusterExtent(cluster.size) + 15;
+          const label = makeSvg("text", {
+            x: cluster.x,
+            y: labelY,
+            fill: cluster.selected ? PALM.text : PALM.secondary,
+            "font-size": cluster.selected ? 10.5 : 9.5,
+            "font-weight": cluster.selected ? 800 : 600,
+            "text-anchor": "middle",
+            "letter-spacing": ".06em",
+            style: `paint-order:stroke;stroke:${PALM.bg};stroke-width:5px`
+          }, `n = ${cluster.size}`);
+          label.appendChild(makeSvg("title", {}, `Cluster ${index + 1}: ${cluster.size} candidates${cluster.selected ? "; selected" : "; not selected"}`));
+          layer.appendChild(label);
+        });
+        svg.appendChild(layer);
+        if (!instant) {
+          animate(layer, [{ opacity: 0 }, { opacity: 1 }], {
+            duration: 480,
+            easing: "cubic-bezier(.25,1,.5,1)",
+            fill: "forwards"
+          });
+        }
+      };
+
+      const addTournamentCaption = (instant = false) => {
+        const caption = makeSvg("text", {
+          x: 500,
+          y: 501,
+          fill: PALM.secondary,
+          "font-size": 10.5,
+          "font-weight": 500,
+          "text-anchor": "middle",
+          opacity: instant ? 1 : 0
+        }, "cluster representatives ordered by randomized pairwise tournament wins");
+        svg.appendChild(caption);
+        if (!instant) {
+          animate(caption, [{ opacity: 0 }, { opacity: 1 }], {
+            duration: 700,
+            easing: "cubic-bezier(.25,1,.5,1)",
+            fill: "forwards"
+          });
+        }
+      };
+
+      const addCollectionBox = (instant = false) => {
+        const box = makeSvg("path", {
+          id: "collection-box",
+          d: "M342 400 H658 V452 H342 Z",
+          fill: "none",
+          stroke: PALM.text,
+          "stroke-width": 1.5,
+          pathLength: 1,
+          "stroke-dasharray": 1,
+          "stroke-dashoffset": instant ? 0 : 1
+        });
+        svg.appendChild(box);
+        if (!instant) {
+          animate(box, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], {
+            duration: 620,
+            easing: "cubic-bezier(.4,0,.2,1)",
+            fill: "forwards"
+          });
+        }
+      };
+
+      const moveToClusters = (candidates, instant = false) => {
+        candidates.forEach((candidate) => {
+          const target = `translate(${candidate.clusterX - candidate.x}px, ${candidate.clusterY - candidate.y}px)`;
+          if (instant) {
+            candidate.group.style.transform = target;
+          } else {
+            animate(candidate.group, [
+              { transform: "translate(0, 0)" },
+              { transform: target }
+            ], {
+              duration: 920,
+              easing: "cubic-bezier(.25,1,.5,1)",
+              fill: "forwards"
+            });
+          }
+        });
+      };
+
+      const wobbleCandidates = (candidates) => {
+        const smoothTurn = "cubic-bezier(.45,0,.55,1)";
+        candidates.forEach((candidate) => {
+          const amplitude = 10 + rnd(candidate.id + 5, 59) * 9;
+          const direction = rnd(candidate.id + 11, 61) > 0.5 ? 1 : -1;
+          const delay = Math.round(rnd(candidate.id + 17, 67) * 90);
+          const duration = 780 + Math.round(rnd(candidate.id + 23, 71) * 100);
+          const x = (scale) => `${(amplitude * scale * direction).toFixed(2)}px`;
+
+          animate(candidate.group, [
+            { transform: "translateX(0)", offset: 0, easing: smoothTurn },
+            { transform: `translateX(${x(-0.72)})`, offset: 0.15, easing: smoothTurn },
+            { transform: `translateX(${x(1)})`, offset: 0.33, easing: smoothTurn },
+            { transform: `translateX(${x(-0.82)})`, offset: 0.51, easing: smoothTurn },
+            { transform: `translateX(${x(0.58)})`, offset: 0.68, easing: smoothTurn },
+            { transform: `translateX(${x(-0.32)})`, offset: 0.83, easing: smoothTurn },
+            { transform: `translateX(${x(0.12)})`, offset: 0.93, easing: smoothTurn },
+            { transform: "translateX(0)", offset: 1 }
+          ], {
+            duration,
+            delay,
+            easing: "linear"
+          });
+        });
+      };
+
+      const selectRepresentatives = (candidates, instant = false) => {
+        candidates.forEach((candidate) => {
+          const targetOpacity = candidate.isSelected
+            ? 1
+            : candidate.cluster.selected ? 0.30 : 0.16;
+          if (instant) {
+            candidate.dot.setAttribute("opacity", targetOpacity);
+            return;
+          }
+          if (!candidate.isSelected) {
+            animate(candidate.dot, [{ opacity: 1 }, { opacity: targetOpacity }], {
+              duration: 420,
+              delay: candidate.clusterId * 22 + candidate.localIndex * 3,
+              easing: "cubic-bezier(.25,1,.5,1)",
+              fill: "forwards"
+            });
+          }
+        });
+
+      };
+
+      const collectRepresentatives = (candidates, instant = false) => {
+        const selected = candidates
+          .filter((candidate) => candidate.isSelected)
+          .sort((a, b) => a.clusterId - b.clusterId);
+
+        selected.forEach((candidate, index) => {
+          const targetX = 365 + index * 30;
+          const targetY = 426;
+          const start = `translate(${candidate.clusterX - candidate.x}px, ${candidate.clusterY - candidate.y}px)`;
+          const target = `translate(${targetX - candidate.x}px, ${targetY - candidate.y}px)`;
+
+          if (instant) {
+            candidate.group.style.transform = target;
+            return;
+          }
+
+          svg.appendChild(candidate.group);
+          animate(candidate.group, [
+            { transform: start },
+            { transform: target }
+          ], {
+            duration: 650,
+            delay: index * 55,
+            easing: "cubic-bezier(.4,0,.2,1)",
+            fill: "forwards"
+          });
+        });
+      };
+
+      const showReducedMotionState = (candidates) => {
+        moveToClusters(candidates, true);
+        selectRepresentatives(candidates, true);
+        addClusterLabels(true);
+        collectRepresentatives(candidates, true);
+        addCollectionBox(true);
+        setPhase(
+          "SUBMITTED",
+          "10 REPRESENTATIVES",
+          "Final state: ten representatives submitted in cluster-tournament rank order."
+        );
+        addTournamentCaption(true);
+      };
+
+      const run = () => {
+        cancelRun();
+        svg.querySelectorAll(":scope > *:not(title):not(desc)").forEach((node) => node.remove());
+        const candidates = candidateSpecs.map(buildCandidate);
+        const candidateField = makeSvg("g", { id: "candidate-field" });
+        candidates.forEach(({ group }) => candidateField.appendChild(group));
+        svg.appendChild(candidateField);
+
+        if (reducedMotion.matches) {
+          showReducedMotionState(candidates);
+          return;
+        }
+
+        setPhase("GENERATING", "100 CANDIDATES", "Generating one hundred candidate solutions.");
+        candidates.forEach((candidate, index) => {
+          const driftX = (rnd(index + 3, 11) - 0.5) * 24;
+          const driftY = -18 - rnd(index + 5, 17) * 26;
+          animate(candidate.dot, [
+            { opacity: 0, transform: `translate(${driftX}px, ${driftY}px) scale(.35)` },
+            { opacity: 1, transform: "translate(0, 0) scale(1)" }
+          ], {
+            duration: 700,
+            delay: index * 9,
+            easing: "cubic-bezier(.25,1,.5,1)",
+            fill: "forwards"
+          });
+        });
+
+        keepTimer(() => {
+          setPhase("EMBEDDING", "BEHAVIORAL SIGNALS", "Comparing candidates by behavioral similarity.");
+          wobbleCandidates(candidates);
+        }, 1850);
+
+        keepTimer(() => {
+          setPhase("CLUSTERING", "10 BEHAVIOR GROUPS", "Moving one hundred candidates into ten behavioral clusters.");
+          moveToClusters(candidates);
+        }, 3000);
+
+        keepTimer(() => {
+          addClusterLabels();
+        }, 3800);
+
+        keepTimer(() => {
+          setPhase(
+            "TOURNAMENT",
+            "10 RANKED REPS",
+            "Ranking cluster representatives by wins in randomized pairwise comparisons."
+          );
+          selectRepresentatives(candidates);
+        }, 4300);
+
+        keepTimer(() => {
+          setPhase(
+            "COLLECTING",
+            "10 REPRESENTATIVES",
+            "Collecting all ten ranked representatives into one submission set."
+          );
+          collectRepresentatives(candidates);
+        }, 5050);
+
+        keepTimer(() => {
+          addCollectionBox();
+        }, 6300);
+
+        keepTimer(() => {
+          setPhase(
+            "SUBMITTED",
+            "10 REPRESENTATIVES",
+            "Final state: ten representatives submitted, including four correct and six incorrect."
+          );
+          addTournamentCaption();
+        }, 7000);
+      };
+
+      const observe = () => {
+        if (embedded) {
+          run();
+          return;
+        }
+        if (!("IntersectionObserver" in window)) {
+          run();
+          return;
+        }
+        const observer = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting) {
+            run();
+            observer.disconnect();
+          }
+        }, { threshold: 0.3 });
+        observer.observe(svg);
+      };
+
+      replay.addEventListener("click", run);
+      window.addEventListener("message", (event) => {
+        if (event.source === window.parent && event.data === "replay-animation") run();
+      });
+      svg.addEventListener("click", run);
+      svg.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          run();
+        }
+      });
+      reducedMotion.addEventListener?.("change", run);
+      observe();
+    })();
+  </script>
+</body>
+</html>

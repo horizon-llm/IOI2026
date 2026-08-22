@@ -133,6 +133,56 @@
   .figure svg{display:block;width:100%;height:auto}
   .figcap{font-size:12.5px;color:var(--ink2);line-height:1.55;margin-top:6px}
   .figcap b{color:var(--ink)}
+  /* Search vs refinement: the two standalone Palm prototypes become one
+     comparison figure here. The shared frame supplies the title and legend;
+     each embedded preview keeps only its animation and replay control so the
+     pair remains readable at half-page width. */
+  .paradigm-figure{--pv-bg:#f0efeb;--pv-ink:#58402e;--pv-muted:rgba(88,64,46,.78);
+    --pv-grid:rgba(88,64,46,.16);--pv-ok:#43593b;--pv-no:#f2d17e;
+    --pv-text-meta:.6875rem;--pv-text-panel:.9375rem;
+    margin:20px -72px 30px;padding:16px 20px 14px;background:var(--pv-bg);
+    border-radius:14px;color:var(--pv-ink)}
+  .paradigm-top{display:flex;align-items:center;justify-content:space-between;
+    gap:18px;padding:0 2px 12px;border-bottom:1px solid var(--pv-grid)}
+  .paradigm-topline{font-size:var(--pv-text-meta);font-weight:700;letter-spacing:.09em;
+    text-transform:uppercase}
+  .paradigm-legend{display:flex;align-items:center;justify-content:flex-end;
+    flex-wrap:wrap;gap:12px;color:var(--pv-muted);font-size:var(--pv-text-meta)}
+  .paradigm-legend span{display:inline-flex;align-items:center;gap:5px}
+  .paradigm-dot{width:8px;height:8px;border-radius:50%;background:var(--pv-no)}
+  .paradigm-dot.ok{background:var(--pv-ok)}
+  .paradigm-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+  .paradigm-grid>.paradigm-panel{min-width:0;margin:0;padding:16px 12px 0}
+  .paradigm-panel+.paradigm-panel{border-left:1px solid var(--pv-grid)}
+  .paradigm-panel-head{display:flex;align-items:center;justify-content:space-between;
+    gap:12px;min-height:32px;padding:0 2px 4px}
+  .paradigm-panel h3{margin:0;font-size:var(--pv-text-panel);font-weight:750;line-height:1.25;
+    letter-spacing:-.01em}
+  .paradigm-replay{appearance:none;position:relative;display:inline-grid;place-items:center;
+    flex:none;width:28px;height:28px;padding:0;border:1px solid var(--pv-grid);
+    border-radius:50%;background:transparent;color:var(--pv-muted);font:600 17px/1 sans-serif;
+    cursor:pointer;transition:color 160ms ease,border-color 160ms ease,transform 160ms ease}
+  .paradigm-replay::before{content:"";position:absolute;inset:-8px}
+  .paradigm-replay:hover,.paradigm-replay:focus-visible{color:var(--pv-ok);
+    border-color:var(--pv-ok)}
+  .paradigm-replay:focus-visible{outline:2px solid var(--pv-ok);outline-offset:3px}
+  .paradigm-replay:active{transform:rotate(-24deg)}
+  .paradigm-frame{display:block;width:100%;aspect-ratio:1.65;border:0;
+    background:var(--pv-bg)}
+  .paradigm-caption{margin:8px 2px 0;color:var(--pv-muted);font-size:var(--pv-text-meta);
+    line-height:1.5;text-align:center}
+  @media (max-width:960px){
+    .paradigm-figure{margin-left:0;margin-right:0}
+  }
+  @media (max-width:720px){
+    .paradigm-figure{padding:14px 14px 12px}
+    .paradigm-top{align-items:flex-start;flex-direction:column;gap:7px}
+    .paradigm-legend{justify-content:flex-start}
+    .paradigm-grid{grid-template-columns:1fr}
+    .paradigm-panel{padding:14px 4px 0}
+    .paradigm-panel+.paradigm-panel{margin-top:10px;padding-top:18px;
+      border-left:0;border-top:1px solid var(--pv-grid)}
+  }
   /* HTML legend below a chart (kept out of the SVG so it never overlaps bars) */
   .figlegend{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;
     font-size:12px;color:var(--ink2);margin-top:8px}
@@ -1101,9 +1151,59 @@
     behavioral clustering and a tournament. The paradigm works the way gold
     panning works: scoop blind, sift everything, keep the rare fleck that
     glitters — while each verdict spends one of the 50 submissions a
-    contestant is allowed. How can we do better than search?
-    <br><br>
-    <b>Arbiter</b>
+    contestant is allowed. How can we do better than search?</div>
+
+    <figure class="paradigm-figure" aria-labelledby="paradigm-comparison-title">
+      <div class="paradigm-top">
+        <div class="paradigm-topline" id="paradigm-comparison-title">Two test-time scaling strategies</div>
+        <div class="paradigm-legend" aria-label="Solution correctness legend">
+          <span>one dot = one solution</span>
+          <span><i class="paradigm-dot" aria-hidden="true"></i>incorrect</span>
+          <span><i class="paradigm-dot ok" aria-hidden="true"></i>correct</span>
+        </div>
+      </div>
+      <div class="paradigm-grid">
+        <section class="paradigm-panel" aria-labelledby="search-animation-title">
+          <div class="paradigm-panel-head">
+            <h3 id="search-animation-title">Over-generate → cluster → rank</h3>
+            <button class="paradigm-replay" type="button" data-replay-target="search-animation-frame"
+              aria-label="Replay over-generate, cluster, and rank animation" title="Replay animation">
+              <span aria-hidden="true">↻</span>
+            </button>
+          </div>
+          <iframe class="paradigm-frame" id="search-animation-frame" src="sift-dots-preview.html?embed=1"
+            title="Animation of over-generation, behavioral clustering, and tournament selection"
+            loading="lazy"></iframe>
+        </section>
+        <section class="paradigm-panel" aria-labelledby="refinement-animation-title">
+          <div class="paradigm-panel-head">
+            <h3 id="refinement-animation-title">Generate → verify → revise</h3>
+            <button class="paradigm-replay" type="button" data-replay-target="refinement-animation-frame"
+              aria-label="Replay generate, verify, and revise animation" title="Replay animation">
+              <span aria-hidden="true">↻</span>
+            </button>
+          </div>
+          <iframe class="paradigm-frame" id="refinement-animation-frame" src="refinement-dots-preview.html?embed=1"
+            title="Animation of verifier-guided feedback refinement"
+            loading="lazy"></iframe>
+        </section>
+      </div>
+      <figcaption class="paradigm-caption">
+        Search spends compute across candidates; verifier feedback spends it along improving trajectories.
+      </figcaption>
+    </figure>
+
+    <script>
+      document.querySelectorAll(".paradigm-replay").forEach((button) => {
+        button.addEventListener("click", () => {
+          const frame = document.getElementById(button.dataset.replayTarget);
+          const targetOrigin = window.location.origin === "null" ? "*" : window.location.origin;
+          frame?.contentWindow?.postMessage("replay-animation", targetOrigin);
+        });
+      });
+    </script>
+
+    <div class="sec-lead" data-md="verifier-refinement"><b>Arbiter</b>
     (<span style="color:var(--ink3)"><b>A</b>gentic <b>R</b>einforcement-learned
     <b>B</b>ug-finding <b>I</b>nteractive <b>T</b>est <b>E</b>xamine<b>R</b></span>)
     hands the solver a metal detector instead. It reads the problem and one

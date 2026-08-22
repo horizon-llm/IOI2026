@@ -1,0 +1,948 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Feedback refinement animation — prototype</title>
+  <script>
+    if (new URLSearchParams(window.location.search).has("embed")) {
+      document.documentElement.classList.add("embed");
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f0efeb;
+      --text: #58402e;
+      --secondary: rgba(88, 64, 46, 0.85);
+      --grid: rgba(88, 64, 46, 0.16);
+      --green: #43593b;
+      --yellow: #f2d17e;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Inter", system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .preview {
+      width: min(1040px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 48px 0 40px;
+    }
+
+    .eyebrow,
+    .source {
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow {
+      margin-bottom: 12px;
+      color: var(--secondary);
+    }
+
+    h1 {
+      max-width: 750px;
+      margin: 0 0 7px;
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .subtitle {
+      max-width: 800px;
+      margin: 0;
+      color: var(--secondary);
+      font-size: 11.5px;
+      line-height: 1.55;
+    }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      min-height: 42px;
+      margin: 20px 0 4px;
+      border-top: 1.25px solid var(--grid);
+      border-bottom: 1.25px solid var(--grid);
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 18px;
+      color: var(--secondary);
+      font-size: 10.5px;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .key {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--yellow);
+    }
+
+    .key.correct {
+      background: var(--green);
+    }
+
+    .replay {
+      appearance: none;
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--grid);
+      border-radius: 50%;
+      padding: 0;
+      background: transparent;
+      color: var(--secondary);
+      font: 600 17px/1 "Inter", system-ui, sans-serif;
+      cursor: pointer;
+      transition: color 160ms ease, border-color 160ms ease, transform 160ms ease;
+    }
+
+    .replay:hover,
+    .replay:focus-visible {
+      color: var(--green);
+      border-color: var(--green);
+    }
+
+    .replay:active { transform: rotate(-24deg); }
+
+    .replay:focus-visible,
+    #refinement:focus-visible {
+      outline: 2px solid var(--green);
+      outline-offset: 4px;
+    }
+
+    .chart-wrap {
+      position: relative;
+    }
+
+    #refinement {
+      display: block;
+      width: 100%;
+      height: auto;
+      min-height: 430px;
+      cursor: pointer;
+    }
+
+    #refinement text {
+      font-family: "Inter", system-ui, sans-serif;
+    }
+
+    .candidate circle {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    .source {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      margin-top: 5px;
+      color: var(--secondary);
+      font-weight: 500;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    html.embed,
+    html.embed body {
+      min-height: 0;
+    }
+
+    html.embed .preview {
+      width: 100%;
+      padding: 0;
+    }
+
+    html.embed .eyebrow,
+    html.embed h1,
+    html.embed .subtitle,
+    html.embed .legend,
+    html.embed .source {
+      display: none;
+    }
+
+    html.embed .meta {
+      display: none;
+    }
+
+    html.embed #refinement {
+      min-height: 0;
+    }
+
+    html.embed #refinement text {
+      font-size: 1.0625rem;
+    }
+
+    @media (max-width: 640px) {
+      .preview {
+        width: min(100% - 28px, 1040px);
+        padding-top: 28px;
+      }
+
+      .meta,
+      .source {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .meta {
+        padding: 11px 0;
+      }
+
+      #refinement {
+        min-height: 350px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="preview">
+    <div class="eyebrow">Prototype 02 · verify, diagnose, then revise</div>
+    <h1>Feedback turns a small seed set into short, improving revision chains.</h1>
+    <p class="subtitle">
+      Conceptual sequence · one dot = one persistent solution trajectory · Arbiter scans every
+      active lane · rejected trajectories revise against candidate-specific feedback · accepted
+      trajectories retire · color shows ground-truth correctness.
+    </p>
+
+    <div class="meta" aria-label="Legend and animation controls">
+      <div class="legend">
+        <span class="legend-item"><span class="key" aria-hidden="true"></span>incorrect</span>
+        <span class="legend-item"><span class="key correct" aria-hidden="true"></span>correct</span>
+      </div>
+      <button class="replay" id="replay" type="button" aria-label="Replay animation" title="Replay animation">
+        <span aria-hidden="true">↻</span>
+      </button>
+    </div>
+
+    <div class="chart-wrap">
+      <svg
+        id="refinement"
+        viewBox="0 38 1000 482"
+        preserveAspectRatio="xMidYMid meet"
+        role="img"
+        tabindex="0"
+        aria-labelledby="refinement-title refinement-desc"
+      >
+        <title id="refinement-title">Animated feedback refinement of ten solution trajectories</title>
+        <desc id="refinement-desc">
+          Ten persistent solution dots occupy fixed lanes. An Arbiter read-head scans every active
+          trajectory. Correct dots retire into a submission row; rejected dots remain in their
+          lanes and revise before the next scan. The active pool shrinks from ten to eight,
+          four, and two. The final row contains nine correct trajectories and one incorrect final
+          revision submitted when its budget expires.
+        </desc>
+      </svg>
+      <p class="sr-only" id="live-status" aria-live="polite"></p>
+    </div>
+
+    <div class="source">
+      <span>Trend Lineage L11 · Palm · Arbiter refinement</span>
+      <span>10 seeds → 3 stages / 2 feedback passes → 10 submitted</span>
+    </div>
+  </main>
+
+  <script>
+    (() => {
+      "use strict";
+
+      // Lieflat Palm palette: status uses the same green/yellow mapping as the sift preview.
+      const PALM = {
+        bg: "#F0EFEB",
+        text: "#58402E",
+        secondary: "rgba(88,64,46,.85)",
+        faint: "rgba(88,64,46,.32)",
+        grid: "rgba(88,64,46,.16)",
+        correct: "#43593B",
+        incorrect: "#F2D17E"
+      };
+
+      const NS = "http://www.w3.org/2000/svg";
+      const svg = document.getElementById("refinement");
+      const replay = document.getElementById("replay");
+      const liveStatus = document.getElementById("live-status");
+      const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+      const embedded = document.documentElement.classList.contains("embed");
+      const compactLayout = window.matchMedia(embedded ? "(max-width: 0px)" : "(max-width: 640px)");
+      const timers = [];
+      const runningAnimations = [];
+
+      const trajectorySpecs = [
+        { id: 0, correctRound: 1, outputSlot: 0 },
+        { id: 1, correctRound: 0, outputSlot: 1 },
+        { id: 2, correctRound: 2, outputSlot: 2 },
+        { id: 3, correctRound: 1, outputSlot: 3 },
+        { id: 4, correctRound: 2, outputSlot: 4 },
+        { id: 5, correctRound: 1, outputSlot: 5 },
+        { id: 6, correctRound: 2, outputSlot: 6 },
+        { id: 7, correctRound: 0, outputSlot: 7 },
+        { id: 8, correctRound: 1, outputSlot: 8 },
+        { id: 9, correctRound: null, outputSlot: 9 }
+      ];
+
+      const stageIds = [
+        trajectorySpecs.map(({ id }) => id),
+        [0, 2, 3, 4, 5, 6, 8, 9],
+        [2, 4, 6, 9]
+      ];
+
+      let layout;
+      let stationSpecs;
+      let activePositions;
+      let outputPositions;
+
+      const getLayout = () => compactLayout.matches
+        ? {
+            compact: true,
+            viewBox: "0 38 520 522",
+            progress: { left: 104, right: 416, labelY: 87, railY: 108 },
+            active: { left: 100, right: 420, labelY: 157, lineY: 169 },
+            stations: [
+              { label: "R0 · ARBITER REVIEW", detail: "10 ACTIVE" },
+              { label: "R1 · ARBITER REVIEW", detail: "8 ACTIVE" },
+              { label: "R2 · FINAL REVIEW", detail: "4 ACTIVE" }
+            ],
+            verifier: {
+              firstX: 138.5,
+              spacing: 27,
+              dotY: 244,
+              headTop: 193,
+              headBottom: 292
+            },
+            output: {
+              labelX1: 110,
+              labelX2: 410,
+              labelY: 408,
+              firstX: 138.5,
+              dotY: 454,
+              boxD: "M110 428 H410 V480 H110 Z",
+              annotationY: 518
+            }
+          }
+        : {
+            compact: false,
+            viewBox: embedded ? "100 38 800 482" : "0 38 1000 482",
+            progress: { left: 356, right: 644, labelY: 84, railY: 103 },
+            active: { left: 352, right: 648, labelY: 151, lineY: 163 },
+            stations: [
+              { label: "R0 · ARBITER REVIEW", detail: "10 ACTIVE" },
+              { label: "R1 · ARBITER REVIEW", detail: "8 ACTIVE" },
+              { label: "R2 · FINAL REVIEW", detail: "4 ACTIVE" }
+            ],
+            verifier: {
+              firstX: 378.5,
+              spacing: 27,
+              dotY: 225,
+              headTop: 181,
+              headBottom: 272
+            },
+            output: {
+              labelX1: 352,
+              labelX2: 648,
+              labelY: 350,
+              firstX: 378.5,
+              dotY: 396,
+              boxD: "M352 370 H648 V422 H352 Z",
+              annotationY: 458
+            }
+          };
+
+      const prepareLayout = () => {
+        layout = getLayout();
+        svg.setAttribute("viewBox", layout.viewBox);
+        stationSpecs = layout.stations;
+        activePositions = new Map(trajectorySpecs.map(({ id, outputSlot }) => [id, {
+          x: layout.verifier.firstX + outputSlot * layout.verifier.spacing,
+          y: layout.verifier.dotY
+        }]));
+        outputPositions = Array.from({ length: 10 }, (_, index) => ({
+          x: layout.output.firstX + index * layout.verifier.spacing,
+          y: layout.output.dotY
+        }));
+      };
+
+      const makeSvg = (tag, attributes = {}, text = "") => {
+        const node = document.createElementNS(NS, tag);
+        Object.entries(attributes).forEach(([name, value]) => node.setAttribute(name, value));
+        if (text) node.textContent = text;
+        return node;
+      };
+
+      const keepTimer = (callback, delay) => {
+        const timer = window.setTimeout(callback, delay);
+        timers.push(timer);
+        return timer;
+      };
+
+      const animate = (node, keyframes, options) => {
+        const animation = node.animate(keyframes, options);
+        runningAnimations.push(animation);
+        return animation;
+      };
+
+      const cancelRun = () => {
+        timers.splice(0).forEach((timer) => window.clearTimeout(timer));
+        runningAnimations.splice(0).forEach((animation) => animation.cancel());
+      };
+
+      const setPhase = (_phase, _detail, announcement = "") => {
+        if (announcement) liveStatus.textContent = announcement;
+      };
+
+      const setStageActive = (activeIndex, detailOverride = "") => {
+        svg.querySelectorAll("[data-stage-tick]").forEach((tick) => {
+          const index = Number(tick.dataset.stageTick);
+          const isActive = index === activeIndex;
+          tick.setAttribute("fill", isActive ? PALM.text : index < activeIndex ? PALM.faint : PALM.grid);
+          tick.setAttribute("r", isActive ? 5 : 3.5);
+        });
+        svg.querySelectorAll("[data-stage-label]").forEach((label) => {
+          const index = Number(label.dataset.stageLabel);
+          const isActive = index === activeIndex;
+          label.setAttribute("fill", isActive ? PALM.text : PALM.faint);
+          label.setAttribute("font-weight", isActive ? 800 : 700);
+        });
+        const stage = stationSpecs[activeIndex];
+        const label = svg.querySelector("#active-stage-label");
+        const detail = svg.querySelector("#active-stage-detail");
+        if (label) label.textContent = stage.label;
+        if (detail) detail.textContent = detailOverride || stage.detail;
+      };
+
+      const setOutputDetail = (text) => {
+        const detail = svg.querySelector("#output-detail");
+        if (detail) detail.textContent = text;
+      };
+
+      const addStaticFrame = () => {
+        svg.appendChild(makeSvg("line", {
+          x1: layout.progress.left,
+          y1: layout.progress.railY,
+          x2: layout.progress.right,
+          y2: layout.progress.railY,
+          stroke: PALM.grid,
+          "stroke-width": 1.25
+        }));
+
+        stationSpecs.forEach((station, index) => {
+          const x = layout.progress.left
+            + index * ((layout.progress.right - layout.progress.left) / (stationSpecs.length - 1));
+          svg.append(
+            makeSvg("text", {
+              "data-stage-label": index,
+              x,
+              y: layout.progress.labelY,
+              fill: index === 0 ? PALM.text : PALM.faint,
+              "font-size": 9,
+              "font-weight": index === 0 ? 800 : 700,
+              "letter-spacing": ".08em",
+              "text-anchor": "middle"
+            }, `R${index}`),
+            makeSvg("circle", {
+              "data-stage-tick": index,
+              cx: x,
+              cy: layout.progress.railY,
+              r: index === 0 ? 5 : 3.5,
+              fill: index === 0 ? PALM.text : PALM.grid
+            })
+          );
+        });
+
+        svg.append(
+          makeSvg("text", {
+            id: "active-stage-label",
+            x: layout.active.left,
+            y: layout.active.labelY,
+            fill: PALM.secondary,
+            "font-size": 9.5,
+            "font-weight": 800,
+            "letter-spacing": ".11em"
+          }, stationSpecs[0].label),
+          makeSvg("text", {
+            id: "active-stage-detail",
+            x: layout.active.right,
+            y: layout.active.labelY,
+            fill: PALM.secondary,
+            "font-size": 9,
+            "font-weight": 600,
+            "text-anchor": "end"
+          }, stationSpecs[0].detail),
+          makeSvg("line", {
+            x1: layout.active.left,
+            y1: layout.active.lineY,
+            x2: layout.active.right,
+            y2: layout.active.lineY,
+            stroke: PALM.grid,
+            "stroke-width": 1.25
+          })
+        );
+
+        const laneStart = layout.verifier.firstX - 18;
+        const laneEnd = layout.verifier.firstX
+          + (trajectorySpecs.length - 1) * layout.verifier.spacing + 18;
+        svg.appendChild(makeSvg("line", {
+          x1: laneStart,
+          y1: layout.verifier.dotY,
+          x2: laneEnd,
+          y2: layout.verifier.dotY,
+          stroke: PALM.grid,
+          "stroke-width": 1.25
+        }));
+        trajectorySpecs.forEach(({ outputSlot }) => {
+          const x = layout.verifier.firstX + outputSlot * layout.verifier.spacing;
+          svg.appendChild(makeSvg("line", {
+            x1: x,
+            y1: layout.verifier.dotY - 17,
+            x2: x,
+            y2: layout.verifier.dotY + 17,
+            stroke: PALM.grid,
+            "stroke-width": 1
+          }));
+        });
+
+        svg.append(
+          makeSvg("text", {
+            x: layout.output.labelX1,
+            y: layout.output.labelY,
+            fill: PALM.secondary,
+            "font-size": 9.5,
+            "font-weight": 700,
+            "letter-spacing": ".11em"
+          }, embedded ? "SUBMISSIONS" : "SUBMITTED TRAJECTORIES"),
+          makeSvg("text", {
+            id: "output-detail",
+            x: layout.output.labelX2,
+            y: layout.output.labelY,
+            fill: PALM.secondary,
+            "font-size": 9,
+            "font-weight": 600,
+            "text-anchor": "end"
+          }, "0 RETIRED")
+        );
+
+        const candidateLayer = makeSvg("g", { id: "candidate-layer" });
+        const verifierLayer = makeSvg("g", { id: "verifier-layer" });
+        svg.append(candidateLayer, verifierLayer);
+        return { candidateLayer, verifierLayer };
+      };
+
+      const buildTrajectory = (spec) => {
+        const start = activePositions.get(spec.id);
+        const initiallyCorrect = spec.correctRound === 0;
+        const group = makeSvg("g", {
+          class: "candidate",
+          "data-id": spec.id
+        });
+        const position = makeSvg("g", { transform: `translate(${start.x} ${start.y})` });
+        const dot = makeSvg("circle", {
+          cx: 0,
+          cy: 0,
+          r: 10.5,
+          fill: initiallyCorrect ? PALM.correct : PALM.incorrect,
+          opacity: 1
+        });
+        const outcome = spec.correctRound === null
+          ? "remains incorrect after the final revision"
+          : spec.correctRound === 0
+            ? "correct at the seed stage"
+            : `becomes correct after feedback pass ${spec.correctRound}`;
+        dot.appendChild(makeSvg("title", {}, `Trajectory ${spec.id + 1}: ${outcome}.`));
+        position.appendChild(dot);
+        group.appendChild(position);
+        return {
+          ...spec,
+          group,
+          dot,
+          baseX: start.x,
+          baseY: start.y,
+          currentX: start.x,
+          currentY: start.y,
+          isCorrect: initiallyCorrect,
+          movement: null
+        };
+      };
+
+      const transformAt = (trajectory, point) =>
+        `translate(${point.x - trajectory.baseX}px, ${point.y - trajectory.baseY}px)`;
+
+      const moveTrajectory = (trajectory, target, options = {}) => {
+        const { duration = 650, delay = 0, via = null, instant = false } = options;
+        const start = { x: trajectory.currentX, y: trajectory.currentY };
+        const from = transformAt(trajectory, start);
+        const to = transformAt(trajectory, target);
+
+        trajectory.movement?.cancel();
+        trajectory.group.style.transform = to;
+        trajectory.currentX = target.x;
+        trajectory.currentY = target.y;
+
+        if (instant) {
+          trajectory.group.style.transform = to;
+          return;
+        }
+
+        const keyframes = via
+          ? [
+              { transform: from, offset: 0 },
+              { transform: transformAt(trajectory, via), offset: 0.48 },
+              { transform: to, offset: 1 }
+            ]
+          : [{ transform: from }, { transform: to }];
+
+        trajectory.movement = animate(trajectory.group, keyframes, {
+          duration,
+          delay,
+          easing: "cubic-bezier(.25,1,.5,1)",
+          fill: "forwards"
+        });
+        trajectory.movement.addEventListener("finish", () => {
+          trajectory.group.style.transform = to;
+        }, { once: true });
+      };
+
+      const pulseInspection = (trajectory) => {
+        animate(trajectory.dot, [
+          { transform: "scale(1)" },
+          { transform: "scale(.88)", offset: 0.42 },
+          { transform: "scale(1)" }
+        ], {
+          duration: 250,
+          easing: "cubic-bezier(.25,1,.5,1)"
+        });
+      };
+
+      const addVerifierSweep = (verifierLayer, ids) => {
+        const activeXs = ids.map((id) => activePositions.get(id).x);
+        const startX = Math.min(...activeXs) - 23;
+        const endX = Math.max(...activeXs) + 23;
+        const travel = endX - startX;
+        const head = makeSvg("g", { class: "verifier-head" });
+        head.append(
+          makeSvg("text", {
+            x: startX,
+            y: layout.verifier.headTop - 7,
+            fill: PALM.text,
+            "font-size": 8.5,
+            "font-weight": 800,
+            "letter-spacing": ".08em",
+            "text-anchor": "middle"
+          }, "ARBITER"),
+          makeSvg("line", {
+            x1: startX,
+            y1: layout.verifier.headTop,
+            x2: startX,
+            y2: layout.verifier.headBottom,
+            stroke: PALM.text,
+            "stroke-width": 1.8
+          }),
+          makeSvg("line", {
+            x1: startX - 4,
+            y1: layout.verifier.dotY,
+            x2: startX + 4,
+            y2: layout.verifier.dotY,
+            stroke: PALM.text,
+            "stroke-width": 1.8
+          })
+        );
+        verifierLayer.appendChild(head);
+        const sweep = animate(head, [
+          { transform: "translateX(0)", opacity: 0 },
+          { transform: "translateX(0)", opacity: 1, offset: 0.06 },
+          { transform: `translateX(${travel}px)`, opacity: 1, offset: 0.92 },
+          { transform: `translateX(${travel}px)`, opacity: 0 }
+        ], {
+          duration: 930,
+          easing: "linear",
+          fill: "forwards"
+        });
+        sweep.addEventListener("finish", () => head.remove(), { once: true });
+        return { startX, endX, duration: 930 };
+      };
+
+      const contactDelay = (trajectory, sweep) => {
+        const x = activePositions.get(trajectory.id).x;
+        return Math.round(((x - sweep.startX) / (sweep.endX - sweep.startX)) * sweep.duration);
+      };
+
+      const retireTrajectory = (trajectory, state, instant = false) => {
+        const target = outputPositions[trajectory.outputSlot];
+        const via = {
+          x: trajectory.currentX + (trajectory.id % 2 === 0 ? -3 : 3),
+          y: trajectory.currentY + (target.y - trajectory.currentY) * 0.55
+        };
+        moveTrajectory(trajectory, target, {
+          duration: 540,
+          via,
+          instant
+        });
+        state.retired += 1;
+        setOutputDetail(`${state.retired} RETIRED`);
+      };
+
+      const reviseForStage = (trajectories, stageIndex) => {
+        const ids = stageIds[stageIndex];
+        setStageActive(stageIndex);
+        setPhase(
+          "REVISING",
+          `${ids.length} ACTIVE`,
+          `${ids.length} rejected trajectories consume Arbiter feedback and produce their next revision.`
+        );
+        ids.forEach((id, index) => {
+          const trajectory = trajectories[id];
+          const delay = index * 24;
+          const becomesCorrect = trajectory.correctRound === stageIndex;
+          if (becomesCorrect) {
+            trajectory.isCorrect = true;
+            trajectory.dot.setAttribute("fill", PALM.correct);
+          }
+          animate(trajectory.dot, [
+            {
+              fill: becomesCorrect ? PALM.incorrect : trajectory.dot.getAttribute("fill"),
+              transform: "scale(1)"
+            },
+            {
+              fill: trajectory.dot.getAttribute("fill"),
+              transform: "translateY(-5px) scale(.91)",
+              offset: 0.48
+            },
+            {
+              fill: trajectory.dot.getAttribute("fill"),
+              transform: "translateY(0) scale(1)"
+            }
+          ], {
+            duration: 360,
+            delay,
+            easing: "cubic-bezier(.25,1,.5,1)",
+            fill: "forwards"
+          });
+        });
+      };
+
+      const runVerifierRound = (trajectories, stageIndex, state, layers) => {
+        const ids = stageIds[stageIndex];
+        const rejected = ids.filter((id) => !trajectories[id].isCorrect);
+        setStageActive(stageIndex);
+        setPhase(
+          "VERIFYING",
+          `${ids.length} ACTIVE`,
+          `Arbiter is reviewing ${ids.length} active solution trajectories in round ${stageIndex}.`
+        );
+        const sweep = addVerifierSweep(layers.verifierLayer, ids);
+
+        ids.forEach((id) => {
+          const trajectory = trajectories[id];
+          keepTimer(() => {
+            pulseInspection(trajectory);
+            if (trajectory.isCorrect) {
+              keepTimer(() => retireTrajectory(trajectory, state), 130);
+            }
+          }, contactDelay(trajectory, sweep));
+        });
+
+        keepTimer(() => {
+          setPhase(
+            "FEEDBACK RETURNED",
+            `${rejected.length} REJECTED`,
+            `${rejected.length} trajectories receive a diagnosis and counterexample from Arbiter.`
+          );
+          setStageActive(stageIndex, `${rejected.length} REJECTED`);
+        }, sweep.duration + 110);
+
+        if (stageIndex < stageIds.length - 1) {
+          keepTimer(() => reviseForStage(trajectories, stageIndex + 1), sweep.duration + 400);
+          keepTimer(
+            () => runVerifierRound(trajectories, stageIndex + 1, state, layers),
+            sweep.duration + 830
+          );
+          return;
+        }
+
+        keepTimer(() => {
+          const unresolved = trajectories[rejected[0]];
+          setPhase(
+            "BUDGET REACHED",
+            "1 FINAL REVISION",
+            "One rejected trajectory reaches the round budget and submits its final revision."
+          );
+          keepTimer(() => {
+            retireTrajectory(unresolved, state);
+            setStageActive(stageIndex, "0 ACTIVE");
+            setOutputDetail("10 SUBMITTED");
+          }, 180);
+        }, sweep.duration + 410);
+
+        keepTimer(() => addSubmissionBox(), sweep.duration + 1080);
+        keepTimer(() => {
+          setPhase(
+            "SUBMITTED",
+            "9 CORRECT + 1 FINAL",
+            "Final state: nine correct trajectories and one unresolved final revision are submitted."
+          );
+        }, sweep.duration + 1510);
+      };
+
+      const addSubmissionBox = (instant = false) => {
+        const box = makeSvg("path", {
+          id: "submission-box",
+          d: layout.output.boxD,
+          fill: "none",
+          stroke: PALM.text,
+          "stroke-width": 1.5,
+          pathLength: 1,
+          "stroke-dasharray": 1,
+          "stroke-dashoffset": 0
+        });
+        svg.appendChild(box);
+        if (!instant) {
+          const draw = animate(box, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }], {
+            duration: 620,
+            easing: "cubic-bezier(.4,0,.2,1)",
+            fill: "forwards"
+          });
+          draw.addEventListener("finish", () => box.setAttribute("stroke-dashoffset", 0), {
+            once: true
+          });
+        }
+      };
+
+      const showReducedMotionState = (trajectories) => {
+        trajectories.forEach((trajectory) => {
+          if (trajectory.correctRound !== null) {
+            trajectory.dot.setAttribute("fill", PALM.correct);
+            trajectory.isCorrect = true;
+          }
+          moveTrajectory(trajectory, outputPositions[trajectory.outputSlot], { instant: true });
+        });
+        setStageActive(2, "0 ACTIVE");
+        setOutputDetail("10 SUBMITTED");
+        setPhase(
+          "SUBMITTED",
+          "9 CORRECT + 1 FINAL",
+          "Final state: nine correct trajectories and one unresolved final revision are submitted."
+        );
+        addSubmissionBox(true);
+      };
+
+      const run = () => {
+        cancelRun();
+        svg.querySelectorAll(":scope > *:not(title):not(desc)").forEach((node) => node.remove());
+        prepareLayout();
+        const layers = addStaticFrame();
+        const trajectories = trajectorySpecs.map(buildTrajectory);
+        trajectories.forEach(({ group }) => layers.candidateLayer.appendChild(group));
+
+        if (reducedMotion.matches) {
+          trajectories.forEach(({ dot }) => dot.setAttribute("opacity", 1));
+          showReducedMotionState(trajectories);
+          return;
+        }
+
+        setPhase("SEEDING", "10 TRAJECTORIES", "Generating ten seed solution trajectories.");
+        trajectories.forEach((trajectory, index) => {
+          const entrance = animate(trajectory.dot, [
+            { opacity: 0, transform: "translateY(-16px) scale(.4)" },
+            { opacity: 1, transform: "translateY(0) scale(1)" }
+          ], {
+            duration: 620,
+            delay: index * 55,
+            easing: "cubic-bezier(.25,1,.5,1)",
+            fill: "forwards"
+          });
+          entrance.addEventListener("finish", () => trajectory.dot.setAttribute("opacity", 1), {
+            once: true
+          });
+        });
+
+        keepTimer(
+          () => runVerifierRound(trajectories, 0, { retired: 0 }, layers),
+          1000
+        );
+      };
+
+      const observe = () => {
+        if (embedded) {
+          run();
+          return;
+        }
+        if (!("IntersectionObserver" in window)) {
+          run();
+          return;
+        }
+        const observer = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting) {
+            run();
+            observer.disconnect();
+          }
+        }, { threshold: 0.3 });
+        observer.observe(svg);
+      };
+
+      replay.addEventListener("click", run);
+      window.addEventListener("message", (event) => {
+        if (event.source === window.parent && event.data === "replay-animation") run();
+      });
+      svg.addEventListener("click", run);
+      svg.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          run();
+        }
+      });
+      reducedMotion.addEventListener?.("change", run);
+      compactLayout.addEventListener?.("change", run);
+      observe();
+    })();
+  </script>
+</body>
+</html>
