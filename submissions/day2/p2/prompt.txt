@@ -1,0 +1,1110 @@
+You are an expert competitive programmer. Below is an IOI 2026 problem, followed
+by the best known C++ solution for each of its subtasks. Each was written for one
+subtask alone, and the score it achieved there is stated.
+
+# Problem statement
+
+You are an expert competitive programmer. You will be given a problem statement, constraints, and example test cases. Please reason step by step about the solution, then provide a complete implementation in C++17.
+
+Please solve the problem exactly according to the requirements in the problem statement. Follow the input/output format, function signatures, implementation details, and any special requirements specified in the problem itself. If the problem requires standard input/output, include a complete program with `main`. If the problem requires implementing specific routines/classes without `main`, only implement what is requested.
+
+Assume your code will be run on the OFFICIAL grader, and do not add a main function, a sample grader, or any other functionality unless it has been explicitly requested.
+
+Put your final solution within a single code block:
+
+
+```cpp
+// your code here
+```
+
+# [IOI 2026] Day 2. Magic City
+
+**Time limit:** 0.5 seconds &nbsp;&nbsp; **Memory limit:** 2048 megabytes
+
+# Magic City
+
+The mayor of Tashkent wants to redesign the famous Magic City amusement park. You are given a positive integer $K$ and your task is to design a park as follows:
+
+- Choose an integer $N$, the number of attractions. The attractions are labeled with integers from $0$ to $N-1$.
+- Add bidirectional walkways, each between a pair of distinct attractions. It is allowed to have more than one walkway between the same pair of attractions. It is not required to be able to travel between every pair of attractions using the walkways.
+- For each $i$ such that $0 \le i < N$, assign attraction $i$ a type $T[i]$. There are $2K$ types numbered from $0$ to $2K-1$. Every type should be assigned to at least one attraction. Different attractions may have the same type.
+
+Market research revealed that:
+
+1. Each visitor prefers to visit three attractions without visiting two attractions of the same type consecutively.
+2. Visitors dislike attractions that are an endpoint of many walkways.
+
+In order to satisfy all potential visitors, the mayor imposes two conditions on your design.
+
+We call an ordered triple of types $(t_1, t_2, t_3)$ for $0 \le t_1, t_2, t_3 < 2K$ **interesting** if $t_1 \ne t_2$ and $t_2 \ne t_3$. Note that $t_1$ might be equal to $t_3$. Thus, there are $2K \cdot (2K-1)^2$ interesting triples.
+
+**Condition 1:** For each interesting triple $(t_1, t_2, t_3)$, there must exist three attractions $a_1, a_2, a_3$ (with $0 \le a_1, a_2, a_3 < N$) such that:
+
+- The types of $a_1, a_2, a_3$ match $t_1, t_2, t_3$. That is, $T[a_1] = t_1$, $T[a_2] = t_2$, and $T[a_3] = t_3$.
+- There is a walkway between $a_1$ and $a_2$.
+- There is a walkway between $a_2$ and $a_3$.
+
+It is irrelevant whether or not there is a walkway between $a_1$ and $a_3$. Also note that when $t_1 = t_3$, the attractions $a_1$ and $a_3$ may be the same.
+
+**Condition 2:** Each attraction can be an endpoint of at most $K$ walkways.
+
+This task consists of $50$ subtasks with partial scoring. Each subtask corresponds to a specific value of $K$, and you must design a park that satisfies all above conditions for that value of $K$. Your score depends on the number of attractions in your solution: fewer attractions yield a higher or equal score.
+
+## Implementation Details
+
+You should implement the following procedure:
+
+```cpp
+std::pair<std::vector<int>,std::vector<std::pair<int, int>>>
+                                                        construct(int K)
+```
+
+- $K$: half the number of attraction types, and also the maximum number of walkways that each attraction can be an endpoint of.
+- This procedure is called exactly once for each subtask.
+- The procedure should return a pair $(T, E)$ describing an amusement park. Let $M$ be the number of walkways in your park.
+    - $T$: an array of length $N$ describing the types of attractions.
+    - $E$: an array of length $M$ describing the walkways. For each $0 \le j < M$, $E[j] = (U[j], V[j])$ represents a bidirectional walkway between distinct attractions $U[j]$ and $V[j]$.
+
+Note that your solution must satisfy the following constraints to be considered valid:
+
+- $N \le 2000$
+- $0 \le T[i] < 2K$ for each $0 \le i < N$, and every type should be assigned to at least one attraction.
+- $0 \le U[j], V[j] < N$ and $U[j] \ne V[j]$ for each $0 \le j < M$.
+- Conditions 1 and 2 must be met.
+
+## Constraints
+
+- $1 \le K \le 50$
+
+## Scoring
+
+There are $50$ subtasks, one for each integer $K$ from $1$ to $50$. For Subtask $i$ ($1 \le i \le 50$), the value of $K$ is $i$.
+
+Each subtask has a score $S$ and a target number of attractions $P$ according to the table below.
+
+| Subtasks | $S$ | $P$ |
+|----------|-----|-----|
+| 1 | 1 | 2 |
+| 2 | 8 | 12 |
+| 3 | 9 | 24 |
+| 4 | 9 | 40 |
+| 5 | 9 | 50 |
+| 6 – 10 | 4 | $12 \cdot K$ |
+| 11 – 12 | 3 | $12 \cdot K$ |
+| 13 – 50 | 1 | $12 \cdot K$ |
+
+For each subtask, if your solution does not describe a valid amusement park, then the score of your solution will be $0$ (reported as `Output isn't correct`).
+
+Otherwise, your score is calculated based on $N$ and the parameters $S$ and $P$ as follows:
+
+| Condition | Score |
+|-----------|-------|
+| $N \le P$ | $S$ |
+| $P < N \le 2P$ | $\left(0.4 + 0.3 \cdot \dfrac{2P - N}{P}\right) \cdot S$ |
+| $2P < N \le 2000$ | $\left(0.1 + 0.3 \cdot \dfrac{2P}{N}\right) \cdot S$ |
+
+## Example
+
+Consider the following call:
+
+```
+construct(1)
+```
+
+In this example, $K = 1$, so there are $2K = 2$ types of attractions. The figure below shows a valid solution with $N = 4$ attractions and $M = 2$ walkways. Attractions $0, 1, 2$ are of type $0$, and attraction $3$ is of type $1$.
+
+![A valid park for K = 1: four attractions in two disconnected pairs, 0-1 and 2-3.](/images/statements/ioi2026/magiccity/fig1.png)
+
+> **Figure, in text form.** Four circles. The **bold number outside** each circle is the attraction index; the number **inside** is its type. Attraction $3$ is shaded to mark it as the only one of type $1$.
+>
+> ```
+> attraction: 0   1   2   3
+> type:       0   0   0   1
+>
+> walkways (2): 0 — 1
+>               2 — 3
+> ```
+>
+> The two walkways are disconnected from each other, which is allowed — the park need not be traversable between every pair of attractions.
+
+There are two interesting triples:
+
+- For the type triple $(0, 1, 0)$, we can choose $(a_1, a_2, a_3) = (2, 3, 2)$.
+- For the type triple $(1, 0, 1)$, we can choose $(a_1, a_2, a_3) = (3, 2, 3)$.
+
+This means that Condition 1 is satisfied.
+
+The procedure can return the pair $([0,0,0,1], [(0,1),(2,3)])$. Note that the provided solution for this example might not be optimal for $K = 1$.
+
+
+# Best known solution for Band K = 1 (worth 1 points)
+
+Additional constraints of this subtask: K = 1
+Source file: `solutions/band_k1_magiccity.cpp`
+Score this program achieved on Band K = 1: **1 out of 1 -- full marks**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/*
+ * Constructs a valid Magic City for the given K.
+ * In this subtask K is always 1.
+ * The construction uses two attractions (type 0 and type 1) and a single walkway.
+ */
+pair<vector<int>, vector<pair<int,int>>> construct(int K) {
+    // The problem guarantees K = 1 in this subtask.
+    // Types of the two attractions.
+    vector<int> types = {0, 1};
+
+    // One undirected walkway between them.
+    vector<pair<int,int>> edges;
+    edges.emplace_back(0, 1);
+
+    return {types, edges};
+}
+```
+
+# Best known solution for Band K = 2 (worth 8 points)
+
+Additional constraints of this subtask: K = 2
+Source file: `solutions/band_k2_magiccity.cpp`
+Score this program achieved on Band K = 2: **8 out of 8 -- full marks**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/*
+ *  Magic City – subtask K = 2
+ *
+ *  The function builds a graph with
+ *    - 12 vertices (3 per type, 4 types)
+ *    - maximum degree 2
+ *    - satisfying Condition 1 for all interesting triples
+ *
+ *  It returns the pair (types, edges) as required.
+ */
+pair<vector<int>, vector<pair<int, int>>> construct(int K) {
+    // This construction works for K = 2 (2·K = 4 types)
+    const int types = 2 * K;          // = 4
+    const int perType = 3;            // three vertices of each type
+    const int N = types * perType;    // 12
+
+    // ----- vertex types ----------------------------------------------------
+    vector<int> T(N);
+    for (int t = 0; t < types; ++t)
+        for (int i = 0; i < perType; ++i)
+            T[t * perType + i] = t;
+
+    auto id = [&](int t, int i) { return t * perType + i; };
+
+    // ----- for every ordered pair (type, other) store the two local indices
+    //       of vertices of the first type that have to be adjacent to the
+    //       second type                                           ----------
+    vector<vector<vector<int>>> idx(types, vector<vector<int>>(types));
+
+    for (int t = 0; t < types; ++t) {
+        // other types in increasing order
+        vector<int> other;
+        for (int x = 0; x < types; ++x) if (x != t) other.push_back(x);
+        // other.size() == 3
+        // vertex 0  -> other[0] , other[1]
+        idx[t][other[0]].push_back(0);
+        idx[t][other[1]].push_back(0);
+        // vertex 1  -> other[0] , other[2]
+        idx[t][other[0]].push_back(1);
+        idx[t][other[2]].push_back(1);
+        // vertex 2  -> other[1] , other[2]
+        idx[t][other[1]].push_back(2);
+        idx[t][other[2]].push_back(2);
+    }
+
+    // ----- build edges ------------------------------------------------------
+    vector<pair<int, int>> E;
+    for (int a = 0; a < types; ++a) {
+        for (int b = a + 1; b < types; ++b) {
+            // each side provides exactly two indices
+            const vector<int> &la = idx[a][b];
+            const vector<int> &lb = idx[b][a];
+            // connect them pairwise (any bijection works)
+            E.emplace_back(id(a, la[0]), id(b, lb[0]));
+            E.emplace_back(id(a, la[1]), id(b, lb[1]));
+        }
+    }
+
+    return {T, E};
+}
+```
+
+# Best known solution for Band K = 3 (worth 9 points)
+
+Additional constraints of this subtask: K = 3
+Source file: `solutions/band_k3_magiccity.cpp`
+Score this program achieved on Band K = 3: **9 out of 9 -- full marks**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/*  Construct a valid park for K = 3.
+    The function follows exactly the construction proved correct above. */
+pair<vector<int>, vector<pair<int,int>>> construct(int K)
+{
+    // the subtask guarantees K == 3
+    const int nTypes = 2 * K;          // 6
+    const int VPT   = 4;               // vertices per type
+    const int N = nTypes * VPT;        // 24
+
+    // ----- types of attractions -----
+    vector<int> T(N);
+    for (int i = 0; i < N; ++i) T[i] = i / VPT;   // 0,0,0,0,1,1,1,1,...
+
+    // need[t][u] – list of vertices (by their index) of type t that need a neighbour of type u
+    vector<vector<vector<int>>> need(nTypes, vector<vector<int>>(nTypes));
+
+    for (int t = 0; t < nTypes; ++t) {
+        int heavy1 = (t + 1) % nTypes;
+        int heavy2 = (t - 1 + nTypes) % nTypes;
+        int light0 = (t + 2) % nTypes;
+        int light1 = (t + 3) % nTypes;
+        int light2 = (t + 4) % nTypes;
+
+        for (int k = 0; k < VPT; ++k) {
+            int id = t * VPT + k;           // global index of the vertex
+            vector<int> nb;
+            if (k == 0) {                    // only lights
+                nb = {light0, light1, light2};
+            } else if (k == 1) {             // light0 + both heavies
+                nb = {light0, heavy1, heavy2};
+            } else if (k == 2) {             // light1 + both heavies
+                nb = {light1, heavy1, heavy2};
+            } else {                          // k == 3, light2 + both heavies
+                nb = {light2, heavy1, heavy2};
+            }
+            for (int u : nb) need[t][u].push_back(id);
+        }
+    }
+
+    // ----- create edges by matching the stubs -----
+    vector<pair<int,int>> E;
+    for (int i = 0; i < nTypes; ++i) {
+        for (int j = i + 1; j < nTypes; ++j) {
+            const vector<int>& vi = need[i][j];
+            const vector<int>& vj = need[j][i];
+            // vi.size() == vj.size() (2 or 3)
+            for (size_t p = 0; p < vi.size(); ++p) {
+                E.emplace_back(vi[p], vj[p]);
+            }
+        }
+    }
+
+    return {T, E};
+}
+```
+
+# Best known solution for Band K = 4 (worth 9 points)
+
+Additional constraints of this subtask: K = 4
+Source file: `solutions/band_k4_magiccity.cpp`
+Score this program achieved on Band K = 4: **9 out of 9 -- full marks**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/*
+   Construction for the subtask K = 4.
+   - 2K = 8 types (0 … 7).
+   - 5 vertices of each type, total N = 40  ( ≤ 40 ⇒ full score ).
+   - Every vertex has degree exactly 4, never exceeding K.
+   - For each type t the 5 vertices realise the following
+     5 subsets of neighbour‑types (size 4).  The subsets are chosen so that
+     every unordered pair of the 7 other types occurs together in at least
+     one subset; consequently every interesting triple (t1,t2,t3) can be
+     realised by a path of length two.
+   - The edges are created by matching, for every unordered pair of types
+     (i , j), the vertices of type i that contain j with the vertices of type j
+     that contain i.  The required numbers of occurrences are
+        2  when {i , j} = {0,1},{2,3},{4,5},{6,7}
+        3  otherwise.
+*/
+
+pair<vector<int>, vector<pair<int,int>>> construct(int K)
+{
+    // The construction is intended for K = 4.
+    // It also works for any K ≥ 1 if 2*K is a power of two,
+    // but the problem guarantees K = 4.
+    const int types = 2 * K;          // 8
+    const int per   = K + 1;          // 5 vertices per type
+    const int N     = types * per;    // 40
+
+    vector<int> T(N);
+    for (int t = 0; t < types; ++t)
+        for (int i = 0; i < per; ++i)
+            T[t * per + i] = t;      // assign the type
+
+    // occ[t][s] – list of local indices (0 … per‑1) of vertices of type t
+    // that have a neighbour of type s.
+    vector<vector<vector<int>>> occ(types,
+                                    vector<vector<int>>(types));
+
+    for (int t = 0; t < types; ++t) {
+        int paired = t ^ 1;                     // (0↔1, 2↔3, 4↔5, 6↔7)
+        vector<int> other;                     // the 6 types different from t and paired
+        for (int x = 0; x < types; ++x)
+            if (x != t && x != paired) other.push_back(x); // size = 6, sorted increasingly
+
+        // split them into two groups of three
+        vector<int> g1(other.begin(), other.begin() + 3);
+        vector<int> g2(other.begin() + 3, other.end());
+
+        // five subsets (neighbour‑type sets) of size 4
+        vector<vector<int>> sub(5);
+        // vertex 0 : {paired} ∪ g1
+        sub[0].push_back(paired);
+        sub[0].insert(sub[0].end(), g1.begin(), g1.end());
+        // vertex 1 : {paired} ∪ g2
+        sub[1].push_back(paired);
+        sub[1].insert(sub[1].end(), g2.begin(), g2.end());
+        // vertex 2 : other \ {other[0], other[1]}
+        for (int x : other) if (x != other[0] && x != other[1]) sub[2].push_back(x);
+        // vertex 3 : other \ {other[2], other[3]}
+        for (int x : other) if (x != other[2] && x != other[3]) sub[3].push_back(x);
+        // vertex 4 : other \ {other[4], other[5]}
+        for (int x : other) if (x != other[4] && x != other[5]) sub[4].push_back(x);
+
+        // record the occurrences
+        for (int idx = 0; idx < per; ++idx)
+            for (int nb : sub[idx])
+                occ[t][nb].push_back(idx);   // vertex 'idx' of type t is adjacent to type nb
+    }
+
+    // build edges
+    vector<pair<int,int>> edges;
+    for (int i = 0; i < types; ++i) {
+        for (int j = i + 1; j < types; ++j) {
+            vector<int> &li = occ[i][j];
+            vector<int> &lj = occ[j][i];
+            sort(li.begin(), li.end());
+            sort(lj.begin(), lj.end());       // both have size 2 (paired) or 3 (others)
+            for (size_t k = 0; k < li.size(); ++k) {
+                int vi = i * per + li[k];
+                int vj = j * per + lj[k];
+                edges.emplace_back(vi, vj);
+            }
+        }
+    }
+
+    return {T, edges};
+}
+```
+
+# Best known solution for Band K = 5 (worth 9 points)
+
+Additional constraints of this subtask: K = 5
+Source file: `solutions/band_k5_magiccity.cpp`
+Score this program achieved on Band K = 5: **9 out of 9 -- full marks**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+pair<vector<int>, vector<pair<int,int>>> construct(int K) {
+    // The task is only required for K = 5, but we also provide a simple fallback
+    // for other K values.
+    if (K != 5) {
+        // Simple construction: one node per type, connect type i with i+1 (mod 2K)
+        int types = 2 * K;
+        vector<int> T(types);
+        for (int i = 0; i < types; ++i) T[i] = i;
+        vector<pair<int,int>> E;
+        for (int i = 0; i < types; ++i) {
+            int j = (i + 1) % types;
+            if (i < j) E.emplace_back(i, j);
+        }
+        return {T, E};
+    }
+
+    // ----------  K = 5  ----------
+    // Number of types
+    const int types = 2 * K;         // 10
+    const int matchingsCnt = types - 1; // 9
+    const int layerDeg = K;          // each layer will consist of K matchings
+    const int pairsPerLayer = K * (K - 1) / 2; // 10
+
+    // 1) Build a 1‑factorisation (perfect matchings) of K_{2K}
+    // using the classic round‑robin algorithm.
+    vector<vector<pair<int,int>>> matchings(matchingsCnt);
+    int pivot = types - 1;               // vertex that stays fixed
+    for (int r = 0; r < matchingsCnt; ++r) {
+        vector<pair<int,int>> edges;
+        edges.emplace_back(pivot, r);    // pivot edge
+        for (int i = 1; i <= types/2 - 1; ++i) {
+            int a = (r + i) % (types - 1);
+            int b = (r - i + (types - 1)) % (types - 1);
+            edges.emplace_back(a, b);
+        }
+        matchings[r] = edges;            // each contains exactly K = 5 edges
+    }
+
+    // 2) Find a small number L of layers (each layer = a set of exactly K matchings)
+    //    such that every unordered pair of matchings appears together in at least one layer.
+    //    This is a covering design C(matchingsCnt, K, 2).
+    const int totalPairs = matchingsCnt * (matchingsCnt - 1) / 2; // 36
+    // Mapping pair (i,j) -> bit index
+    int pairIdx[matchingsCnt][matchingsCnt];
+    memset(pairIdx, -1, sizeof(pairIdx));
+    int idx = 0;
+    for (int i = 0; i < matchingsCnt; ++i)
+        for (int j = i + 1; j < matchingsCnt; ++j)
+            pairIdx[i][j] = pairIdx[j][i] = idx++;
+
+    // All subsets of size K (5) of the 9 matchings
+    vector<vector<int>> combos;          // list of matchings indices in each combo
+    vector<uint64_t> comboMask;          // bitmask of covered pairs for each combo
+    for (int m = 0; m < (1 << matchingsCnt); ++m) {
+        if (__builtin_popcount(m) != K) continue;
+        vector<int> cur;
+        for (int i = 0; i < matchingsCnt; ++i)
+            if (m & (1 << i)) cur.push_back(i);
+        combos.push_back(cur);
+        uint64_t mask = 0;
+        for (int i = 0; i < (int)cur.size(); ++i)
+            for (int j = i + 1; j < (int)cur.size(); ++j) {
+                int a = cur[i], b = cur[j];
+                mask |= (1ULL << pairIdx[a][b]);
+            }
+        comboMask.push_back(mask);
+    }
+
+    const uint64_t fullMask = (totalPairs == 64) ? ~0ULL : ((1ULL << totalPairs) - 1ULL);
+
+    // Try with the minimal possible number of layers.
+    vector<int> chosenComb;
+    bool found = false;
+    int Lfound = 0;
+    // theoretical lower bound: ceil(totalPairs / pairsPerLayer) = 4
+    for (int L = 4; L <= 5 && !found; ++L) {
+        // depth‑first search with pruning
+        vector<int> cur;
+        function<bool(int,int,uint64_t)> dfs = [&](int start, int depth, uint64_t covered) -> bool {
+            if (covered == fullMask) {
+                chosenComb = cur;
+                Lfound = L;
+                return true;
+            }
+            if (depth == L) return false;
+            int remPairs = totalPairs - __builtin_popcountll(covered);
+            if (remPairs > (L - depth) * pairsPerLayer) return false;
+            // try combos that add the most new pairs first (simple heuristic)
+            vector<int> order;
+            for (int i = start; i < (int)combos.size(); ++i) order.push_back(i);
+            sort(order.begin(), order.end(), [&](int a, int b){
+                int na = __builtin_popcountll(comboMask[a] & ~covered);
+                int nb = __builtin_popcountll(comboMask[b] & ~covered);
+                return na > nb;
+            });
+            for (int idxC : order) {
+                uint64_t nmask = covered | comboMask[idxC];
+                if (nmask == covered) continue; // adds nothing
+                cur.push_back(idxC);
+                if (dfs(idxC + 1, depth + 1, nmask)) return true;
+                cur.pop_back();
+            }
+            return false;
+        };
+        if (dfs(0, 0, 0ULL)) found = true;
+    }
+
+    // In the (highly unlikely) case we didn't find anything, fall back to L = 5 with a greedy approach
+    if (!found) {
+        int L = 5;
+        Lfound = L;
+        // Greedy construction
+        vector<int> order(combos.size());
+        iota(order.begin(), order.end(), 0);
+        mt19937 rng(123456);
+        for (int attempt = 0; attempt < 10000 && (int)chosenComb.size() < L; ++attempt) {
+            shuffle(order.begin(), order.end(), rng);
+            uint64_t covered = 0;
+            vector<int> sel;
+            for (int idxC : order) {
+                uint64_t nmask = covered | comboMask[idxC];
+                if (nmask != covered) {
+                    sel.push_back(idxC);
+                    covered = nmask;
+                    if ((int)sel.size() == L) break;
+                }
+            }
+            if (covered == fullMask && (int)sel.size() == L) {
+                chosenComb = sel;
+                break;
+            }
+        }
+        // If still not found (should never happen), we simply use the first L combos.
+        if ((int)chosenComb.size() != L) {
+            chosenComb.assign(L, 0);
+        }
+    }
+
+    int L = Lfound; // number of layers (nodes per type)
+    int N = types * L;
+    vector<int> T(N);
+    for (int t = 0; t < types; ++t)
+        for (int i = 0; i < L; ++i)
+            T[t * L + i] = t;
+
+    vector<pair<int,int>> E;
+    // Build edges layer by layer
+    for (int layer = 0; layer < L; ++layer) {
+        const vector<int>& ms = combos[chosenComb[layer]];
+        for (int r : ms) {
+            const auto& edges = matchings[r];
+            for (auto e : edges) {
+                int a = e.first;
+                int b = e.second;
+                int idA = a * L + layer;
+                int idB = b * L + layer;
+                E.emplace_back(idA, idB);
+            }
+        }
+    }
+
+    return {T, E};
+}
+```
+
+# Best known solution for Band K = 6..10 (worth 20 points)
+
+Additional constraints of this subtask: 6 <= K <= 10 (five of the statement's subtasks, 4 points each)
+Source file: `solutions/band_k6to10_magiccity.cpp`
+Score this program achieved on Band K = 6..10: **20 out of 20 -- full marks across the whole band**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/*  Magic City construction.
+ *
+ *  The solution uses the classic 1‑factorisation of the complete graph on
+ *  T = 2*K vertices (the attraction types).  It yields (T‑1) perfect matchings,
+ *  called “rounds”.  Each round is a set of K disjoint edges; every unordered
+ *  pair of types appears in exactly one round.
+ *
+ *  A block is a collection of K different rounds.  Inside one block every
+ *  vertex (type) has exactly one incident edge from each round, therefore its
+ *  degree inside the block equals the number of rounds in the block (≤ K).
+ *
+ *  Condition 1 requires that for any three types (t1,t2,t3) with t1≠t2 and
+ *  t3≠t2 the attraction of type t2 has neighbours of types t1 and t3.
+ *  The edge (t2,t1) belongs to a unique round R1, the edge (t2,t3) to a unique
+ *  round R2.  Hence we only need a block that contains both rounds R1 and R2.
+ *  Consequently we have to select a family of blocks (subsets of rounds) such
+ *  that every unordered pair of rounds occurs together in at least one block.
+ *
+ *  The program searches (by backtracking) for at most six blocks,
+ *  each containing exactly K rounds, covering all pairs of rounds.
+ *  For K∈[6,10] such a family always exists.
+ *
+ *  After the blocks are fixed we create N = T * B vertices
+ *  (one copy of each type per block) and add all edges of the rounds that
+ *  belong to the block.  Each vertex has degree K, satisfying Condition 2,
+ *  and the covering property guarantees Condition 1.
+ */
+
+pair<vector<int>, vector<pair<int,int>>> construct (int K) {
+    const int T = 2 * K;                 // number of types (vertices per block)
+    const int V = T - 1;                 // number of rounds = 2*K-1
+    const int BLOCKSIZE = K;             // rounds per block (degree = K)
+    const int MAX_BLOCKS = 6;            // enough for all K (full score)
+    const int MAX_PAIRS = 400;           // > V*V, safe for V≤19
+
+    /* ---------- generate the V perfect matchings (rounds) ---------- */
+    // roundEdges[r] : list of K unordered pairs (u,v) for round r
+    vector<vector<pair<int,int>>> roundEdges(V);
+    int pivot = T - 1;                    // fixed vertex in the classic construction
+    for (int r = 0; r < V; ++r) {
+        vector<pair<int,int>> edges;
+        // edge between pivot and the current vertex r
+        edges.emplace_back(pivot, r);
+        // remaining K‑1 edges
+        for (int i = 1; i < K; ++i) {
+            int a = (r + i) % V;
+            int b = (r - i + V) % V;
+            edges.emplace_back(a, b);
+        }
+        roundEdges[r] = move(edges);      // each has exactly K edges
+    }
+
+    /* ---------- generate all subsets of rounds of size BLOCKSIZE ---------- */
+    struct Subset {
+        uint32_t mask;                 // bits of selected rounds (0 … V-1)
+        bitset<MAX_PAIRS> pairMask;    // which unordered round‑pairs are covered
+    };
+    vector<Subset> subsets;
+    vector<int> cur;
+    function<void(int,int)> gen = [&](int start, int left) {
+        if (left == 0) {
+            uint32_t mask = 0;
+            for (int x : cur) mask |= (1u << x);
+            Subset s;
+            s.mask = mask;
+            // mark all unordered pairs of rounds inside this subset
+            for (size_t i = 0; i < cur.size(); ++i)
+                for (size_t j = i + 1; j < cur.size(); ++j) {
+                    int a = cur[i];
+                    int b = cur[j];          // a < b because cur is increasing
+                    int idx = a * V + b;      // unique index for the pair (a,b)
+                    s.pairMask.set(idx);
+                }
+            subsets.push_back(std::move(s));
+            return;
+        }
+        for (int i = start; i <= V - left; ++i) {
+            cur.push_back(i);
+            gen(i + 1, left - 1);
+            cur.pop_back();
+        }
+    };
+    gen(0, BLOCKSIZE);
+
+    /* ---------- full mask of all unordered round‑pairs ---------- */
+    bitset<MAX_PAIRS> fullMask;
+    for (int a = 0; a < V; ++a)
+        for (int b = a + 1; b < V; ++b)
+            fullMask.set(a * V + b);
+
+    const int PAIRS_PER_BLOCK = BLOCKSIZE * (BLOCKSIZE - 1) / 2;
+
+    vector<int> chosen, answer;
+    bool solved = false;
+
+    function<void(const bitset<MAX_PAIRS>&, int)> dfs =
+        [&](const bitset<MAX_PAIRS>& covered, int depth) {
+            if (solved) return;
+            if (covered == fullMask) {
+                answer = chosen;
+                solved = true;
+                return;
+            }
+            if (depth == MAX_BLOCKS) return;
+
+            int remaining = (int)(fullMask.count() - covered.count());
+            int need = (remaining + PAIRS_PER_BLOCK - 1) / PAIRS_PER_BLOCK;
+            if (depth + need > MAX_BLOCKS) return;   // prune: not enough blocks left
+
+            // find first uncovered pair (a,b)
+            int a = -1, b = -1;
+            for (int i = 0; i < V && a == -1; ++i)
+                for (int j = i + 1; j < V; ++j)
+                    if (!covered.test(i * V + j)) { a = i; b = j; break; }
+
+            // candidate subsets that contain both a and b
+            vector<pair<int,int>> cand;               // (negative newPairs , subset index)
+            for (int idx = 0; idx < (int)subsets.size(); ++idx) {
+                const Subset& s = subsets[idx];
+                if ( (s.mask & (1u<<a)) && (s.mask & (1u<<b)) ) {
+                    bitset<MAX_PAIRS> add = s.pairMask & (~covered);
+                    int newCnt = (int)add.count();
+                    if (newCnt > 0)
+                        cand.emplace_back(-newCnt, idx);   // minus for descending sort
+                }
+            }
+            sort(cand.begin(), cand.end());   // best candidates first
+
+            // try candidates (limit to first 200 to keep search fast)
+            int limit = (int)cand.size();
+            if (limit > 200) limit = 200;
+            for (int i = 0; i < limit; ++i) {
+                int idx = cand[i].second;
+                const Subset& s = subsets[idx];
+                chosen.push_back(idx);
+                dfs(covered | s.pairMask, depth + 1);
+                chosen.pop_back();
+                if (solved) return;
+            }
+        };
+
+    dfs(bitset<MAX_PAIRS>(), 0);
+    int B = (int)answer.size();          // number of blocks found
+    if (!solved) {                       // safety fallback – should never happen
+        B = MAX_BLOCKS;
+        answer.clear();
+        for (int i = 0; i < B; ++i) answer.push_back(i);
+    }
+
+    /* ---------- build vertices (types) and edges ---------- */
+    int N = T * B;
+    vector<int> types(N);
+    for (int t = 0; t < T; ++t)
+        for (int i = 0; i < B; ++i)
+            types[t * B + i] = t;
+
+    vector<pair<int,int>> edges;
+    for (int i = 0; i < B; ++i) {
+        const Subset& s = subsets[answer[i]];
+        // iterate over all rounds present in this block
+        for (int r = 0; r < V; ++r) {
+            if (s.mask & (1u << r)) {
+                // add all edges of round r inside this block
+                for (auto [u, v] : roundEdges[r]) {
+                    int id1 = u * B + i;   // vertex of type u in block i
+                    int id2 = v * B + i;   // vertex of type v in block i
+                    edges.emplace_back(id1, id2);
+                }
+            }
+        }
+    }
+
+    return {types, edges};
+}
+```
+
+# Best known solution for Band K = 11..12 (worth 6 points)
+
+Additional constraints of this subtask: 11 <= K <= 12 (two subtasks, 3 points each)
+Source file: `solutions/band_k11to12_magiccity.cpp`
+Score this program achieved on Band K = 11..12: **6 out of 6 -- full marks across the whole band**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/* -------------------------------------------------------------
+   Construct a Magic City for a given K.
+   ------------------------------------------------------------- */
+pair<vector<int>, vector<pair<int, int>>> construct(int K)
+{
+    const int nTypes = 2 * K;            // number of different types
+    const int v = nTypes - 1;            // number of perfect matchings (= 2K‑1)
+    const int blockSize = K;             // each copy must contain K matchings
+
+    /* ---------------------------------------------------------
+       1.  Build a 1‑factorisation of the complete graph K_{2K}.
+           For each round r (0 ≤ r < v) we get a perfect matching.
+           partner[t][r] = the vertex matched with t in round r.
+       --------------------------------------------------------- */
+    vector<vector<int>> partner(nTypes, vector<int>(v));
+    const int fixed = nTypes - 1;        // the vertex kept stationary
+
+    for (int r = 0; r < v; ++r) {
+        partner[fixed][r] = r;
+        partner[r][r] = fixed;
+        for (int i = 1; i < K; ++i) {   // K‑1 other pairs
+            int a = (r + i) % v;
+            int b = (r - i + v) % v;
+            partner[a][r] = b;
+            partner[b][r] = a;
+        }
+    }
+
+    /* ---------------------------------------------------------
+       2.  We need a family of K‑element subsets of {0,…,v‑1}
+           (i.e. a family of blocks of matchings) such that every
+           unordered pair of matchings appears together in at least
+           one block.  This is a covering design problem.
+           v ≤ 23, so a simple greedy algorithm is sufficient.
+       --------------------------------------------------------- */
+    const int MAXV = 24;
+    const int MAXP = 300;                // > C(23,2) = 253
+    static int pairIdx[MAXV][MAXV];
+    int pairCnt = 0;
+    for (int i = 0; i < v; ++i)
+        for (int j = i + 1; j < v; ++j)
+            pairIdx[i][j] = pairIdx[j][i] = pairCnt++;
+
+    using BS = bitset<MAXP>;
+    BS uncovered;
+    for (int i = 0; i < pairCnt; ++i) uncovered.set(i);
+
+    vector<vector<int>> blocks;          // each block = a list of matchings
+
+    while (uncovered.any()) {
+        // count how many uncovered pairs each matching participates in
+        vector<int> cnt(v, 0);
+        for (int i = 0; i < v; ++i)
+            for (int j = i + 1; j < v; ++j)
+                if (uncovered[pairIdx[i][j]]) {
+                    ++cnt[i];
+                    ++cnt[j];
+                }
+
+        // first element : the matching with maximal cnt
+        int first = 0;
+        for (int i = 1; i < v; ++i)
+            if (cnt[i] > cnt[first]) first = i;
+
+        vector<int> cur;
+        cur.reserve(blockSize);
+        vector<char> used(v, 0);
+        cur.push_back(first);
+        used[first] = 1;
+
+        // add remaining matchings greedily
+        while ((int)cur.size() < blockSize) {
+            int best = -1, bestAdd = -1;
+            for (int o = 0; o < v; ++o) if (!used[o]) {
+                int add = 0;
+                for (int s : cur) {
+                    int idx = (o < s) ? pairIdx[o][s] : pairIdx[s][o];
+                    if (uncovered[idx]) ++add;
+                }
+                if (add > bestAdd) {
+                    bestAdd = add;
+                    best = o;
+                }
+            }
+            if (best == -1) {   // no uncovered pair can be added – fill arbitrarily
+                for (int o = 0; o < v; ++o) if (!used[o]) { best = o; break; }
+            }
+            cur.push_back(best);
+            used[best] = 1;
+        }
+
+        // mask of all pairs covered by this block
+        BS mask;
+        for (int a = 0; a < blockSize; ++a)
+            for (int b = a + 1; b < blockSize; ++b) {
+                int i1 = cur[a], i2 = cur[b];
+                int idx = (i1 < i2) ? pairIdx[i1][i2] : pairIdx[i2][i1];
+                mask.set(idx);
+            }
+        uncovered &= ~mask;
+        blocks.push_back(std::move(cur));
+    }
+
+    // Special case K = 1 (v = 1, pairCnt = 0) – greedy loop creates no block.
+    if (blocks.empty()) {
+        vector<int> cur;
+        for (int i = 0; i < blockSize; ++i) cur.push_back(i % v);
+        blocks.push_back(std::move(cur));
+    }
+
+    const int m = (int)blocks.size();          // number of copies per type
+    const int N = nTypes * m;                  // total number of attractions
+
+    // ---------------------------------------------------------
+    // 3.  Types of attractions
+    // ---------------------------------------------------------
+    vector<int> T(N);
+    for (int t = 0; t < nTypes; ++t)
+        for (int i = 0; i < m; ++i)
+            T[t * m + i] = t;
+
+    // ---------------------------------------------------------
+    // 4.  Walkways (edges)
+    // ---------------------------------------------------------
+    vector<pair<int, int>> E;
+    E.reserve(N * K / 2);                     // each vertex degree = K
+
+    for (int i = 0; i < m; ++i) {             // one layer per block
+        const vector<int> &matchings = blocks[i];
+        for (int t = 0; t < nTypes; ++t) {
+            int a = t * m + i;                // vertex id of (type t , copy i)
+            for (int r : matchings) {
+                int u_type = partner[t][r];
+                int b = u_type * m + i;       // same copy i, partner type
+                if (a < b) E.emplace_back(a, b);
+            }
+        }
+    }
+
+    // ---------------------------------------------------------
+    // 5.  Return the constructed park
+    // ---------------------------------------------------------
+    return {T, E};
+}
+```
+
+# Best known solution for Band K = 13..50 (worth 38 points)
+
+Additional constraints of this subtask: 13 <= K <= 50 (thirty-eight subtasks, 1 point each)
+Source file: `solutions/band_k13to50_magiccity.cpp`
+Score this program achieved on Band K = 13..50: **38 out of 38 -- full marks across the whole band**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+// ------------------------------------------------------------
+//  construct(K)
+// ------------------------------------------------------------
+pair<vector<int>, vector<pair<int,int>>>
+construct (int K)
+{
+    const int V = 2 * K;                 // number of types, V is even
+    const int R = V - 1;                 // number of matchings we will use
+
+    // ---------- generate a 1‑factorisation of K_V ----------
+    // matchings[m] = list of edges of the m-th perfect matching (0‑based)
+    vector<vector<pair<int,int>>> matchings;
+    matchings.reserve(R);
+    // vertices 0 .. V-2 are arranged on a circle, vertex V-1 is the pivot
+    vector<int> a(V-1);
+    for (int i = 0; i < V-1; ++i) a[i] = i;
+    int pivot = V-1;
+    for (int r = 0; r < R; ++r) {
+        vector<pair<int,int>> cur;
+        // pair pivot with a[r]
+        cur.emplace_back(pivot, a[r]);
+        // other pairs, each round rotates the circle
+        for (int i = 1; i < V/2; ++i) {
+            int x = a[(r + i) % (V-1)];
+            int y = a[(r + (V-1) - i) % (V-1)];
+            cur.emplace_back(x, y);
+        }
+        matchings.push_back(std::move(cur));
+    }
+
+    // ---------- covering design on the set {0..R-1} ----------
+    // we need a family of subsets (blocks) of size <= K such that
+    // every unordered pair of indices appears together in at least one block.
+    vector<vector<char>> uncovered(R, vector<char>(R, 0));
+    int totalPairs = 0;
+    for (int i = 0; i < R; ++i)
+        for (int j = i+1; j < R; ++j) {
+            uncovered[i][j] = 1;
+            ++totalPairs;
+        }
+
+    vector<vector<int>> blocks;   // each block = list of matching indices
+    while (totalPairs > 0) {
+        // choose element with maximal remaining degree
+        int best = -1, bestDeg = -1;
+        for (int e = 0; e < R; ++e) {
+            int deg = 0;
+            for (int f = 0; f < R; ++f) if (e != f) {
+                int u = min(e,f), v = max(e,f);
+                if (uncovered[u][v]) ++deg;
+            }
+            if (deg > bestDeg) {
+                bestDeg = deg;
+                best = e;
+            }
+        }
+
+        vector<int> cur;
+        vector<char> used(R, 0);
+        cur.push_back(best);
+        used[best] = 1;
+
+        // greedily enlarge the block up to size K
+        while ((int)cur.size() < K && totalPairs > 0) {
+            int cand = -1, bestGain = -1;
+            for (int e = 0; e < R; ++e) if (!used[e]) {
+                int gain = 0;
+                for (int f : cur) {
+                    int u = min(e,f), v = max(e,f);
+                    if (uncovered[u][v]) ++gain;
+                }
+                if (gain > bestGain) {
+                    bestGain = gain;
+                    cand = e;
+                }
+            }
+            if (cand == -1 || bestGain == 0) break;   // nothing useful to add
+            cur.push_back(cand);
+            used[cand] = 1;
+        }
+
+        blocks.push_back(cur);
+
+        // delete all pairs inside this block from the uncovered set
+        for (size_t i = 0; i < cur.size(); ++i)
+            for (size_t j = i+1; j < cur.size(); ++j) {
+                int u = min(cur[i], cur[j]), v = max(cur[i], cur[j]);
+                if (uncovered[u][v]) {
+                    uncovered[u][v] = 0;
+                    --totalPairs;
+                }
+            }
+    }
+
+    const int S = (int)blocks.size();   // number of copies per type
+    const int N = V * S;                // total number of attractions
+
+    // ---------- types of attractions ----------
+    vector<int> T(N);
+    for (int t = 0; t < V; ++t)
+        for (int i = 0; i < S; ++i)
+            T[t * S + i] = t;
+
+    // ---------- walkways ----------
+    vector<pair<int,int>> E;
+    for (int i = 0; i < S; ++i) {                 // one block per copy index
+        const vector<int> &ids = blocks[i];       // matching indices used in this block
+        for (int mid : ids) {
+            const vector<pair<int,int>> &M = matchings[mid];
+            for (auto [a,b] : M) {
+                int u = a * S + i;
+                int v = b * S + i;
+                E.emplace_back(u, v);              // undirected edge
+            }
+        }
+    }
+
+    return {T, E};
+}
+```
+
+# Your task
+
+Merge the programs below into a **single submission** that covers every subtask.
+Route between them with `if`/`else` on what the grader actually gives you.
+
+Rules:
+
+1. **Copy each solution verbatim, including every comment, from its first line to
+   its last.** Do not rewrite, re-indent, tidy, shorten, or "improve" any of
+   them, and do not drop a file's header comment. Put each in its own `namespace`
+   so their helpers cannot collide.
+2. The only code you write yourself is the dispatcher, plus any small helper it
+   needs to classify the input.
+3. **Every `#include` must sit at the very top of the file, outside every
+   namespace.** A standard header expanded inside a namespace nests the whole of
+   `std` inside it and the file does not compile at all (`isalnum has not been
+   declared in '::'` and hundreds like it). Hoist the includes from each solution
+   to the top, merge the duplicates, and leave a comment where one was removed.
+   `using namespace std;` may stay at global scope.
+4. Functions the grader provides must be declared once, at global scope. A
+   declaration inside a namespace declares a *different* symbol and the program
+   will not link.
+5. Say in a comment where each namespace came from, using the file paths given.
+6. The result must compile as a single translation unit against the grader
+   header, with `-std=gnu++17`. Check this mentally before answering.
+7. **Every solution must be reachable from the dispatcher, or you must justify in
+   a comment why it cannot be.** Do not quietly drop one. If you route a
+   subtask's range to a different subtask's solution, say so and give your reason.
+
+Think about the dispatch conditions carefully.
+
+The grader calls `construct(int K)` once, so `K` is the only input -- and it is
+exactly what separates the subtasks. Every band below is an interval of `K`, the
+intervals are disjoint and together cover 1..50, so a chain of comparisons on `K`
+routes every input to precisely one solution with nothing left over and nothing
+overlapping. This is the whole of the dispatch; there is no hidden condition here.
+
+Note what the bands mean. The statement's subtask i is the single value K = i, and
+several consecutive ones carry the same per-subtask score, so they are grouped:
+the band K = 6..10 is five of the statement's subtasks at 4 points each, which is
+why it is worth 20. The program given for a band was checked across that whole
+band, not at one K.
+
+* All eight programs score full marks on their own band, so every one of them is
+  worth keeping and every one is reachable: `K` decides, and the bands partition
+  1..50. Route each band to its own program and the merged file scores what the
+  eight scored separately, 100 points.
+* Do not collapse bands. Two adjacent bands may look similar but the programs were
+  each verified only on their own range, and marks here depend on `N`, the number
+  of attractions built: a program that is valid for a neighbouring `K` may still
+  build too many attractions there and drop to a fraction of the band's score by
+  the N-versus-P table. Keep the mapping one band, one program.
+* `construct` is called once with a single `K`, so there is no interaction to keep
+  consistent and no later call that could contradict the branch taken.
+
+Where two subtasks cannot be told apart from what the grader passes you, say
+which one you gave the range to and why. Do not pretend a branch is reachable
+when it is not.
+
+Reply with the complete merged file in one ```cpp block.

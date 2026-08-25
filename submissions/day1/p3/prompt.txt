@@ -1,0 +1,732 @@
+You are an expert competitive programmer. Below is an IOI 2026 problem, followed
+by the best known C++ solution for each of its subtasks. Each was written for one
+subtask alone, and the score it achieved there is stated.
+
+# Problem statement
+
+You are an expert competitive programmer. You will be given a problem statement, constraints, and example test cases. Please reason step by step about the solution, then provide a complete implementation in C++17.
+
+Please solve the problem exactly according to the requirements in the problem statement. Follow the input/output format, function signatures, implementation details, and any special requirements specified in the problem itself. If the problem requires standard input/output, include a complete program with `main`. If the problem requires implementing specific routines/classes without `main`, only implement what is requested.
+
+Assume your code will be run on the OFFICIAL grader, and do not add a main function, a sample grader, or any other functionality unless it has been explicitly requested.
+
+Put your final solution within a single code block:
+
+
+```cpp
+// your code here
+```
+
+# [IOI 2026] Day 1. Tiling Game
+
+**Time limit:** 1 second &nbsp;&nbsp; **Memory limit:** 2048 megabytes
+
+# Tiling Game
+
+Barchin and Charos are playing a game on a grid of $2N \times 2M$ unit square cells. The rows are numbered $0$ to $2N-1$ from top to bottom, and the columns are numbered $0$ to $2M-1$ from left to right. For $0 \le i < 2N$ and $0 \le j < 2M$, we denote the cell in row $i$ and column $j$ by $(i, j)$.
+
+Barchin gives Charos $N \cdot M$ blocks, one by one. Each block is a $2 \times 2$ square consisting of four $1 \times 1$ tiles. Barchin has colored every tile of the block either black or white while guaranteeing that at least one tile is white.
+
+Charos must place each block on the grid immediately after receiving it, without knowing what blocks she will receive later. Blocks cannot be rotated. Each block must be placed entirely inside the grid, covering exactly four grid cells. Moreover, the top-left tile of each block must cover a cell whose row and column coordinates are both even. Each cell of the grid can be covered by at most one block.
+
+Barchin wins the game if, after any block is placed, there exists a $2 \times 2$ square of cells that is covered by four black tiles. Formally, if cells $(a, b)$, $(a+1, b)$, $(a, b+1)$, $(a+1, b+1)$ are all covered by black tiles for some $0 \le a < 2N-1$ and $0 \le b < 2M-1$, then Barchin wins. The indices $a$ and $b$ do not need to be even.
+
+Charos wins if she places all $N \cdot M$ blocks without Barchin ever winning. Note that placing $N \cdot M$ blocks will completely cover the grid.
+
+Your task is to implement a strategy for Charos to win the game. It can be proven that, under the given constraints, Charos can always place the blocks so as to guarantee a win, regardless of the colorings of the blocks she receives later.
+
+## Implementation Details
+
+You should implement two procedures:
+
+```cpp
+void init(int N, int M)
+```
+
+- $N$: half the number of rows in the grid.
+- $M$: half the number of columns in the grid.
+- The procedure is called exactly once per test case, at the beginning of the execution of your program.
+
+```cpp
+std::pair<int, int> receive_block(int TL, int TR, int BL, int BR)
+```
+
+- `TL`, `TR`, `BL`, `BR`: the colors of the top-left, top-right, bottom-left, and bottom-right tiles of the current block, respectively, as shown in the figure below. Each value is either $0$ (white) or $1$ (black).
+
+![A 2 by 2 block whose four tiles are labelled TL, TR in the top row and BL, BR in the bottom row.](/images/statements/ioi2026/tiling/figblock.png)
+
+> **Figure, in text form.** The four parameters name the four tiles of one $2 \times 2$ block:
+>
+> ```
+> +----+----+
+> | TL | TR |
+> +----+----+
+> | BL | BR |
+> +----+----+
+> ```
+>
+> If the block is placed with its top-left tile on cell $(i, j)$, then tile `TL` covers cell $(i, j)$, `TR` covers $(i, j+1)$, `BL` covers $(i+1, j)$ and `BR` covers $(i+1, j+1)$.
+
+- This procedure is called exactly $N \cdot M$ times per test case, after the initial call to `init`.
+- This procedure should return a pair of integers $(i, j)$, where $i$ is the row coordinate and $j$ is the column coordinate of the cell where the top-left tile of this block should be placed. Both $i$ and $j$ must be even, and the $2 \times 2$ region covered by the block must not overlap any previously placed block.
+
+If `receive_block` ever returns a pair that does not satisfy these requirements, or if after placing the block a $2 \times 2$ square of cells becomes completely covered by black tiles, the grader will immediately terminate your program and the verdict for the test case will be `Output isn't correct`.
+
+The behaviour of the grader is not adaptive. This means that the sequence of blocks Barchin gives to Charos is fixed before `init` is called.
+
+## Constraints
+
+For each block, let $S$ be the number of black tiles among its four tiles. That is, $S = TL + TR + BL + BR$.
+
+- $1 \le N, M \le 100$
+- $0 \le S \le 3$ for every block.
+
+## Subtasks
+
+| Subtask | Score | Additional Constraints |
+|---------|-------|------------------------|
+| 1 | 6 | $S = 1$ for every block, and $N = 2$. |
+| 2 | 16 | $S = 3$ for every block. $N = M$, $N$ is even, and each of the four possible block colorings appears exactly $\frac{N^2}{4}$ times. |
+| 3 | 10 | $S = 1$ for every block. |
+| 4 | 29 | $S \le 2$ for every block. |
+| 5 | 39 | No additional constraints. |
+
+## Example
+
+Consider a game with $N = 1$ and $M = 2$, so the grid has $2$ rows and $4$ columns. The grader first calls:
+
+```
+init(1, 2)
+```
+
+Initially, all cells are empty. The grid looks like this:
+
+![An empty 2 by 4 grid, with rows labelled 0 and 1 and columns labelled 0 to 3.](/images/statements/ioi2026/tiling/fig1.png)
+
+> **Figure, in text form.** A $2 \times 4$ grid, rows labelled $0..1$ top to bottom, columns labelled $0..3$ left to right. Hatched cells are empty (not yet covered).
+>
+> ```
+>        col 0  1  2  3
+> row 0:      .  .  .  .
+> row 1:      .  .  .  .
+>
+> B = covered by a black tile
+> W = covered by a white tile
+> . = empty cell
+> ```
+
+There are $N \cdot M = 2$ blocks to place. Suppose Barchin gives a block with three black tiles and one white tile at the top-right corner. The grader calls:
+
+```
+receive_block(1, 0, 1, 1)
+```
+
+Charos decides to place this block at the left side of the grid by returning $(0, 0)$. The grid now looks like this:
+
+![The 2 by 4 grid after the first block is placed at (0,0): cells (0,0), (1,0) and (1,1) are black, cell (0,1) is white, and columns 2 and 3 are still empty.](/images/statements/ioi2026/tiling/fig2.png)
+
+> **Figure, in text form.** After placing the block `(TL, TR, BL, BR) = (1, 0, 1, 1)` with its top-left tile on cell $(0, 0)$:
+>
+> ```
+>        col 0  1  2  3
+> row 0:      B  W  .  .
+> row 1:      B  B  .  .
+> ```
+>
+> Cell $(0, 1)$ is white because `TR` $= 0$; the other three covered cells are black. Columns $2$ and $3$ are still empty.
+
+Barchin then gives another block with three black tiles and one white tile at the top-left corner:
+
+```
+receive_block(0, 1, 1, 1)
+```
+
+The only remaining cell with even row and even column that can serve as the top-left corner of a $2 \times 2$ block is $(0, 2)$, so Charos returns $(0, 2)$. The grid ends up like this:
+
+![The fully covered 2 by 4 grid: row 0 is black, white, white, black and row 1 is entirely black.](/images/statements/ioi2026/tiling/fig3.png)
+
+> **Figure, in text form.** After placing the second block `(TL, TR, BL, BR) = (0, 1, 1, 1)` with its top-left tile on cell $(0, 2)$, the whole grid is covered:
+>
+> ```
+>        col 0  1  2  3
+> row 0:      B  W  W  B
+> row 1:      B  B  B  B
+> ```
+>
+> The only candidates for an all-black $2 \times 2$ square are the column pairs $(b, b+1)$ for $b \in \{0, 1, 2\}$ in the single row pair $a = 0$, and each of them contains at least one white cell: $(0,1)$ is white for $b \in \{0, 1\}$ and $(0,2)$ is white for $b \in \{1, 2\}$.
+
+No $2 \times 2$ square is completely covered by black tiles, so Charos has successfully placed all blocks without Barchin ever winning. Charos wins the game.
+
+
+# Best known solution for Subtask 1 (worth 6 points)
+
+Additional constraints of this subtask: S = 1 for every block, and N = 2.
+Source file: `solutions/subtask1_tiling.cpp`
+Score this program achieved on Subtask 1: **6 out of 6 -- full marks**.
+
+```cpp
+// ---------------------------------------------------------------
+//  Tiling Game – Subtask 1 (N = 2, exactly one black tile)
+//  Winning strategy described in the editorial above.
+// ---------------------------------------------------------------
+
+#include <bits/stdc++.h>
+using namespace std;
+
+static int N_global;          // always 2 in this subtask
+static int M_global;          // number of block columns
+static int topRow;            // row index of the upper block row (0)
+static int bottomRow;         // row index of the lower block row (2)
+static int nextColumn;        // index of the next still unused column (0 … M-1)
+
+static bool pending;          // true ⇔ a column already has one block
+static int pendingCol;        // that column index
+static int pendingRow;        // row (0 or 2) where the first block of that column was placed
+
+// ----------------------------------------------------------------
+// called once before the game begins
+void init(int N, int M) {
+    N_global = N;               // N == 2 for this subtask
+    M_global = M;
+    topRow    = 0;                     // first even row
+    bottomRow = 2 * (N - 1);           // last even row (for N=2 this is 2)
+    nextColumn = 0;
+    pending    = false;
+    pendingCol = -1;
+    pendingRow = -1;
+}
+
+// ----------------------------------------------------------------
+// called for every received block; return the top‑left corner of its placement
+pair<int,int> receive_block(int TL, int TR, int BL, int BR) {
+    // exactly one of the four numbers is 1 → identify the black corner
+    int type;
+    if (TL) type = 0;
+    else if (TR) type = 1;
+    else if (BL) type = 2;
+    else          type = 3;   // BR
+
+    int col;       // column index (0 … M-1)
+    int rowEven;   // row coordinate (0 or bottomRow)
+
+    if (!pending) {                     // start a new column
+        col = nextColumn++;
+        // preferred row for the first block of a column
+        if (type == 0 || type == 1) rowEven = topRow;      // top row
+        else                         rowEven = bottomRow; // bottom row
+        // store information for the second block of this column
+        pending    = true;
+        pendingCol = col;
+        pendingRow = rowEven;
+    } else {                            // finish the pending column
+        col = pendingCol;
+        // the other row of the same column
+        rowEven = (pendingRow == topRow) ? bottomRow : topRow;
+        pending = false;               // column is now full
+    }
+
+    // column j‑coordinate is the even column index 2*col
+    int j = 2 * col;
+    return {rowEven, j};
+}
+```
+
+# Best known solution for Subtask 2 (worth 16 points)
+
+Additional constraints of this subtask: S = 3 for every block. N = M, N is even, and each of the four possible block colorings appears exactly N^2/4 times.
+Source file: `solutions/subtask2_tiling.cpp`
+Score this program achieved on Subtask 2: **16 out of 16 -- full marks**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/* -------------- global data ---------------- */
+static int N_, M_;                     // numbers of macro rows / columns
+static vector<pair<int,int>> cells[4]; // cells of each type (TL,TR,BL,BR)
+
+/* -------------- initialisation ------------ */
+void init(int N, int M) {
+    N_ = N; M_ = M;
+    int halfN = N / 2;
+    int halfM = M / 2;
+    for (int t = 0; t < 4; ++t) cells[t].clear();
+
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < M; ++j) {
+            int type;
+            if (i < halfN) {                  // column‑bit = L
+                if (j < halfM) type = 0;      // TL‑white
+                else          type = 2;      // BL‑white
+            } else {                          // column‑bit = R
+                if (j < halfM) type = 1;      // TR‑white
+                else          type = 3;      // BR‑white
+            }
+            cells[type].push_back({i, j});
+        }
+    }
+}
+
+/* -------------- block handling ------------- */
+pair<int,int> receive_block(int TL, int TR, int BL, int BR) {
+    int type;
+    if (TL == 0)       type = 0;   // white at TL
+    else if (TR == 0)  type = 1;   // white at TR
+    else if (BL == 0)  type = 2;   // white at BL
+    else               type = 3;   // white at BR (the remaining case)
+
+    // take any still free macro cell of this type
+    pair<int,int> mac = cells[type].back();
+    cells[type].pop_back();
+
+    // convert macro coordinates to board coordinates (both even)
+    int row = mac.first  * 2;
+    int col = mac.second * 2;
+    return {row, col};
+}
+```
+
+# Best known solution for Subtask 3 (worth 10 points)
+
+Additional constraints of this subtask: S = 1 for every block.
+Source file: `solutions/subtask3_tiling.cpp`
+Score this program achieved on Subtask 3: **10 out of 10 -- full marks**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+static int N, M;                         // board size
+static vector<vector<char>> used;        // cell already occupied ?
+static vector<vector<int>> cap;          // remaining capacity of macro blocks
+
+// direction of the corner belonging to each type
+// type 0 : OO (bottom‑right), 1 : OE (bottom‑left), 2 : EO (top‑right), 3 : EE (top‑left)
+static const int dx[4] = {0, 0, 1, 1};
+static const int dy[4] = {0, 1, 0, 1};
+
+/* -------- lists of safe border cells --------------------------------- */
+static vector<pair<int,int>> safeCell[4];   // safe cells for each type
+static size_t safePos[4];                   // next unchecked safe cell
+
+/* -------- list of macro blocks --------------------------------------- */
+static vector<pair<int,int>> macro;         // (a , b) – top left macro block
+static size_t macroPos[4];                  // next macro block to try for each type
+
+/* ----------  initialisation  ---------------------------------------- */
+extern void init(int N_, int M_)
+{
+    N = N_;  M = M_;
+    used.assign(N, vector<char>(M, 0));
+
+    if (N >= 2 && M >= 2) {
+        cap.assign(N-1, vector<int>(M-1, 2));          // capacity = 2
+    }
+
+    for (int t = 0; t < 4; ++t) {
+        safeCell[t].clear();
+        safePos[t] = 0;
+        macroPos[t] = 0;
+    }
+
+    /* safe border cells, see Lemma 1 */
+    for (int i = 0; i < N; ++i)
+        for (int j = 0; j < M; ++j) {
+            if (i == N-1 || j == M-1) safeCell[0].push_back({i,j}); // OO
+            if (i == N-1 || j == 0)   safeCell[1].push_back({i,j}); // OE
+            if (i == 0    || j == M-1) safeCell[2].push_back({i,j}); // EO
+            if (i == 0    || j == 0)   safeCell[3].push_back({i,j}); // EE
+        }
+
+    /* macro blocks */
+    macro.clear();
+    if (N >= 2 && M >= 2) {
+        for (int a = 0; a < N-1; ++a)
+            for (int b = 0; b < M-1; ++b)
+                macro.emplace_back(a,b);
+    }
+}
+
+/* ----------  handling one block  ------------------------------------ */
+extern pair<int,int> receive_block(int TL, int TR, int BL, int BR)
+{
+    int type;                     // 0 = OO, 1 = OE, 2 = EO, 3 = EE
+    if (TL) type = 3;             // EE
+    else if (TR) type = 2;        // EO
+    else if (BL) type = 1;        // OE
+    else       type = 0;          // OO
+
+    /* 1) try a safe border cell */
+    while (safePos[type] < safeCell[type].size()) {
+        auto [x, y] = safeCell[type][safePos[type]++];
+        if (!used[x][y]) {
+            used[x][y] = 1;
+            return {2*x, 2*y};
+        }
+    }
+
+    /* 2) no safe cell – use an interior cell, respecting capacities */
+    while (macroPos[type] < macro.size()) {
+        auto [a, b] = macro[macroPos[type]++];
+        if (cap[a][b] == 0) continue;               // already full
+
+        int x = a + dx[type];
+        int y = b + dy[type];
+        if (!used[x][y]) {
+            used[x][y] = 1;
+            --cap[a][b];                            // one dangerous corner placed
+            return {2*x, 2*y};
+        }
+    }
+
+    /* This point is never reached – the proof guarantees a placement exists.
+       The fallback is only for safety. */
+    for (int i = 0; i < N; ++i)
+        for (int j = 0; j < M; ++j)
+            if (!used[i][j]) {
+                used[i][j] = 1;
+                return {2*i, 2*j};
+            }
+
+    return {0,0};   // should never happen
+}
+```
+
+# Best known solution for Subtask 4 (worth 29 points)
+
+Additional constraints of this subtask: S <= 2 for every block.
+Source file: `solutions/subtask4_tiling.cpp`
+Score this program achieved on Subtask 4: **29 out of 29 -- full marks**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/*  Tiling Game – Charos' strategy
+ *
+ *  The board consists of N × M macro cells (each macro cell corresponds to a
+ *  2×2 placement).  For every macro row r we keep the interval of still
+ *  admissible columns [rowLow[r] , rowHigh[r}) and for every macro column c
+ *  the interval of admissible rows [colLow[c] , colHigh[c}).  Initially the
+ *  whole board is admissible.
+ *
+ *  Each block contains at least one white tile, therefore it has at least one
+ *  white corner.  According to the corner we use we know which horizontal side
+ *  (left / right) and which vertical side (top / bottom) of the block contain
+ *  a white tile.  The following invariant is maintained:
+ *
+ *      – All blocks whose *left* side contains a white tile are placed to the
+ *        right of all blocks whose *right* side contains a white tile.
+ *      – All blocks whose *top* side contains a white tile are placed below
+ *        all blocks whose *bottom* side contains a white tile.
+ *
+ *  To keep the invariant we always place a block at a corner of the current
+ *  admissible region:
+ *
+ *      TL corner (white on left and top) → column = rowHigh[r]‑1,
+ *                                         row    = colHigh[c]‑1
+ *      TR corner (white on right and top) → column = rowLow[r],
+ *                                          row    = colHigh[c]‑1
+ *      BL corner (white on left and bottom) → column = rowHigh[r]‑1,
+ *                                             row    = colLow[c]
+ *      BR corner (white on right and bottom) → column = rowLow[r],
+ *                                              row    = colLow[c]
+ *
+ *  The coordinates (r,c) have to be still empty and must satisfy the above
+ *  equalities; such a corner always exists as long as there is an empty cell.
+ *  After the placement the corresponding interval is shortened by one cell,
+ *  preserving the invariant.  Consequently no 2×2 square can become completely
+ *  black.
+ */
+
+static int N, M;
+static vector<int> rowLow, rowHigh;   // allowed columns for each row : [low, high)
+static vector<int> colLow, colHigh;   // allowed rows    for each col : [low, high)
+static vector<char> used;             // whether a macro cell is already taken
+
+void init(int n, int m) {
+    N = n; M = m;
+    rowLow.assign(N, 0);
+    rowHigh.assign(N, M);
+    colLow.assign(M, 0);
+    colHigh.assign(M, N);
+    used.assign(N * M, 0);
+}
+
+/*  Try to place a block using a white corner of type `idx`
+ *    idx = 0 → TL, idx = 1 → TR, idx = 2 → BL, idx = 3 → BR
+ *  Returns true if a placement was found.
+ */
+static bool try_place_corner(const int tile[4], int idx, pair<int,int> &out) {
+    // iterate over all rows, look for a cell that is exactly the required corner
+    for (int r = 0; r < N; ++r) {
+        if (rowLow[r] >= rowHigh[r]) continue;          // no free column in this row
+
+        int c, expectedRow;
+        bool ok = true;
+
+        switch (idx) {
+            case 0: // TL : left & top
+                c = rowHigh[r] - 1;
+                if (c < rowLow[r]) { ok = false; break; }
+                if (colLow[c] >= colHigh[c]) { ok = false; break; }
+                expectedRow = colHigh[c] - 1;
+                break;
+            case 1: // TR : right & top
+                c = rowLow[r];
+                if (c >= rowHigh[r]) { ok = false; break; }
+                if (colLow[c] >= colHigh[c]) { ok = false; break; }
+                expectedRow = colHigh[c] - 1;
+                break;
+            case 2: // BL : left & bottom
+                c = rowHigh[r] - 1;
+                if (c < rowLow[r]) { ok = false; break; }
+                if (colLow[c] >= colHigh[c]) { ok = false; break; }
+                expectedRow = colLow[c];
+                break;
+            case 3: // BR : right & bottom
+                c = rowLow[r];
+                if (c >= rowHigh[r]) { ok = false; break; }
+                if (colLow[c] >= colHigh[c]) { ok = false; break; }
+                expectedRow = colLow[c];
+                break;
+            default:
+                ok = false;
+        }
+        if (!ok) continue;
+        if (expectedRow != r) continue;          // not the required extreme row
+        int id = r * M + c;
+        if (used[id]) continue;                   // already occupied
+
+        // perform the placement and shrink the intervals
+        used[id] = 1;
+        if (idx == 0) {               // TL
+            rowHigh[r] = min(rowHigh[r], c);
+            colHigh[c] = min(colHigh[c], r);
+        } else if (idx == 1) {        // TR
+            rowLow[r]  = max(rowLow[r],  c + 1);
+            colHigh[c] = min(colHigh[c], r);
+        } else if (idx == 2) {        // BL
+            rowHigh[r] = min(rowHigh[r], c);
+            colLow[c]  = max(colLow[c],  r + 1);
+        } else {                      // BR
+            rowLow[r]  = max(rowLow[r],  c + 1);
+            colLow[c]  = max(colLow[c],  r + 1);
+        }
+
+        out = {2 * r, 2 * c};
+        return true;
+    }
+    return false;
+}
+
+pair<int,int> receive_block(int TL, int TR, int BL, int BR) {
+    int tile[4] = {TL, TR, BL, BR};
+
+    // Try the four corners in the fixed order TL, TR, BL, BR.
+    for (int idx = 0; idx < 4; ++idx) {
+        if (tile[idx] != 0) continue;               // corner must be white
+        pair<int,int> ans;
+        if (try_place_corner(tile, idx, ans))
+            return ans;
+    }
+
+    // Theoretical guarantee ensures we never reach this point.
+    // As a safety net we fall back to a very simple (still correct) placement.
+    for (int r = 0; r < N; ++r) {
+        for (int c = 0; c < M; ++c) {
+            int id = r * M + c;
+            if (used[id]) continue;
+            for (int idx = 0; idx < 4; ++idx) {
+                if (tile[idx] != 0) continue;
+                // basic feasibility test – same as the original solution
+                int h = (idx == 0 || idx == 2) ? 0 : 1;   // left/right side
+                int v = (idx == 0 || idx == 1) ? 0 : 1;   // top/bottom side
+                bool ok = true;
+                if (h == 0) {
+                    if (rowLow[r] > c) ok = false;
+                } else {
+                    if (rowHigh[r] < c + 1) ok = false;
+                }
+                if (v == 0) {
+                    if (colLow[c] > r) ok = false;
+                } else {
+                    if (colHigh[c] < r + 1) ok = false;
+                }
+                if (!ok) continue;
+
+                // apply updates (they keep the invariants, though we are in a
+                // fallback situation)
+                if (h == 0) rowHigh[r] = min(rowHigh[r], c);
+                else       rowLow[r]  = max(rowLow[r],  c + 1);
+                if (v == 0) colHigh[c] = min(colHigh[c], r);
+                else       colLow[c]  = max(colLow[c],  r + 1);
+                used[id] = 1;
+                return {2 * r, 2 * c};
+            }
+        }
+    }
+
+    // Should never happen.
+    return {0, 0};
+}
+```
+
+# Best known solution for Subtask 5 (worth 39 points)
+
+Additional constraints of this subtask: No additional constraints.
+Source file: `solutions/subtask5_tiling.cpp`
+Score this program achieved on Subtask 5: **39 out of 39 -- full marks**.
+
+```cpp
+#include <utility>
+#include <vector>
+
+static int N, M;
+static std::vector<int> leftIdx, rightIdx;   // per row
+static std::vector<int> topIdx, bottomIdx;   // per column
+
+/* --------------------------------------------------------------- */
+void init(int n, int m)                // called once
+{
+    N = n;  M = m;
+    leftIdx.assign(N, 0);
+    rightIdx.assign(N, M - 1);
+    topIdx.assign(M, 0);
+    bottomIdx.assign(M, N - 1);
+}
+
+/* try to place a block using a given white corner.
+   corner: 0 = TL, 1 = TR, 2 = BL, 3 = BR
+   on success stores the block coordinates (r,c) and returns true.   */
+static bool place_corner(int corner, int &r, int &c)
+{
+    for (int i = 0; i < N; ++i) {
+        if (leftIdx[i] > rightIdx[i]) continue;          // row finished
+
+        if (corner == 0) {               // TL  -> bottom‑right corner
+            int j = rightIdx[i];
+            if (bottomIdx[j] == i) {
+                r = i; c = j;
+                rightIdx[i]--;
+                bottomIdx[j]--;
+                return true;
+            }
+        } else if (corner == 1) {        // TR  -> bottom‑left corner
+            int j = leftIdx[i];
+            if (bottomIdx[j] == i) {
+                r = i; c = j;
+                leftIdx[i]++;
+                bottomIdx[j]--;
+                return true;
+            }
+        } else if (corner == 2) {        // BL  -> top‑right corner
+            int j = rightIdx[i];
+            if (topIdx[j] == i) {
+                r = i; c = j;
+                rightIdx[i]--;
+                topIdx[j]++;
+                return true;
+            }
+        } else {                         // BR  -> top‑left corner
+            int j = leftIdx[i];
+            if (topIdx[j] == i) {
+                r = i; c = j;
+                leftIdx[i]++;
+                topIdx[j]++;
+                return true;
+            }
+        }
+    }
+    return false;                       // never happens with correct input
+}
+
+/* --------------------------------------------------------------- */
+std::pair<int, int> receive_block(int TL, int TR, int BL, int BR)
+{
+    bool white[4];
+    white[0] = (TL == 0);
+    white[1] = (TR == 0);
+    white[2] = (BL == 0);
+    white[3] = (BR == 0);
+
+    int r = -1, c = -1;
+    for (int corner = 0; corner < 4; ++corner) {
+        if (!white[corner]) continue;
+        if (place_corner(corner, r, c)) break;
+    }
+
+    // (r,c) are block indices; board coordinates are twice as large
+    return {2 * r, 2 * c};
+}
+```
+
+# Your task
+
+Merge the programs below into a **single submission** that covers every subtask.
+Route between them with `if`/`else` on what the grader actually gives you.
+
+Rules:
+
+1. **Copy each solution verbatim, including every comment, from its first line to
+   its last.** Do not rewrite, re-indent, tidy, shorten, or "improve" any of
+   them, and do not drop a file's header comment. Put each in its own `namespace`
+   so their helpers cannot collide.
+2. The only code you write yourself is the dispatcher, plus any small helper it
+   needs to classify the input.
+3. **Every `#include` must sit at the very top of the file, outside every
+   namespace.** A standard header expanded inside a namespace nests the whole of
+   `std` inside it and the file does not compile at all (`isalnum has not been
+   declared in '::'` and hundreds like it). Hoist the includes from each solution
+   to the top, merge the duplicates, and leave a comment where one was removed.
+   `using namespace std;` may stay at global scope.
+4. Functions the grader provides must be declared once, at global scope. A
+   declaration inside a namespace declares a *different* symbol and the program
+   will not link.
+5. Say in a comment where each namespace came from, using the file paths given.
+6. The result must compile as a single translation unit against the grader
+   header, with `-std=gnu++17`. Check this mentally before answering.
+7. **Every solution must be reachable from the dispatcher, or you must justify in
+   a comment why it cannot be.** Do not quietly drop one. If you route a
+   subtask's range to a different subtask's solution, say so and give your reason.
+
+Think about the dispatch conditions carefully.
+
+This one is interactive, and that shapes what a dispatcher can do. The grader
+calls `init(int N, int M)` once and then `receive_block(TL, TR, BL, BR)` for each
+block in turn, expecting a placement back immediately.
+
+`init` sees only `N` and `M`. A block's `S = TL + TR + BL + BR` is not known until
+that block arrives, so the subtasks that differ only by a bound on `S` cannot be
+told apart at `init` time -- by the time a block with `S = 3` proves the input is
+not subtask 3 or 4, earlier blocks have already been placed and answered. You
+cannot look ahead, and you cannot take a placement back.
+
+So think about what is actually decidable, and when:
+
+* `N == 2` is visible at `init`.
+* `N == M` with `N` even is visible at `init`, but subtask 2's further condition
+  (each of the four colourings appearing exactly N^2/4 times) is a property of the
+  whole sequence and is not.
+* `S <= 1`, `S <= 2`, `S <= 3` only become visible block by block.
+
+State plainly which solution you route to and why, and where a distinction is
+impossible say so instead of pretending the branch works.
+
+* Every one of these five programs scores full marks on its own subtask, so
+  nothing here is a fallback: each is known good on its own range.
+* Subtask 5 has no additional constraints, which means its solution is correct on
+  every input the other four subtasks can present -- subtask 1, 3 and 4 restrict
+  `S`, and subtask 2 restricts the grid and the colour distribution, all of which
+  subtask 5 permits. Routing everything to the subtask-5 program is therefore
+  sound and scores full marks everywhere. If you do that, say so, and say why the
+  other four namespaces are then unreachable rather than deleting them.
+* If instead you want to use the more specialised programs where they apply, only
+  do so on a condition you can actually evaluate at the moment you must decide.
+  Do not write a branch on `S` inside `init`, where no block has been seen yet.
+
+Where two subtasks cannot be told apart from what the grader passes you, say
+which one you gave the range to and why. Do not pretend a branch is reachable
+when it is not.
+
+Reply with the complete merged file in one ```cpp block.

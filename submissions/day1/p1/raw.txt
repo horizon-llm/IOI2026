@@ -1,0 +1,1209 @@
+<reasoning>
+The problem: we need to produce a single solution that "coverage all four subtasks", but we are ChatGPT tasked with outputting some C++ code. However this is a 'meta' problem: The original problem statement is about an interactive task where we need to reconstruct a tree using insert and collect operations, and there are four solution files given. The "Your task" wants us to combine them, using dispatch between them based on conditions. This is reminiscent of a typical aggregator problem from Codeforces/IOI requiring combiner of different solutions.
+
+But there is a nuance: In the real interactive environment, the grader only passes M to find_structure. So we can't detect which subtask (i.e., constraints) exactly, only M. However subtask constraints overlap: Subtask 1: root has exactly M children. Subtask 2: M <= 3. Subtask 3: N <= 200, M <= 45. Subtask 4: no constraints (N <=1000, M <=200). So subtask 2 is subset of subtask 3 (leaves <= 3 <=45) and also subset of subtask 1? Possibly root children property? Unknown. So we need to route capabilities accordingly.
+
+The instruction explicitly says we must copy each solution verbatim, each in its own namespace, and only write a dispatcher find_structure that decides which to call. We must ensure that each solution is reachable, i.e., dispatcher must call each subtask's solution in some condition; at least we need to have code path that can be chosen based on what we detect (maybe M). But possibly we can simply always call the most general solution (subtask 4) and re-use for all tasks, but we must still keep the other solutions reachable, maybe through "#if 0"? The spec says "Every one of the four solutions must be reachable from the dispatcher, or you must justify in a comment why it cannot be." So we should provide dispatch based on M to call each version where possible. Since we cannot detect root children condition (subtask 1), but we could test if M equals N-1? No. There is no way to differentiate subtask 1 from subtask 3 or 4 just from M. However perhaps we could just call subtask 4's solution for all M, while also having code that would call subtask 1/2/3 under some else condition that is never taken in official tests? But then they wouldn't be reachable via the dispatcher unless the condition could potentially happen. The spec says "must be reachable from the dispatcher". That could be interpreted that there must be a reachable path, i.e., there exists at least a control flow path that could be taken, given any possible input. If we route based on M's ranges, then for some M values we may call subtask 1/2/3 accordingly. Are there M ranges unique to those subtasks? Subtask 2: M <= 3; subtask 3: M <= 45; subtask 4: M <= 200; subtask 1: unrestricted M (could be any up to 200). So we can internal decide: If M <= 3, call subtask 2; else if M <= 45, call subtask 3; else if M <= 200, call subtask 4; but what about subtask 1? That is a special case where root has exactly M children; but M can be any between 1 and 200 inclusive. So it's not possible to differentiate that based solely on M. But we can still incorporate subtask 1: e.g., first check if M <= some threshold, else default to subtask 1. But then subtask 4's scenario may also be M <=200, which conflicts. However we can't guarantee that subtask 1's property holds for any other testcases; we may call subtask1 solution for some M where the root may not have exactly M children, resulting in failure (incorrect output). So we need a condition that ensures subtask1 solution is called only when we can be sure the condition holds. Since we cannot guarantee that from the description, we cannot use subtask 1 solution for any unknown case. However we need to have subtask1 solution reachable from dispatcher. Does it have to be reachable for some input that might be given? Possibly not; the spec says we need to make them reachable or justify why not possible. Because there is no way to know if the root has M children; but we could check that by using some queries. Perhaps we could design a test that determines if root has exactly M children with few interactions and then decide to use subtask1 solution if true; else use other solution. That would allow us to incorporate subtask1 solution and still be correct. However this extra detection may increase C beyond allowed limit? But we have to ensure we stay within resource constraints for all subtasks. Since subtask1 solution uses depth measurement requiring up to maybe sumDepth times insert calls and collect. That solution itself uses up to sumDepth + M calls; SumDepth is unknown but N up to 1000, sumDepth <= total number of non-root nodes? Actually sumDepth = total number of internal nodes? Let's compute: depth[leaf] is distance from leaf to root. sumDepth is number of internal nodes counting root? Let's check: For each leaf, depth = number of ancestors up to root? For leaf depth, if leaf is depth d (distance edges from leaf up to root), then that includes each internal node on its path. The sum over all leaves of depth equals number of internal nodes multiplied by something? In a tree with root r, each internal node may be counted multiple times across leaves that are in its subtree. So sumDepth could be large, up to M * (N-M) maybe. But N <= 1000, M up to 200, depth up to N-M-1. So sumDepth could be ~200*800=160k. That's fine.
+
+The subtask1 solution also uses collect after each leaf, so K = M+1 maybe. B = 0 because uses value 0 (ball value zero). So C = M+0 <= 200. OK.
+
+Thus subtask1 solution is safe.
+
+Now subtask2 solution uses extra LCA detection; also uses O(M^2) insert operations but with M <=3, trivial.
+
+Subtask3 solution uses a big approach with one collect.
+
+Subtask4 solution similar but more robust.
+
+Now we need to create a dispatcher that chooses which solution to call based on M possibly combined with detection of root children condition? However maybe easiest: Use the subtask 4 solution for all M. That would be correct for everything? The subtask4 solution apparently works for all cases (no constraints). It uses procedure that fills the whole tree with decreasing values (max 999, B up to 999, K=1, so C <= 1000). That solution should work for all N <=1000, M <=200. So we could just always call subtask4's solution. That would be acceptable correctness wise. Then subtask1 etc. would be unreachable? But we can still call subtask1 solution based on a condition that never triggers for any possible test case. But the spec says "Every one of the four solutions must be reachable from the dispatcher, or you must justify in a comment why it cannot be." Could we justify that it's not possible to know which subtask we are in? Eg "Because the only input parameter M does not uniquely identify subtask 1 cases (the root may have M children but we cannot guarantee it), we cannot safely route to the subtask1 solution, so we use subtask4 solution for all cases." Provide justification. That may satisfy spec: we need to explain that it's impossible to rely on non-M information and detection would cost resources, so we cannot guarantee. However the spec says "or you must justify in a comment why it cannot be." Yes, we can justify why we cannot recursively dispatch to subtask1 with reliable detection within resource limits, or because subtask 1's condition is not identifiable from M alone. That could be acceptable.
+
+But maybe they expect us to try to detect root children property using some queries: we could test if each leaf inserted with value X moves all the way to root; if root has M children, then each leaf when inserting ball will end up at root after one ball (since all leaf internal nodes chain up to root, but we need to know? Actually if root has M children, then each leaf is direct child of root? Wait root has exactly M children; we have M leaves (0,...,M-1). So each leaf is a child of root and no internal nodes exist other than root. But also there could be internal nodes not leaf? Actually if root has exactly M children, those children are leaves, thus there are no other internal nodes. So the tree is star: root with M leaves. So we can test this property by e.g., inserting a ball into leaf 0 and see if the root is occupied after one insert (i.e., ball moves up to root). Also after that insertion, the leaf becomes free, because ball moved to root, leaving leaf empty. Actually process: Insert at leaf0 (free): ball placed at leaf0, if parent (root) free, ball moves to root and stops at root (since root has no parent). So leaf0 becomes free again (ball left). So after insert, leaf0 is free again but root is occupied. Let's test other leaf 1, insert, ball will stop at leaf1 because root is occupied. So we can detect root degree being M by checking if after first insert the leaf becomes free (i.e., immediate move). Or check the depth of leaf: depth will be 1; determination shape property: All leaves depth = 1. So we could measure leaf depth for a few leaves. If depth[0]==1 and also after that we can do maybe depth[1]==1, we can be confident root has exactly M children, but there could be other internal nodes beyond leaf? That's not possible; since root depth is 0; each leaf depth at least 1. But if root has multiple children but also intermediate internal nodes on some leaf paths, some leaf depths >1. So we can test leaf depths; if all leaf depths equal 1, root has M children. Since we cannot guarantee that property holds for all leaves after measuring just a few? But we could measure all M leaf depths (by using depth measurement method like subtask1 solution). That uses O(N) insert and collect, but still within resources. So we could differentiate subtask1 vs others.
+
+Thus we could implement detection: compute depth[leaf] by repeatedly inserting at each leaf until false, but that consumes many inserts and collect for each leaf (like subtask1 solution). But we may use that same data to reconstruct the tree anyway. Actually subtask1 solution is exactly that. So we could compute depths, then if all depths == 1, we know root has M children; we could then directly return star parent array (maybe we can just use subtask1 solution anyway; it would produce correct parent array even without root being star? Wait subtask1 solution builds a private chain for each leaf based on depth. If all depths == 1, it will assign each leaf's parent = root. That's correct. So subtask1 solution works for general trees, but also works for star. So we don't need specialization.
+
+Hence we could just ignore subtask1 solution and always use subtask4 solution.
+
+But we need to make subtask1 solution reachable: maybe we can have a condition that is never true in tests due to constraints, but reachable (theoretically) e.g., if M==0 or something impossible. Or we can comment that it cannot be distinguished, thus we cannot use it. Then we justify.
+
+But will the judge think we are failing to "reach" a solution? Might accept, as they said "or you must justify in a comment why it cannot be."
+
+Thus final answer: Provide code with four namespaces: subtask1, subtask2, subtask3, subtask4 including the provided source code verbatim. Then a global find_structure that selects which solution to use based on M, likely:
+
+if (M <= 3) return subtask2::find_structure(M);
+else if (M <= 45) return subtask3::find_structure(M);
+else return subtask4::find_structure(M);
+
+But we must also incorporate subtask1 solution unreachable but we can comment it's not used because cannot be differentiated. Or we could pick a detection: if all leaf depths are 1, we could call subtask1 (or either). But then we would need to compute depths anyway; subtask4 solution also works; could call subtask1. But subtask4 solution is simpler: we always call subtask4, which will be correct. However we need to still contain subtask1 code reachable; but we can have a branch that is never taken (or taken only for unrealistic M). However may conflict with fairness. Probably better to provide detection based on M only, as typical. Since subtask2 M <=3, subtask3 M <=45 but >3; subtask4 M >45. This splits M values uniquely except those up to 3. However subtask1 also includes M <=200. So for M <=3 we might be using subtask2, for 4..45 subtask3, else subtask4. That covers subtask1 not used; we can add comment that subtask1 cannot be distinguished by M and we rely on subtask4's solution which also works.
+
+Yes.
+
+Thus final code: declare global extern bool insert(int, int); extern std::vector<int> collect();
+
+Define each namespace with code unchanged, plus comment with file path.
+
+Implement dispatcher:
+
+vector<int> find_structure(int M) {
+    // Use subtask2 if M <= 3
+    if (M <= 3) {
+        return subtask2::find_structure(M);
+    }
+    // Use subtask3 if M <= 45 (and > 3)
+    if (M <= 45) {
+        return subtask3::find_structure(M);
+    }
+    // For larger M, use subtask4 solution
+    // subtask1 cannot be distinguished based solely on M; our solution works for all cases
+    return subtask4::find_structure(M);
+}
+
+But we need to compile. However the subtask2::find_structure returns vector<int> (which includes building parent array R). The code for subtask2 also used "bool insert" etc. It uses same external global functions.
+
+We need to include #include <bits/stdc++.h> maybe within each namespace; they already include bits in each file; we need to avoid duplicate includes? It's fine to include multiple times.
+
+But we must ensure there are no naming collisions: each namespace's code defines its own find_structure, variables etc. However they also define its own external function declarations (extern bool insert...). The spec says "declare them once, at global scope. A declaration inside a namespace declares a different symbol and the program will not link." So we must avoid redeclaring extern within the namespaces. Indeed, the provided solutions each have a line:
+
+//--- the grader provides these functions ---------------------------------
+extern bool insert(int U, int X);
+extern vector<int> collect();
+
+That is inside global scope in subtask1 file; but re-declaring within a namespace will be a distinct symbol? In C++, an extern declaration in a namespace refers to a function in that namespace, not the one in global namespace. Since the grader's functions are defined in global namespace, our definitions in sub-namespaces would not link: they'd refer to functions in that namespace, which won't exist. So we must not have these extern lines inside the namespaces; we need only global declarations once. The spec says: "The grader provides the two functions. The only code you write yourself is the dispatcher... The grader passes the two functions. They must be declared once at global scope. A declaration inside a namespace declares a different symbol and the program will not link."
+
+Thus we must remove those extern declarations from the copied code. We can keep the comment perhaps but must delete the lines "extern bool insert(...)" and "extern vector<int> collect();" inside each namespace. However they said "Copy each solution verbatim." This conflicts: we cannot change code. But we must follow rule that we can't redeclare them. But maybe we can keep them if we wrap them in a macro to reference global? Actually inside namespace, you can use ::insert to refer to global function. But if we redeclare extern inside namespace, the names refer to namespace-qualified functions, not global. That will cause linking errors. So we have to adjust. The problem statement "Copy each solution verbatim. Keep its comments. Do not rewrite, tidy, or 'improve' any of them." However the prerequisites of the meta-problem require only one global declaration. Since the solutions copy includes these extern lines, we must perhaps preserve the comment lines but comment out the extern inside each namespace? That would be a modification, violating "Copy each solution verbatim." However the instructions for the merging task say "Copy each solution verbatim. Keep its comments. Do not rewrite, tidy, or 'improve' any of them." But later they say "The grader provides the two functions. Declare them once, at global scope. A declaration inside a namespace declares a different symbol and the program will not link." So we have a conflict: we must modify the code to remove these extern lines to prevent duplicate declarations inside namespaces. But perhaps we can include the extern lines inside each namespace but also have a using-declaration to bring the global function? Actually if we have an extern function declaration inside a namespace, it declares a different function with external linkage of that namespace? However naming and linking: In C++, function names are considered with internal namespace scope: a function declared inside a namespace qualifies as ::namespace::function. However linking will treat it as a symbol with name mangling including namespace. So the global function defined by the grader (likely in global namespace) will not match. Hence linking error.
+
+Thus we must remove those extern lines. The problem says we need to "Copy each solution verbatim" but also that we must adjust the extern declaration. Could we instead place the extern inside the namespace *but* with "using ::insert" to refer to global? That doesn't help. So we must indeed remove them. Since the instruction to copy verbatim might be relaxed: they say "Copy each solution verbatim. Keep its comments." Actually maybe they allow us to wrap each solution inside a namespace and keep the extern declarations as they are, but also provide an alias in the global namespace that matches. Wait can we forward declare extern functions globally and also provide definitions for namespace-qualified functions that are simply inline wrappers calling global functions? e.g., inside namespace subtask1 { bool insert(int U, int X) { return ::insert(U,X); } ... } But we cannot modify the source code to define the functions. However they wrote "extern bool insert(...)" which is only a declaration (no definition). We could add definitions later at global namespace that satisfy both global and namespace name via using-declaration? Actually we cannot define namespace-specific functions because they need to be defined. But they declare them as extern; they could be defined elsewhere. If we provide a definition also in global namespace, would it satisfy the extern declarations inside the namespace? No, because the function's name is qualified; the declaration inside namespace expects a definition within that namespace, not the global. However in C++ can declare extern function with name but not qualified: Within namespace, "extern bool insert(int U, int X);" declares a function with that name inside the namespace (like subtask1::insert). It does not bring the global ::insert. So we would need to define subtask1::insert somewhere. But we cannot because grader doesn't provide that.
+
+Thus we must remove these extern declarations from the solution code.
+
+Ok.
+
+Thus we have to modify each solution's code to omit the extern lines. That is a mild rewrite (removing two lines). The instruction might be taken as "don't rewrite any logic, you may adapt to compile." It's typical for this aggregator meta-problem. So we are allowed to remove extern lines as they are not part of algorithm.
+
+Thus we will copy each solution's code, removing the extern lines, but keep comments. Also we must adjust includes: each includes <bits/stdc++.h>, which is fine.
+
+Now we need to ensure there are no name collisions: each namespace will have its own find_structure etc. Also each namespace declares its own variables like data structures, etc. The only collisions may be variable names like "parent" or "leaf". Those are internal to functions.
+
+Now we need to ensure that subtask1, subtask2, subtask3, subtask4 functions compile after removal of extern lines. Also there may be other references to `insert` and `collect` inside these functions, which refer to unqualified names. Since they are not declared in the namespace, they will refer to global functions. However there must be a forward declaration in the global scope. We'll add:
+
+extern bool insert(int U, int X);
+extern std::vector<int> collect();
+
+Now be careful with namespace: unqualified `insert` inside namespace resolves to function lookup: first finds any function in current namespace; none found (extern removed). Then ADL and then find in global scope. So fine.
+
+Now about includes: <bits/stdc++.h> includes vector. For the global declares we need <vector> maybe we already include stuff in each namespace. Might be fine.
+
+Now we must confirm each solution compiles without errors:
+
+- Subtask1 solution: It declares vector<int> find_structure(int M). Everything fine. It uses length of parent array N - 1; also uses vector<int> parent(N - 1, -1). It uses depth[leaf] determined via insert loop and collect. It uses just const int BALL_VALUE = 0; fine. No external functions.
+
+Potential risk: use of `int M` may shadow global variable? fine.
+
+- Subtask2 solution: uses vector<int> find_structure(int M). uses node[i] etc. uses a function "collect()" and insert. The function uses `collect(); // empty the machine` after each measurement. It's fine. But also uses "vector<vector<int>> L(M, vector<int>(M, -1));". Inside for loops uses M <=3; okay.
+
+Potential risk: The subtask2 solution's `node` vector of vectors may have size M; customizing indexing. It sets parentOld for each node, etc. At the end builds newLabel array and returns R. All fine.
+
+- Subtask3 solution: uses global constant MAX_VAL=999; uses leafValue vector; uses while loop and insert; uses collect; uses unordered_map; uses vector; use default includes. Should compile.
+
+Potential risk: The subtask3 solution uses vector<int> nodeValue; nodeValue.reserve(N); nodeValue.resize(M); will set nodeValue size to M? Actually nodeValue.reserve(N); nodeValue.resize(M); That's fine.
+
+Now subtask4 solution: similar.
+
+All good.
+
+Now we need to orchestrate dispatcher logic. Important to ensure that all solution functions have unique names: each namespace's module defines `find_structure`. Our global find_structure must dispatch.
+
+Potential collisions: each `find_structure` is inside a namespace. We'll bring them as subtask1::find_structure etc.
+
+Now define the global find_structure which the grader will call.
+
+Testing the dispatch: M is up to 200. Subtask2: M <=3. Subtask3: M <=45 (but >3). Subtask4: M >45 up to 200.
+
+Will this guarantee a correct solution for all cases? Need to ensure subtask3's algorithm works for N ≤200 (M ≤45). It expects B=999? Actually it uses MAX_VAL = 999, B = max ball value <=999, K=1, C=1000. That's within constraints (B <= 1000). The machine's N <= 200, so number of nodes up to 200; with value decreasing insertion we fill all nodes. Works.
+
+Now subtask4's algorithm also works for any N <=1000, M <=200. Using MAX_VAL = 999, same B bound. Works.
+
+Now need to be careful: In subtask3 solution we rely on leafValue vector which maps leaf to final value of ball that stays on leaf after fill. They fill the tree by repeatedly inserting into each leaf while decreasing current value. However they assign leafValue[leaf] = cur after a successful insert (which occurs when leaf becomes occupied with that ball). At the end they call collect: they get preorder sequence of all nodes.
+
+Potential issue: In subtask3 solution they rely on leafValue mapping being unique: each leaf gets unique value due to decreasing insertion values. But they use unordered_map leafValToIdx, mapping leaf values to leaf indices. That works assuming leaf values are distinct. Since they start with cur at MAX_VAL (999) and decrement each successful insertion; each leaf can get at most one ball (the last successful one). However after filling the entire tree, each leaf is occupied exactly once, because insertion stops for leaf only when leaf is occupied and does not move? Let's examine the insertion logic: In step 1, they try inserting balls in decreasing values across all leaves repeatedly until no leaf can be occupied. This fills entire tree (makes every node occupied). For each leaf, as soon as you insert a ball to leaf, what happens? If leaf's ancestors are free, ball goes up to the root (or as far as possible). So the ball might fill internal nodes, not necessarily leaf, but leaf could become empty after ball moves up. Actually at the moment of insertion, leaf gets a ball, then ball moves up while parent nodes are free. Eventually ball stops at a node where parent is occupied or root. So leaf becomes free after the ball moves upward (unless the parent is occupied). So after each insertion, the leaf becomes free again unless ball got stuck at leaf because its parent was occupied. Over time, we fill nodes from bottom up; eventually all nodes become occupied: the last insertion for each leaf will fill the leaf (when every ancestor up to root is already occupied). Finally after tree fully occupied, every leaf will hold a ball? Not necessarily; root might have ball. Let's test: Suppose tree star: root and leaves. Insert ball at leaf 0 (value 999) - root free, ball moves to root, leaf empty. Insert leaf 1 (value 998) - root occupied -> ball stays at leaf 1 (leaf occupied). Continue with leaf 2 etc. Eventually root occupied by first ball, each leaf gets one ball each when inserted after root occupied. After all leaves have balls, tree has root plus M leaves occupied (N = M+1). So leafValue holds value for leaf that stays there. That's fine.
+
+In more complex tree, eventually each node becomes occupied; leaf will get ball only when its ancestors are already occupied. So leaf will hold ball at final state. So each leaf ends up occupied indeed. Because after the tree is fully filled, all nodes have balls; each leaf has ball (since leaf is a node; it cannot hold two). So leafValue[leaf] is set to value when a ball is inserted that stays there. Since they set leafValue when insert returns true at that leaf, they may set leafValue multiple times before final leaf occupation? Actually they set leafValue[leaf] = cur each time insertion succeeded at leaf. But they also decrement cur each successful insertion. Multi times leaf might have been occupied earlier then ball moved up? Let's examine: Insert at leaf i, success true: That means leaf was free at moment of insertion. After insertion, ball moves up as far as possible; leaf may become empty again. However code sets leafValue[i] = cur at that moment, which is not the final leaf's ball value (which is when leaf is finally occupied). In the final tree state, leaf i will have some ball (maybe from later insertion). leafValue as defined at end will hold the value of the last successful insertion at leaf i (the one that placed ball at leaf i, but maybe after that leaf later gets ball again if it moves? Wait leaf will be free after ball moves up, so later insertion may place another ball there and move upward again, and leaf may become free again, etc. The final leaf ball will be the last successful insertion that occurs at leaf when after insertion the ball cannot move upward because its parent is occupied. At that time leaf stays occupied. That final insertion will be the last time leaf is free (the leaf will be free when we attempt to insert). But earlier successful insertions may already occupy leaf at some time. Actually after each insertion success, leaf becomes free (if parent free) or remains occupied (if parent is occupied). So leaf can have multiple balls over time, but only final ball stays. The code sets leafValue each time success true, overriding previous values. So at final state leafValue contains the value of the last successful insert for each leaf. This will be the final leaf occupancy. Good.
+
+Thus leafValue mapping works.
+
+Thus subtask3 solution should work.
+
+Now we need to check subtask4 solution: uses similar but includes optimization: uses leafValue mapping via leafValue[leaf] stored each success. It uses MAX_VAL = 999. Later in step 5 mapping leaf value -> leaf index via unordered_map leafIdByValue. We need leaf values unique; they produce decreasing values, each leaf gets distinct final value.
+
+Edge Cases: In subtask4 solution, they assign leafIdByValue after filling the whole tree. They assume leafValue[leaf] must be set for each leaf. That's okay if at final tree all leaves are occupied (they will be). For a star tree with root and leaves, leafValue[leaf] gets set when leaf is occupied (final). All good.
+
+Therefore overall.
+
+Thus our dispatcher structure is fine.
+
+Now about subtask1 solution: we must keep it but not use it; we can leave it in a namespace subtask1.
+
+We need to avoid colliding includes; each includes <bits/stdc++.h> may be repeated but that's fine.
+
+Potential exceeding compile time? No.
+
+Now let's produce final code.
+
+We'll declare global extern functions:
+
+extern bool insert(int U, int X);
+extern std::vector<int> collect();
+
+Make sure they are declared before any use.
+
+Now define namespace subtask1:
+
+namespace subtask1 {
+    // include the solution code from subtask1, but remove extern declarations.
+    // Also adapt comment lines.
+    // The file path comment: // solutions/subtask1_ballmachine.cpp
+    // Already includes <bits/stdc++.h>
+    // Provide find_structure function.
+}
+
+Similarly for subtask2, subtask3, subtask4.
+
+Now see each file's code to incorporate.
+
+Subtask1 code (already given) has includes and extern definitions at top. We'll copy includes and top comment.
+
+Let's rewrite subtask1 code:
+
+```cpp
+// solutions/subtask1_ballmachine.cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+//--- the grader provides these functions ---------------------------------
+//extern bool insert(int U, int X);          // try to insert a ball
+//extern vector<int> collect();              // collect and empty the machine
+//-------------------------------------------------------------------------
+
+vector<int> find_structure(int M) {
+    const int BALL_VALUE = 0;               // any non‑negative value, 0 is enough
+    vector<int> depth(M, 0);
+
+    // 1. determine the depth of every leaf
+    for (int leaf = 0; leaf < M; ++leaf) {
+        int successes = 0;
+        while (insert(leaf, BALL_VALUE))   // true → ball was inserted
+            ++successes;
+        // leaf is now occupied; next insert would return false
+        depth[leaf] = successes - 1;        // true depth
+        collect();                          // empty the machine for the next leaf
+    }
+
+    // 2. compute total number of nodes
+    long long sumDepth = 0;
+    for (int d : depth) sumDepth += d;
+    int N = static_cast<int>(sumDepth) + 1; // total nodes, root = N - 1
+
+    // 3. build a suitable parent array
+    vector<int> parent(N - 1, -1);           // R[0 … N-2]
+    int nextId = M;                         // first free index for internal nodes
+
+    for (int leaf = 0; leaf < M; ++leaf) {
+        int d = depth[leaf];
+        if (d == 1) {
+            // leaf is a direct child of the root
+            parent[leaf] = N - 1;
+        } else {
+            // create a private chain of (d-1) internal nodes
+            int first = nextId;              // node directly above the leaf
+            parent[leaf] = first;            // leaf → first internal node
+            for (int i = 0; i < d - 1; ++i) {
+                int cur = first + i;
+                if (i == d - 2) {            // last node of the chain
+                    parent[cur] = N - 1;      // connects to the root
+                } else {
+                    parent[cur] = cur + 1;    // points to the next node upwards
+                }
+            }
+            nextId += d - 1;                 // reserve those indices
+        }
+    }
+    return parent;
+}
+}
+```
+
+But note we need to enclose within namespace subtask1. However the function name must be subtask1::find_structure. So we need to rename function inside namespace accordingly (or define a wrapper). We'll keep it as find_structure inside namespace. The file includes `using namespace std;` within the namespace; that's okay.
+
+Similarly for subtask2 file. Need to remove extern lines, and include comment.
+
+Subtask2 code:
+
+```cpp
+// solutions/subtask2_ballmachine.cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+//extern bool insert(int leaf, int value);
+//extern vector<int> collect();
+
+vector<int> find_structure(int M) {
+    // ------------------------------------------------------------
+    // 1. leaf depths
+    vector<int> depth(M, 0);
+    for (int i = 0; i < M; ++i) {
+        int cnt = 0;
+        while (insert(i, 0)) ++cnt;        // count successful insertions
+        depth[i] = cnt - 1;                 // depth = successes - 1
+        collect();                          // empty the machine
+    }
+
+    // ------------------------------------------------------------
+    // 2. pairwise LCA depths
+    vector<vector<int>> L(M, vector<int>(M, -1));
+    for (int i = 0; i < M; ++i) {
+        for (int j = i + 1; j < M; ++j) {
+            // fill leaf i completely
+            while (insert(i, 0)) {}
+            // now insert leaf j and count successes
+            int cnt = 0;
+            while (insert(j, 0)) ++cnt;
+            L[i][j] = depth[j] - cnt;       // Lemma 2
+            L[j][i] = L[i][j];
+            collect();                      // empty for the next round
+        }
+    }
+
+    // ------------------------------------------------------------
+    // 3. rebuild the tree (old identifiers)
+    int nextId = 0;
+    int rootId = nextId++;                  // id 0 is the root
+    vector<vector<int>> node(M);            // node[i][d] = id of leaf i at depth d
+    for (int i = 0; i < M; ++i) {
+        node[i].assign(depth[i] + 1, -1);
+        node[i][0] = rootId;                // root is shared
+    }
+
+    for (int i = 0; i < M; ++i) {
+        for (int d = 1; d <= depth[i]; ++d) {
+            int shared = -1;
+            for (int j = 0; j < i; ++j) {
+                if (L[i][j] >= d) {        // this depth is already present
+                    shared = node[j][d];
+                    break;
+                }
+            }
+            if (shared != -1) node[i][d] = shared;
+            else               node[i][d] = nextId++;
+        }
+    }
+
+    int N = nextId;                         // total number of vertices
+
+    // parent in the old numbering
+    vector<int> parentOld(N, -1);
+    for (int i = 0; i < M; ++i) {
+        for (int d = 1; d <= depth[i]; ++d) {
+            int child = node[i][d];
+            int par   = node[i][d - 1];
+            parentOld[child] = par;
+        }
+    }
+
+    // adjacency list (children)
+    vector<vector<int>> children(N);
+    for (int v = 0; v < N; ++v) {
+        int p = parentOld[v];
+        if (p != -1) children[p].push_back(v);
+    }
+
+    // leaf nodes in old numbering
+    vector<int> leafOld(M);
+    for (int i = 0; i < M; ++i) leafOld[i] = node[i][depth[i]];
+
+    // ------------------------------------------------------------
+    // 4. new labeling (0..M-1 for leaves, N-1 for root)
+    vector<int> newLabel(N, -1);
+    for (int i = 0; i < M; ++i) newLabel[leafOld[i]] = i;   // fixed leaf labels
+
+    int cur = M;                                   // next free label
+    function<void(int)> dfs = [&](int u) {
+        for (int v : children[u]) dfs(v);
+        if (newLabel[u] == -1) newLabel[u] = cur++;
+    };
+    dfs(rootId);                                   // root gets the last label N-1
+
+    // ------------------------------------------------------------
+    // 5. build the answer array R
+    vector<int> R(N - 1, -1);                      // R[child] = parent
+    for (int v = 0; v < N; ++v) {
+        int p = parentOld[v];
+        if (p == -1) continue;                     // root
+        int childLabel  = newLabel[v];
+        int parentLabel = newLabel[p];
+        R[childLabel] = parentLabel;
+    }
+    return R;
+}
+}
+```
+
+Now subtask3 code (solution for subtask3). Remove extern lines.
+
+Need to double-check includes: Already includes <bits/stdc++.h>, using namespace std; includes.
+
+We'll include unmatched symbols at top.
+
+```cpp
+// solutions/subtask3_ballmachine.cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+// forward declarations – the grader supplies the definitions
+//extern bool insert(int U, int X);
+//extern std::vector<int> collect();
+
+std::vector<int> find_structure(int M) {
+    const int MAX_VAL = 999;                     // B = 999, K = 1  →  C = 1000
+    int cur = MAX_VAL;
+
+    // leafValue[i] – final value of the ball that stays on leaf i
+    vector<int> leafValue(M, -1);
+
+    // -----------------------------------------------------------------
+    // 1) fill the whole tree, always using a smaller value for every success
+    while (true) {
+        bool anySuccess = false;
+        for (int leaf = 0; leaf < M; ++leaf) {
+            if (cur < 0) break;            // no more admissible values
+            if (insert(leaf, cur)) {       // a new vertex became occupied
+                leafValue[leaf] = cur;   // remember the ball's value
+                --cur;                    // next successful ball gets a smaller value
+                anySuccess = true;
+            }
+        }
+        if (!anySuccess) break;          // no vertex was newly occupied → done
+    }
+
+    // -----------------------------------------------------------------
+    // 2) obtain the preorder list of all values
+    vector<int> preorder = collect();     // K = 1
+    int N = (int)preorder.size();         // total number of nodes ( = successes )
+
+    // map leaf values → leaf index
+    unordered_map<int,int> leafValToIdx;
+    for (int i = 0; i < M; ++i) leafValToIdx[leafValue[i]] = i;
+
+    // -----------------------------------------------------------------
+    // 3) reconstruct the tree from the preorder list
+    // node IDs:   leaves 0..M-1, internal nodes M, M+1, ...
+    vector<int> nodeValue;                // value of each node (by ID)
+    nodeValue.reserve(N);
+    nodeValue.resize(M);                  // placeholders for leaves
+
+    // fill leaf values
+    for (int i = 0; i < M; ++i) nodeValue[i] = leafValue[i];
+
+    vector<int> parentOld;                // parent of each node (old IDs)
+    parentOld.reserve(N);
+    parentOld.resize(M, -1);              // leaves will get their parent later
+
+    unordered_map<int,int> internalValToId;   // value → internal node ID
+
+    vector<int> stack;                    // stack of node IDs (current ancestors)
+
+    int rootOld = -1;                     // old ID of the root
+
+    for (int v : preorder) {
+        int id;
+        auto itLeaf = leafValToIdx.find(v);
+        if (itLeaf != leafValToIdx.end()) {
+            // a leaf
+            id = itLeaf->second;          // leaf index is its ID
+        } else {
+            auto itInt = internalValToId.find(v);
+            if (itInt == internalValToId.end()) {
+                id = (int)nodeValue.size();   // next free ID
+                internalValToId[v] = id;
+                nodeValue.push_back(v);
+                parentOld.push_back(-1);
+            } else {
+                id = itInt->second;
+            }
+        }
+
+        // pop finished subtrees
+        while (!stack.empty() && nodeValue[stack.back()] < v) {
+            stack.pop_back();
+        }
+        if (!stack.empty()) {
+            parentOld[id] = stack.back();
+        } else {
+            rootOld = id;                 // this node has no parent → the root
+        }
+        stack.push_back(id);
+    }
+
+    // ---------------------------------------------------------------
+    // 4) relabel internal nodes: leaves keep their numbers,
+    //    the root gets label N-1, the remaining internals get M … N-2
+    int totalNodes = (int)nodeValue.size();   // should be N
+    vector<int> oldToNew(totalNodes, -1);
+    for (int i = 0; i < M; ++i) oldToNew[i] = i;   // leaves unchanged
+
+    int nextLabel = M;
+    for (int old = M; old < totalNodes; ++old) {
+        if (old == rootOld) continue;
+        oldToNew[old] = nextLabel++;
+    }
+    oldToNew[rootOld] = totalNodes - 1;    // root = N-1
+
+    // ---------------------------------------------------------------
+    // 5) build the required array R[0 … N-2]
+    vector<int> R(totalNodes - 1, -1);
+    for (int old = 0; old < totalNodes; ++old) {
+        int newId = oldToNew[old];
+        if (newId == totalNodes - 1) continue; // root – no entry in R
+        int oldPar = parentOld[old];
+        int newPar = (oldPar == -1 ? -1 : oldToNew[oldPar]);
+        R[newId] = newPar;
+    }
+
+    return R;
+}
+}
+```
+
+Note need to ensure that we rename function to `find_structure` within the namespace. Already using `std::vector<int> find_structure(int M)`. That's fine.
+
+Now subtask4 solution:
+
+```cpp
+// solutions/subtask4_ballmachine.cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/*  the grader supplies these two functions  */
+//extern bool insert(int U, int X);
+//extern vector<int> collect();
+
+vector<int> find_structure(int M)
+{
+    const int MAX_VAL = 999;               // allowed ball values are 0..1000
+    int cur = MAX_VAL;                     // current value for the next ball
+
+    // leafValue[u] – the value of the ball that finally stays at leaf u
+    vector<int> leafValue(M, -1);
+
+    /* ---------------------------------------------------------
+       1) Fill the whole machine.
+          We try all leaves repeatedly, inserting decreasing values.
+          When insert succeeds we remember the value for that leaf.
+       --------------------------------------------------------- */
+    while (true) {
+        bool any = false;
+        for (int leaf = 0; leaf < M; ++leaf) {
+            if (cur < 0) break;            // no more admissible values
+            if (insert(leaf, cur)) {       // a new vertex became occupied
+                leafValue[leaf] = cur;     // remember the ball's value
+                any = true;
+                --cur;                     // next value will be smaller
+            }
+        }
+        if (!any) break;                   // no vertex was newly occupied → done
+    }
+
+    /* ---------------------------------------------------------
+       2) Obtain the traversal sequence S.
+       --------------------------------------------------------- */
+    vector<int> seq = collect();            // S – values of all N balls
+    int N = (int)seq.size();                // number of vertices
+
+    /* ---------------------------------------------------------
+       3) Reconstruct the tree from the preorder sequence.
+          The values satisfy the heap property:
+          parent value > all values in its subtree.
+          Hence a monotone decreasing stack works.
+       --------------------------------------------------------- */
+    vector<int> parentIdx(N, -1);            // parent index in the reconstructed tree
+    vector<vector<int>> children(N);
+    vector<int> st;                         // stack of vertex indices (indices in seq)
+    int rootIdx = -1;
+
+    for (int i = 0; i < N; ++i) {
+        int v = seq[i];
+        while (!st.empty() && seq[st.back()] < v)   // finish subtrees of smaller values
+            st.pop_back();
+
+        if (!st.empty()) {
+            int p = st.back();
+            parentIdx[i] = p;
+            children[p].push_back(i);
+        } else {
+            parentIdx[i] = -1;               // this is the root
+            rootIdx = i;
+        }
+        st.push_back(i);
+    }
+
+    /* ---------------------------------------------------------
+       4) Build a map: value of a leaf -> leaf index (0..M-1).
+       --------------------------------------------------------- */
+    unordered_map<int,int> leafIdByValue;
+    leafIdByValue.reserve(M * 2);
+    for (int u = 0; u < M; ++u) {
+        // each leaf is finally occupied, leafValue[u] must be set
+        leafIdByValue[ leafValue[u] ] = u;
+    }
+
+    /* ---------------------------------------------------------
+       5) Assign new labels.
+           - leaves keep their original indices 0..M-1
+           - internal vertices (except root) get M .. N-2
+           - root gets N-1
+       --------------------------------------------------------- */
+    vector<int> newId(N, -1);
+
+    // leaves: use the original leaf numbers obtained from leafValue mapping
+    for (int i = 0; i < N; ++i) {
+        if (children[i].empty()) {                  // a leaf in the real tree
+            int val = seq[i];
+            auto it = leafIdByValue.find(val);
+            // it must exist because leaf values are distinct
+            newId[i] = it->second;                  // leaf number 0..M-1
+        }
+    }
+
+    // internal vertices (except root)
+    int nextId = M;                                 // start after leaves
+    for (int i = 0; i < N; ++i) {
+        if (i == rootIdx) continue;
+        if (!children[i].empty()) {                 // internal node
+            newId[i] = nextId++;
+        }
+    }
+    newId[rootIdx] = N - 1;                         // root label
+
+    /* ---------------------------------------------------------
+       6) Build the answer array R[0 .. N-2].
+       --------------------------------------------------------- */
+    vector<int> R(N - 1, -1);
+    for (int i = 0; i < N; ++i) {
+        if (i == rootIdx) continue;                 // root has no entry
+        int child = newId[i];
+        int par   = newId[parentIdx[i]];
+        R[child] = par;
+    }
+    return R;
+}
+}
+```
+
+Now final global find_structure:
+
+```cpp
+vector<int> find_structure(int M) {
+    // If M <= 3, we can safely use the solution tailored for very small M.
+    if (M <= 3) {
+        return subtask2::find_structure(M);
+    }
+    // For moderate M (up to 45) the solution for Subtask 3 works within limits.
+    if (M <= 45) {
+        return subtask3::find_structure(M);
+    }
+    // For larger M (up to 200) we use the general solution (Subtask 4).
+    // Subtask 1 cannot be distinguished from other cases using only M,
+    // and the general solution works for it as well, so we do not invoke it.
+    return subtask4::find_structure(M);
+}
+```
+
+We need to place this after namespaces.
+
+Now we must ensure we have a forward declaration of global extern functions before any code uses them. Since we have includes inside namespaces which also may use insert/collect, they will be able to see the global extern before definitions? They are defined after the extern? Actually the extern declarations need to appear before any use in the translation unit, else compile might still work because function is used before declaration? In C++, you can call a function without prior declaration? No, you need a declaration before use. However the code inside namespace calls insert. If before including each solution file we have the extern declarations, then they can compile. So we should put the global extern declarations at top file, before the namespace definitions.
+
+Thus final code:
+
+```cpp
+// Global declarations of the grader's interface.
+extern bool insert(int U, int X);
+extern std::vector<int> collect();
+
+... // namespaces and functions
+
+vector<int> find_structure(int M) { ... }
+```
+
+Now we need to ensure that the include <bits/stdc++.h> inside each namespace is okay after we already include it in each namespace. Usually multiple includes are okay.
+
+Now double-check all code for potential issues: usage of `vector` and `std::vector`, etc. In subtask3 solution, return type is std::vector<int>. In subtask4 solution, return type is vector<int>. Since we have using namespace std within the namespace, that's fine. In global dispatcher we use vector<int> return.
+
+Potential risk: The subtask3 solution uses rootOld variable set inside for loop; there is a scenario where rootOld might stay -1 if not set. But they assume root will be set eventually. Should be fine.
+
+Now we need to ensure there are no name collisions of `vector<int> parent` variable inside subtask1 and other namespaces conflict with each other (they are inside separate namespaces). So fine.
+
+Now about the global find_structure being defined after the namespace definitions, but also each namespace defines find_structure; the global dispatcher must be defined after the namespaces or forward declares? It's fine; compilers can see the namespace qualified calls because they are defined later. However references to subtask2::find_structure need to be after the namespace is defined. So we place the dispatcher after all namespace definitions.
+
+Now also confirm that subtask2::find_structure does not conflict with the name used in dispatch (the same name). It's qualified.
+
+Now about the lambda recursion in subtask2: lambda `function<void(int)> dfs = [&](int u) {...}` uses function. That's fine and includes <functional> from bits.
+
+Now about the includes: each namespace includes bits, which includes vector, unordered_map, etc.
+
+Now finalize.
+
+Potential small issue: The subtask2 solution uses `vector<int> parentOld(N, -1);` but it doesn't initialize N if N could be zero? M >=1, tree includes at least root and M leaves, so N>0.
+
+Now think about the overall usage: The grader expects find_structure to return correct parent array for the hidden tree. Our solution dispatch chooses subtask2/3/4 based on M.
+
+Check subtask2 for M <=3: It uses pairwise LCA depth algorithm requiring M <=30 maybe? Works for any tree. Good.
+
+subtask3 for M <=45 but >3: Works as long as N <=200. In subtask3 constraints N <=200. But we only know M <=45, but N could be up to 1000 (since subtask 4 can have N up to 1000). However for tests where M <=45 but N >200, subtask3 solution may not be able to handle due to B and K constraints? Actually subtask3 solution uses MAX_VAL = 999 and a single collect. It does not use any tree-size-limited algorithm; but the algorithm's complexity O(N^2)? Actually reconstruction uses stack per node. That should work for up to N=1000 as well. The only difference is subtask3 solution doesn't know constraints on N; but also uses "nodeValue.reserve(N)" and expects N <= sum of inserted nodes (should be N). Since N could be up to 1000, nodeValue size would be N. That's fine.
+
+But potential hidden bug: The leafValue vector is size M (M <=45) but mapping leafValue to leaf indices using unordered_map might need leaf values being distinct, okay.
+
+Thus subtask3 algorithm may work even for larger N, but might exceed C when N >200? Condition for subtask3's scoring only cares about C cap; we still have C=1000 at max. OK.
+
+Thus we can safely use subtask3 algorithm for M <=45 as a general solution. It should work for all N up to 1000.
+
+Thus dispatcher is fine.
+
+Now we need to ensure we abide by the rule "Every one of the four solutions must be reachable from the dispatcher, or you must justify in a comment why it cannot be." We'll include comment that subtask1 cannot be distinguished only by M, and we rely on the general solution for all cases, which also works for subtask1. So we explain.
+
+Now double-check that the solution uses only up to 500k insert calls. subtask2 uses O(M*depth) but M <=3, depth <= N-1 <= 999. So under 500k. subtask3 and subtask4 use up to N insert calls? Actually they fill whole tree by inserting one ball per node (N inserts). In worst-case N = 1000, each insertion is single ball. They iterate over all leaves each time maybe up to (N) times? But the fill loop: while (true) { for each leaf: if (cur < 0) break; if (insert(leaf, cur)) { leafValue[leaf]=cur; any=true; cur--; } } loops until no more successes. At each iteration, some leaf may succeed; total successes = N (number of nodes). Each iteration processes up to M leaves (M <=200). So worst-case, the number of insert calls is at most N + (some wasted attempts). Let's bound worst-case insert attempts: For each leaf we attempt insert one ball each time; eventual number of attempts = sum over leaf of number of times we try until insertion fails (when leaf not free). In each iteration for each leaf we call insert once (if cur still >=0). If insertion fails (leaf is occupied), we still called insert, but that counts to total call count. But after tree fully filled, all leaves are occupied; at this point in while loop, anySuccess==false so break; but we will have called insert for each leaf before checking anySuccess? Let's examine code:
+
+while (true) {
+    bool any=false;
+    for leaf in 0..M-1:
+        if (cur <0) break;
+        if (insert(leaf, cur)) { ... any=true; cur--;}
+    if (!any) break;
+}
+
+When tree is full, insert(leaf, cur) will fail for all leaves (since leaf is occupied). Actually after tree filled, root is occupied, but leaves maybe also occupied; depends on shape. But leaf is always occupied, so insert will return false. So any remains false. Loop ends. But this still performed M insert calls for that final attempt (all failing). So total insert calls approx N successes + at most (N/M+1)*M failing calls? Roughly maybe up to 2N or maybe up to N + M. For N=1000, M=200, that's about 1200 calls. That's fine. So within limit.
+
+Thus all good.
+
+Now verify that includes from solution files may conflict with each other using same variable names causing overshadow? They are inside namespaces, but the includes may bring `using namespace std;` inside each namespace version. That's fine.
+
+Now final step: produce the final C++ code.
+
+Potential compile/link errors: The global find_structure function conflicts with the names in namespaces; but they are separate, fine.
+
+Now ensure we add unique namespace names: subtask1, subtask2, subtask3, subtask4.
+
+Now produce final answer.
+
+Make sure to include `using namespace std;` inside each namespace; we already have includes and using.
+
+Now also note that we create `vector<int> find_structure(int M)` inside global namespace as the required function signature. That may conflict with other definitions? But we have separate functions in namespaces. It's okay.
+
+Now we should ensure no ambiguous overloads.
+
+Now just produce final code.
+
+Potential missing includes for std::function: bits includes it.
+
+Potential missing includes for unordered_map: bits includes.
+
+Now final code: In global find_structure, we need to refer to namespace subtask2::find_structure etc. Since we used using namespace std; at top of each namespace, but not globally. In global, we need to include <bits/stdc++.h> maybe but not needed because we have includes inside namespaces; but we need vector type for return. So either we add `#include <bits/stdc++.h>` at top also (we could). For safety add at top, before extern declarations.
+
+Thus file begins with:
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+// Global declarations
+extern bool insert(int U, int X);
+extern std::vector<int> collect();
+```
+
+Now then the namespaces.
+
+But note: each namespace also includes its own `#include <bits/stdc++.h>`; double includes are fine, but we can also omit them within namespaces because we already have at global. But we must preserve solution verbatim, which includes includes. We could keep them.
+
+Potential risk: double inclusion of the same header with using namespace std; within namespace may cause `using namespace std;` to be placed inside namespace; this means inside that namespace `std` is imported into that namespace. That's fine.
+
+Now the entire file compiled.
+
+Check for missing semicolons after namespace closing braces (we need to close each namespace by `}`). That's fine.
+
+Now we also need to ensure that our code doesn't cause ambiguous call to insert due to function overloads; the global extern bool insert(int, int) defined; inside namespace, calling insert will find this function via ADL? Actually unqualified lookup: Inside namespace subtask1, there may be no declaration of insert. It will perform argument-dependent lookup; but int type has no associated namespace. So unqualified name lookup will next consider surrounding scopes: first the innermost namespace, then its enclosing namespace (global). Since there is no `insert` in subtask1 namespace, it finds global. That's fine.
+
+Now verify the functions `collect` returns vector<int>. In subtask1 use `collect();` returns vector; they ignore result.
+
+Now confirm that the code respects the limit C <= 1000. In subtask2 solution: They use multiple collect calls: each leaf depth measurement uses collect per leaf (M times). Then pairwise LCA uses collect per pair: O(M^2) collects. With M <=3, that's fine and K <= 3 + ... small, maybe up to 9 collects, B=0, C small < 1000. So fine.
+
+subtask3 and subtask4 both have K = 1 (single collect) and B <=999 < 1000.
+
+Thus overall C <= 1000.
+
+Now extra comment regarding subtask1: For clarity:
+
+```cpp
+// Note: Subtask 1 cannot be distinguished using only M; the general solution
+// (subtask4) works for it as well, so we do not call the specific implementation.
+```
+
+Now produce final code block.
+
+Potential pitfalls: The official grader's function signatures might be defined as `bool insert(int U, int X);` and `vector<int> collect();` (i.e., without namespace). So our global extern declarations must match exactly. Use `std::vector<int>` for collect return type. Good.
+
+Now produce final answer.
+
+
+</reasoning>
+
+```cpp
+/*
+ * Merged solution for the Ball Machine problem.
+ *
+ * Four original solutions are kept verbatim (except for the global
+ * declarations of `insert` and `collect`, which must appear only once
+ * in the global scope).  Each solution is placed in its own namespace.
+ *
+ * The dispatcher `find_structure` chooses which implementation to run
+ * based only on the value of M.  Subtask‑1 cannot be distinguished from
+ * the other subtasks using only M, and the general solution (Subtask‑4)
+ * works for it as well, so it is not invoked directly.
+ */
+
+/*======================================================================
+ * Global declarations of the grader's interface.
+ *====================================================================*/
+#include <bits/stdc++.h>
+using namespace std;
+
+extern bool insert(int U, int X);               // provided by the grader
+extern std::vector<int> collect();              // provided by the grader
+
+/*======================================================================
+ * solutions/subtask1_ballmachine.cpp
+ *====================================================================*/
+namespace subtask1 {
+#include <bits/stdc++.h>
+using namespace std;
+
+//--- the grader provides these functions ---------------------------------
+//extern bool insert(int U, int X);          // try to insert a ball
+//extern vector<int> collect();              // collect and empty the machine
+//-------------------------------------------------------------------------
+
+vector<int> find_structure(int M) {
+    const int BALL_VALUE = 0;               // any non‑negative value, 0 is enough
+    vector<int> depth(M, 0);
+
+    // 1. determine the depth of every leaf
+    for (int leaf = 0; leaf < M; ++leaf) {
+        int successes = 0;
+        while (insert(leaf, BALL_VALUE))   // true → ball was inserted
+            ++successes;
+        // leaf is now occupied; next insert would return false
+        depth[leaf] = successes - 1;        // true depth
+        collect();                          // empty the machine for the next leaf
+    }
+
+    // 2. compute total number of nodes
+    long long sumDepth = 0;
+    for (int d : depth) sumDepth += d;
+    int N = static_cast<int>(sumDepth) + 1; // total nodes, root = N - 1
+
+    // 3. build a suitable parent array
+    vector<int> parent(N - 1, -1);           // R[0 … N-2]
+    int nextId = M;                         // first free index for internal nodes
+
+    for (int leaf = 0; leaf < M; ++leaf) {
+        int d = depth[leaf];
+        if (d == 1) {
+            // leaf is a direct child of the root
+            parent[leaf] = N - 1;
+        } else {
+            // create a private chain of (d-1) internal nodes
+            int first = nextId;              // node directly above the leaf
+            parent[leaf] = first;            // leaf → first internal node
+            for (int i = 0; i < d - 1; ++i) {
+                int cur = first + i;
+                if (i == d - 2) {            // last node of the chain
+                    parent[cur] = N - 1;      // connects to the root
+                } else {
+                    parent[cur] = cur + 1;    // points to the next node upwards
+                }
+            }
+            nextId += d - 1;                 // reserve those indices
+        }
+    }
+    return parent;
+}
+} // namespace subtask1
+
+/*======================================================================
+ * solutions/subtask2_ballmachine.cpp
+ *====================================================================*/
+namespace subtask2 {
+#include <bits/stdc++.h>
+using namespace std;
+
+//extern bool insert(int leaf, int value);
+//extern vector<int> collect();
+
+vector<int> find_structure(int M) {
+    // ------------------------------------------------------------
+    // 1. leaf depths
+    vector<int> depth(M, 0);
+    for (int i = 0; i < M; ++i) {
+        int cnt = 0;
+        while (insert(i, 0)) ++cnt;        // count successful insertions
+        depth[i] = cnt - 1;                 // depth = successes - 1
+        collect();                          // empty the machine
+    }
+
+    // ------------------------------------------------------------
+    // 2. pairwise LCA depths
+    vector<vector<int>> L(M, vector<int>(M, -1));
+    for (int i = 0; i < M; ++i) {
+        for (int j = i + 1; j < M; ++j) {
+            // fill leaf i completely
+            while (insert(i, 0)) {}
+            // now insert leaf j and count successes
+            int cnt = 0;
+            while (insert(j, 0)) ++cnt;
+            L[i][j] = depth[j] - cnt;       // Lemma 2
+            L[j][i] = L[i][j];
+            collect();                      // empty for the next round
+        }
+    }
+
+    // ------------------------------------------------------------
+    // 3. rebuild the tree (old identifiers)
+    int nextId = 0;
+    int rootId = nextId++;                  // id 0 is the root
+    vector<vector<int>> node(M);            // node[i][d] = id of leaf i at depth d
+    for (int i = 0; i < M; ++i) {
+        node[i].assign(depth[i] + 1, -1);
+        node[i][0] = rootId;                // root is shared
+    }
+
+    for (int i = 0; i < M; ++i) {
+        for (int d = 1; d <= depth[i]; ++d) {
+            int shared = -1;
+            for (int j = 0; j < i; ++j) {
+                if (L[i][j] >= d) {        // this depth is already present
+                    shared = node[j][d];
+                    break;
+                }
+            }
+            if (shared != -1) node[i][d] = shared;
+            else               node[i][d] = nextId++;
+        }
+    }
+
+    int N = nextId;                         // total number of vertices
+
+    // parent in the old numbering
+    vector<int> parentOld(N, -1);
+    for (int i = 0; i < M; ++i) {
+        for (int d = 1; d <= depth[i]; ++d) {
+            int child = node[i][d];
+            int par   = node[i][d - 1];
+            parentOld[child] = par;
+        }
+    }
+
+    // adjacency list (children)
+    vector<vector<int>> children(N);
+    for (int v = 0; v < N; ++v) {
+        int p = parentOld[v];
+        if (p != -1) children[p].push_back(v);
+    }
+
+    // leaf nodes in old numbering
+    vector<int> leafOld(M);
+    for (int i = 0; i < M; ++i) leafOld[i] = node[i][depth[i]];
+
+    // ------------------------------------------------------------
+    // 4. new labeling (0..M-1 for leaves, N-1 for root)
+    vector<int> newLabel(N, -1);
+    for (int i = 0; i < M; ++i) newLabel[leafOld[i]] = i;   // fixed leaf labels
+
+    int cur = M;                                   // next free label
+    function<void(int)> dfs = [&](int u) {
+        for (int v : children[u]) dfs(v);
+        if (newLabel[u] == -1) newLabel[u] = cur++;
+    };
+    dfs(rootId);                                   // root gets the last label N-1
+
+    // ------------------------------------------------------------
+    // 5. build the answer array R
+    vector<int> R(N - 1, -1);                      // R[child] = parent
+    for (int v = 0; v < N; ++v) {
+        int p = parentOld[v];
+        if (p == -1) continue;                     // root
+        int childLabel  = newLabel[v];
+        int parentLabel = newLabel[p];
+        R[childLabel] = parentLabel;
+    }
+    return R;
+}
+} // namespace subtask2
+
+/*======================================================================
+ * solutions/subtask3_ballmachine.cpp
+ *====================================================================*/
+namespace subtask3 {
+#include <bits/stdc++.h>
+using namespace std;
+
+// forward declarations – the grader supplies the definitions
+//extern bool insert(int U, int X);
+//extern std::vector<int> collect();
+
+std::vector<int> find_structure(int M) {
+    const int MAX_VAL = 999;                     // B = 999, K = 1  →  C = 1000
+    int cur = MAX_VAL;
+
+    // leafValue[i] – final value of the ball that stays on leaf i
+    vector<int> leafValue(M, -1);
+
+    // -----------------------------------------------------------------
+    // 1) fill the whole tree, always using a smaller value for every success
+    while (true) {
+        bool anySuccess = false;
+        for (int leaf = 0; leaf < M; ++leaf) {
+            if (cur < 0) break;            // no more admissible values
+            if (insert(leaf, cur)) {       // a new vertex became occupied
+                leafValue[leaf] = cur;   // remember the ball's value
+                --cur;                    // next successful ball gets a smaller value
+                anySuccess = true;
+            }
+        }
+        if (!anySuccess) break;          // no vertex was newly occupied → done
+    }
+
+    // -----------------------------------------------------------------
+    // 2) obtain the preorder list of all values
+    vector<int> preorder = collect();     // K = 1
+    int N = (int)preorder.size();         // total number of nodes ( = successes )
+
+    // map leaf values → leaf index
+    unordered_map<int,int> leafValToIdx;
+    for (int i = 0; i < M; ++i) leafValToIdx[leafValue[i]] = i;
+
+    // -----------------------------------------------------------------
+    // 3) reconstruct the tree from the preorder list
+    // node IDs:   leaves 0..M-1, internal nodes M, M+1, ...
+    vector<int> nodeValue;                // value of each node (by ID)
+    nodeValue.reserve(N);
+    nodeValue.resize(M);                  // placeholders for leaves
+
+    // fill leaf values
+    for (int i = 0; i < M; ++i) nodeValue[i] = leafValue[i];
+
+    vector<int> parentOld;                // parent of each node (old IDs)
+    parentOld.reserve(N);
+    parentOld.resize(M, -1);              // leaves will get their parent later
+
+    unordered_map<int,int> internalValToId;   // value → internal node ID
+
+    vector<int> stack;                    // stack of node IDs (current ancestors)
+
+    int rootOld = -1;                     // old ID of the root
+
+    for (int v : preorder) {
+        int id;
+        auto itLeaf = leafValToIdx.find(v);
+        if (itLeaf != leafValToIdx.end()) {
+            // a leaf
+            id = itLeaf->second;          // leaf index is its ID
+        } else {
+            auto itInt = internalValToId.find(v);
+            if (itInt == internalValToId.end()) {
+                id = (int)nodeValue.size();   // next free ID
+                internalValToId[v] = id;
+                nodeValue.push_back(v);
+                parentOld.push_back(-1);
+            } else {
+                id = itInt->second;
+            }
+        }
+
+        // pop finished subtrees
+        while (!stack.empty() && nodeValue[stack.back()] < v) {
+            stack.pop_back();
+        }
+        if (!stack.empty()) {
+            parentOld[id] = stack.back();
+        } else {
+            rootOld = id;                 // this node has no parent → the root
+        }
+        stack.push_back(id);
+    }
+
+    // ---------------------------------------------------------------
+    // 4) relabel internal nodes: leaves keep their numbers,
+    //    the root gets label N-1, the remaining internals get M … N-2
+    int totalNodes = (int)nodeValue.size();   // should be N
+    vector<int> oldToNew(totalNodes, -1);
+    for (int i = 0; i < M; ++i) oldToNew[i] = i;   // leaves unchanged
+
+    int nextLabel = M;
+    for (int old = M; old < totalNodes; ++old) {
+        if (old == rootOld) continue;
+        oldToNew[old] = nextLabel++;
+    }
+    oldToNew[rootOld] = totalNodes - 1;    // root = N-1
+
+    // ---------------------------------------------------------------
+    // 5) build the required array R[0 … N-2]
+    vector<int> R(totalNodes - 1, -1);
+    for (int old = 0; old < totalNodes; ++old) {
+        int newId = oldToNew[old];
+        if (newId == totalNodes - 1) continue; // root – no entry in R
+        int oldPar = parentOld[old];
+        int newPar = (oldPar == -1 ? -1 : oldToNew[oldPar]);
+        R[newId] = newPar;
+    }
+
+    return R;
+}
+} // namespace subtask3
+
+/*======================================================================
+ * solutions/subtask4_ballmachine.cpp
+ *====================================================================*/
+namespace subtask4 {
+#include <bits/stdc++.h>
+using namespace std;
+
+/*  the grader supplies these two functions  */
+//extern bool insert(int U, int X);
+//extern vector<int> collect();
+
+vector<int> find_structure(int M)
+{
+    const int MAX_VAL = 999;               // allowed ball values are 0..1000
+    int cur = MAX_VAL;                     // current value for the next ball
+
+    // leafValue[u] – the value of the ball that finally stays at leaf u
+    vector<int> leafValue(M, -1);
+
+    /* ---------------------------------------------------------
+       1) Fill the whole machine.
+          We try all leaves repeatedly, inserting decreasing values.
+          When insert succeeds we remember the value for that leaf.
+       --------------------------------------------------------- */
+    while (true) {
+        bool any = false;
+        for (int leaf = 0; leaf < M; ++leaf) {
+            if (cur < 0) break;            // no more admissible values
+            if (insert(leaf, cur)) {       // a new vertex became occupied
+                leafValue[leaf] = cur;     // remember the ball's value
+                any = true;
+                --cur;                     // next value will be smaller
+            }
+        }
+        if (!any) break;                   // no vertex was newly occupied → done
+    }
+
+    /* ---------------------------------------------------------
+       2) Obtain the traversal sequence S.
+       --------------------------------------------------------- */
+    vector<int> seq = collect();            // S – values of all N balls
+    int N = (int)seq.size();                // number of vertices
+
+    /* ---------------------------------------------------------
+       3) Reconstruct the tree from the preorder sequence.
+          The values satisfy the heap property:
+          parent value > all values in its subtree.
+          Hence a monotone decreasing stack works.
+       --------------------------------------------------------- */
+    vector<int> parentIdx(N, -1);            // parent index in the reconstructed tree
+    vector<vector<int>> children(N);
+    vector<int> st;                         // stack of vertex indices (indices in seq)
+    int rootIdx = -1;
+
+    for (int i = 0; i < N; ++i) {
+        int v = seq[i];
+        while (!st.empty() && seq[st.back()] < v)   // finish subtrees of smaller values
+            st.pop_back();
+
+        if (!st.empty()) {
+            int p = st.back();
+            parentIdx[i] = p;
+            children[p].push_back(i);
+        } else {
+            parentIdx[i] = -1;               // this is the root
+            rootIdx = i;
+        }
+        st.push_back(i);
+    }
+
+    /* ---------------------------------------------------------
+       4) Build a map: value of a leaf -> leaf index (0..M-1).
+       --------------------------------------------------------- */
+    unordered_map<int,int> leafIdByValue;
+    leafIdByValue.reserve(M * 2);
+    for (int u = 0; u < M; ++u) {
+        // each leaf is finally occupied, leafValue[u] must be set
+        leafIdByValue[ leafValue[u] ] = u;
+    }
+
+    /* ---------------------------------------------------------
+       5) Assign new labels.
+           - leaves keep their original indices 0..M-1
+           - internal vertices (except root) get M .. N-2
+           - root gets N-1
+       --------------------------------------------------------- */
+    vector<int> newId(N, -1);
+
+    // leaves: use the original leaf numbers obtained from leafValue mapping
+    for (int i = 0; i < N; ++i) {
+        if (children[i].empty()) {                  // a leaf in the real tree
+            int val = seq[i];
+            auto it = leafIdByValue.find(val);
+            // it must exist because leaf values are distinct
+            newId[i] = it->second;                  // leaf number 0..M-1
+        }
+    }
+
+    // internal vertices (except root)
+    int nextId = M;                                 // start after leaves
+    for (int i = 0; i < N; ++i) {
+        if (i == rootIdx) continue;
+        if (!children[i].empty()) {                 // internal node
+            newId[i] = nextId++;
+        }
+    }
+    newId[rootIdx] = N - 1;                         // root label
+
+    /* ---------------------------------------------------------
+       6) Build the answer array R[0 .. N-2].
+       --------------------------------------------------------- */
+    vector<int> R(N - 1, -1);
+    for (int i = 0; i < N; ++i) {
+        if (i == rootIdx) continue;                 // root has no entry
+        int child = newId[i];
+        int par   = newId[parentIdx[i]];
+        R[child] = par;
+    }
+    return R;
+}
+} // namespace subtask4
+
+/*======================================================================
+ * Dispatcher
+ *====================================================================*/
+vector<int> find_structure(int M) {
+    // Subtask 2 (M ≤ 3) – the specialised tiny‑leaf solution.
+    if (M <= 3) {
+        return subtask2::find_structure(M);
+    }
+    // Subtask 3 (4 ≤ M ≤ 45) – the solution that works for moderate sizes.
+    if (M <= 45) {
+        return subtask3::find_structure(M);
+    }
+    // Subtask 4 (M > 45) – the general solution.
+    // Subtask 1 cannot be distinguished using only M; the general
+    // algorithm also works for the star‑shaped trees of Subtask 1,
+    // so we use the Subtask 4 implementation for those cases.
+    return subtask4::find_structure(M);
+}
+```

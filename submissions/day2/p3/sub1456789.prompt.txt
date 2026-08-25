@@ -1,0 +1,1093 @@
+You are an expert competitive programmer. Below is an IOI 2026 problem, followed
+by the best known C++ solution for each of its subtasks. Each was written for one
+subtask alone, and the score it achieved there is stated.
+
+# Problem statement
+
+You are an expert competitive programmer. You will be given a problem statement, constraints, and example test cases. Please reason step by step about the solution, then provide a complete implementation in C++17.
+
+Please solve the problem exactly according to the requirements in the problem statement. Follow the input/output format, function signatures, implementation details, and any special requirements specified in the problem itself. If the problem requires standard input/output, include a complete program with `main`. If the problem requires implementing specific routines/classes without `main`, only implement what is requested.
+
+Assume your code will be run on the OFFICIAL grader, and do not add a main function, a sample grader, or any other functionality unless it has been explicitly requested.
+
+Put your final solution within a single code block:
+
+
+```cpp
+// your code here
+```
+
+# [IOI 2026] Day 2. Partition
+
+**Time limit:** 1 second &nbsp;&nbsp; **Memory limit:** 2048 megabytes
+
+# Partition
+
+Temur and his assistant, Ulug'bek, are preparing a magic trick for the Uzbekistan Got Talent show. The trick revolves around Temur solving the following partition problem: partition a given collection of positive integers into $K$ non-empty groups such that the sum of the elements in each group is the same. In other words, every integer from the collection must be assigned to exactly one of the $K$ groups, and the sum within each group must be equal. For example, if the given collection is $[2, 1, 6, 4, 5]$ and $K = 3$, a valid partition would be $[2, 4]$, $[1, 5]$, and $[6]$. In this case, the sum of elements in each group is exactly $6$.
+
+The trick is performed as follows:
+
+- Ulug'bek and Temur enter separate booths and cannot communicate with each other.
+- A jury member gives Ulug'bek an array $A$ of $N$ positive integers, $A[0], A[1], \ldots, A[N-1]$, where each value is between $1$ and $M$ inclusive. The jury member also gives Ulug'bek the value of $K$.
+- Ulug'bek chooses at most $K-1$ (not necessarily distinct) integers to add as new elements to the array $A$. Each added integer must also be between $1$ and $M$ inclusive.
+- The jury appends the integers chosen by Ulug'bek to the original array. This extended array is then sorted in non-decreasing order and is given to Temur, along with the value of $K$.
+- Temur must then solve the partition problem for this extended, sorted array.
+
+Your task is to devise and implement a strategy for Temur and Ulug'bek. It can be proven that, under the given constraints, a strategy for them exists that allows them to successfully solve the partition problem, regardless of the array $A$ provided by the jury.
+
+## Implementation Details
+
+You should implement two procedures.
+
+The procedure you should implement for Ulug'bek is:
+
+```cpp
+std::vector<int> add_numbers(std::vector<int> A, int K, int M)
+```
+
+- $A$: an array of length $N$ representing the original array given to Ulug'bek.
+- $K$: the target number of groups; note that Ulug'bek may add up to $K-1$ integers to the array.
+- $M$: the maximum allowed value for each original and newly added integer.
+- This procedure is called exactly once for each test case.
+- The procedure should return an array $C$ containing the integers that Ulug'bek wants to add to the original array. Let $S$ denote the length of the array $C$.
+    - $S$ must be at most $K-1$.
+    - Each element of $C$ must be between $1$ and $M$ inclusive.
+
+The procedure you should implement for Temur is:
+
+```cpp
+std::vector<int> find_partition(std::vector<int> B, int K)
+```
+
+- $B$: an array of length $N + S$ containing both the original integers from $A$ and the integers that Ulug'bek added. The elements of array $B$ are sorted in non-decreasing order.
+- $K$: the target number of groups.
+- This procedure is called exactly once for each test case.
+- The procedure should return an array $P$ that represents the partition of $B$ into $K$ disjoint groups.
+    - The length of $P$ should be $N + S$.
+    - For each $j$ such that $0 \le j < N + S$, $P[j]$ signifies the group to which $B[j]$ belongs.
+    - The groups should be numbered from $0$ to $K-1$, meaning $0 \le P[j] < K$ must hold for each $0 \le j < N + S$.
+    - For each $i$ between $0$ and $K-1$ inclusive, there must be at least one element $j$ ($0 \le j < N + S$) such that $P[j] = i$.
+    - The sum of elements assigned to each of the $K$ groups must be identical.
+
+In the actual grading, a program that calls the above procedures is run exactly **two** times.
+
+During the first run of the program:
+
+- `add_numbers` is called exactly once.
+- The returned array is processed by the grading system to compute array $B$.
+
+During the second run of the program:
+
+- `find_partition` is called exactly once.
+
+## Constraints
+
+- $3 \le N \le 100\,000$
+- $2 \le K \le 100\,000$
+- $K \le N$
+- $1 \le M \le 10^9$
+- $1 \le A[i] \le M$ for each $i$ such that $0 \le i < N$.
+
+## Subtasks
+
+| Subtask | Score | Additional Constraints |
+|---------|-------|------------------------|
+| 1 | 5 | $N = 3$ |
+| 2 | 4 | $M = 1$ |
+| 3 | 7 | $M \le 2$ |
+| 4 | 10 | $N \le 10$ |
+| 5 | 7 | $K = 2$ |
+| 6 | 12 | $K \le 3$ |
+| 7 | 17 | $K \le 10$ |
+| 8 | 20 | $K \le 100$ |
+| 9 | 18 | No additional constraints. |
+
+## Example
+
+Consider the following call:
+
+```
+add_numbers([8, 2, 9, 6, 1, 5, 5], 3, 9)
+```
+
+In this example $A = [8, 2, 9, 6, 1, 5, 5]$. We want to partition the numbers into $K = 3$ groups. Ulug'bek can add numbers between $1$ and $M = 9$.
+
+The procedure can return $[5, 4]$, meaning that Ulug'bek decides to add $S = 2$ new integers: $5$ and $4$. These are valid since both elements are between $1$ and $M = 9$.
+
+The extended array is then sorted and passed to Temur with the following call:
+
+```
+find_partition([1, 2, 4, 5, 5, 5, 6, 8, 9], 3)
+```
+
+We might divide the integers from this array into these three groups: $[1, 5, 9]$, $[2, 5, 8]$, and $[4, 5, 6]$. Note that the sum of each of these groups is equal to $15$. To report this partition, the procedure should return the array $[0, 1, 2, 0, 1, 2, 2, 1, 0]$.
+
+
+
+# Best known solution for Subtask 1 (worth 5 points)
+
+Additional constraints of this subtask: N = 3
+Source file: `solutions/subtask1_partition.cpp`
+Score this program achieved on Subtask 1: **5 out of 5 -- full marks**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/* -------------------------------------------------------------
+   Ulug'bek: choose numbers to add.
+   ------------------------------------------------------------- */
+vector<int> add_numbers(vector<int> A, int K, int M) {
+    vector<int> C;                 // numbers to add
+    if (K == 3) {                  // make every group sum = max element
+        int mx = *max_element(A.begin(), A.end());
+        for (int x : A) {
+            if (x < mx) {
+                int add = mx - x; // 1 ≤ add ≤ M
+                C.push_back(add);
+            }
+        }
+    } else if (K == 2) {           // two groups
+        vector<int> s = A;
+        sort(s.begin(), s.end());          // s[0] ≤ s[1] ≤ s[2]
+        long long x = s[0], y = s[1], z = s[2];
+        long long d = llabs(x + y - z);    // difference of the two possible groups
+        if (d != 0) {                      // need one extra number
+            C.push_back(static_cast<int>(d));  // 1 ≤ d ≤ M (proved in analysis)
+        }
+    }
+    // safety: never exceed K-1 numbers (the construction guarantees it)
+    if ((int)C.size() > K - 1) C.resize(K - 1);
+    return C;
+}
+
+/* -------------------------------------------------------------
+   Temur: find a partition of the sorted array B into K equal‑sum groups.
+   ------------------------------------------------------------- */
+vector<int> find_partition(vector<int> B, int K) {
+    int n = (int)B.size();
+    long long total = 0;
+    for (int v : B) total += v;
+    long long target = total / K;            // total is guaranteed divisible by K
+
+    vector<int> answer;
+    vector<int> cur(n);
+    vector<long long> sum(K, 0);
+    vector<int> cnt(K, 0);
+    bool found = false;
+
+    function<void(int)> dfs = [&](int idx) {
+        if (found) return;
+        if (idx == n) {
+            for (int i = 0; i < K; ++i) {
+                if (cnt[i] == 0) return;          // empty group
+                if (sum[i] != target) return;     // wrong sum
+            }
+            answer = cur;
+            found = true;
+            return;
+        }
+        int val = B[idx];
+        for (int g = 0; g < K; ++g) {
+            if (sum[g] + val > target) continue;   // would exceed target
+            cur[idx] = g;
+            sum[g] += val;
+            ++cnt[g];
+            dfs(idx + 1);
+            sum[g] -= val;
+            --cnt[g];
+            if (found) return;
+        }
+    };
+
+    dfs(0);
+    return answer;        // a solution always exists for the constructed inputs
+}
+```
+
+# Best known solution for Subtask 4 (worth 10 points)
+
+Additional constraints of this subtask: N <= 10
+Source file: `solutions/subtask4_partition.cpp`
+Score this program achieved on Subtask 4: **10 out of 10 -- full marks**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/*  Ulug'bek: choose numbers to add  */
+vector<int> add_numbers(vector<int> A, int K, int M) {
+    int N = (int)A.size();
+    long long max_val = *max_element(A.begin(), A.end());
+
+    /*  Case K > N : trivial construction using max_val  */
+    if (K > N) {
+        vector<int> C;
+        int cnt_eq = 0;
+        for (int x : A) {
+            if (x == max_val) ++cnt_eq;
+            else C.push_back((int)(max_val - x));          // deficit for each smaller element
+        }
+        int extra = K - N;                                 // groups without any original element
+        for (int i = 0; i < extra; ++i) C.push_back((int)max_val);
+        return C;
+    }
+
+    /*  Case K <= N : brute‑force search for a feasible partition of the original numbers
+        into K groups with equal target sum T (= some subset sum).  One group must reach T
+        exactly, the others may be smaller (deficit is added later).                                           */
+    int n = N;
+    vector<int> order(n);
+    iota(order.begin(), order.end(), 0);
+    sort(order.begin(), order.end(),
+         [&](int i, int j) { return A[i] > A[j]; });   // descending
+
+    vector<long long> vals(n);
+    for (int i = 0; i < n; ++i) vals[i] = A[order[i]];
+
+    // all possible target sums – they have to be subset sums of the original numbers
+    unordered_set<long long> seenT;
+    vector<long long> candT;
+    for (int mask = 1; mask < (1 << n); ++mask) {
+        long long s = 0;
+        for (int i = 0; i < n; ++i)
+            if (mask >> i & 1) s += vals[i];
+        if (s >= max_val && seenT.insert(s).second) candT.push_back(s);
+    }
+    sort(candT.begin(), candT.end());   // any order works; small first is fine
+
+    vector<int> bestAssign;   // assignment of original indices to groups
+    long long bestT = -1;
+
+    for (long long T : candT) {
+        long long L = max(0LL, T - (long long)M);   // each group sum must be >= L
+        vector<long long> groups(K, 0);
+        vector<int> assign(N, -1);
+        bool found = false;
+
+        function<void(int)> dfs = [&](int pos) {
+            if (found) return;
+            if (pos == n) {
+                bool haveFull = false;
+                for (int i = 0; i < K; ++i) {
+                    if (groups[i] < L || groups[i] > T) return;
+                    if (groups[i] == T) haveFull = true;
+                }
+                if (!haveFull) return;
+                found = true;
+                bestAssign = assign;
+                bestT = T;
+                return;
+            }
+            long long v = vals[pos];
+            int origIdx = order[pos];
+            unordered_set<long long> tried;   // avoid trying same group sum repeatedly
+            for (int g = 0; g < K; ++g) {
+                long long newSum = groups[g] + v;
+                if (newSum > T) continue;
+                if (tried.count(groups[g])) continue;
+                tried.insert(groups[g]);
+
+                groups[g] = newSum;
+                assign[origIdx] = g;
+                dfs(pos + 1);
+                if (found) return;
+
+                assign[origIdx] = -1;
+                groups[g] -= v;
+
+                if (groups[g] == 0) break;   // avoid permuting empty groups
+            }
+        };
+
+        dfs(0);
+        if (found) break;
+    }
+
+    // Construct the list of numbers that Ulug'bek must add (the deficits)
+    vector<long long> groupSum(K, 0);
+    for (int i = 0; i < N; ++i) {
+        int g = bestAssign[i];
+        groupSum[g] += A[i];
+    }
+    vector<int> C;
+    for (int i = 0; i < K; ++i) {
+        long long deficit = bestT - groupSum[i];
+        if (deficit > 0) C.push_back((int)deficit);   // guaranteed 1 ≤ deficit ≤ M
+    }
+    return C;
+}
+
+/*  Temur: find a partition of the (sorted) extended array B into K groups of equal sum  */
+vector<int> find_partition(vector<int> B, int K) {
+    int n = (int)B.size();
+    long long total = 0;
+    for (int x : B) total += x;
+    long long T = total / K;                 // target sum per group
+
+    vector<int> P(n, -1);
+
+    /*  Small total size (N ≤ 10 and at most K‑1 added numbers) → backtrack  */
+    if (n <= 20) {
+        vector<int> order(n);
+        iota(order.begin(), order.end(), 0);
+        sort(order.begin(), order.end(),
+             [&](int i, int j) { return B[i] > B[j]; });   // descending
+
+        vector<long long> gs(K, 0);
+        function<bool(int)> dfs = [&](int pos) -> bool {
+            if (pos == n) {
+                for (int i = 0; i < K; ++i)
+                    if (gs[i] != T) return false;
+                return true;
+            }
+            int idx = order[pos];
+            long long val = B[idx];
+            unordered_set<long long> used;   // prune symmetric states
+            for (int g = 0; g < K; ++g) {
+                if (gs[g] + val > T) continue;
+                if (used.count(gs[g])) continue;
+                used.insert(gs[g]);
+
+                gs[g] += val;
+                P[idx] = g;
+                if (dfs(pos + 1)) return true;
+                P[idx] = -1;
+                gs[g] -= val;
+                if (gs[g] == 0) break;       // avoid permuting empty groups
+            }
+            return false;
+        };
+
+        dfs(0);
+        return P;
+    }
+
+    /*  Large K (K > N) – the construction is a simple pairing:
+        each element v (< T) is paired with T‑v, elements equal to T stand alone.
+        This works because add_numbers used max_val = T in this regime.                 */
+    unordered_map<long long, vector<int>> idxs;
+    for (int i = n - 1; i >= 0; --i) idxs[B[i]].push_back(i);   // vectors act as stacks
+
+    int group_id = 0;
+    for (int i = 0; i < n; ++i) {
+        if (P[i] != -1) continue;
+        long long v = B[i];
+        P[i] = group_id;                       // start a new group
+
+        // clean up used indices for value v (it may still be in the stack)
+        while (!idxs[v].empty() && P[idxs[v].back()] != -1) idxs[v].pop_back();
+
+        if (v != T) {
+            long long need = T - v;
+            while (!idxs[need].empty() && P[idxs[need].back()] != -1) idxs[need].pop_back();
+            int j = idxs[need].back();
+            idxs[need].pop_back();
+            P[j] = group_id;
+        }
+        ++group_id;
+    }
+    return P;
+}
+```
+
+# Best known solution for Subtask 5 (worth 7 points)
+
+Additional constraints of this subtask: K = 2
+Source file: `solutions/subtask5_partition.cpp`
+Score this program achieved on Subtask 5: **7 out of 7 -- full marks**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/* -------------------------------------------------------------
+   Ulug'bek's procedure
+   ------------------------------------------------------------- */
+vector<int> add_numbers(vector<int> A, int K, int M) {
+    // K is guaranteed to be 2.
+    // Greedy on decreasing order – compute the final difference.
+    sort(A.begin(), A.end(), greater<int>());
+
+    long long diff = 0;
+    for (int x : A) {
+        diff = llabs(diff - (long long)x);          // |diff - x|
+    }
+
+    if (diff == 0)                     // already perfectly splittable
+        return {};
+
+    // diff ≤ max(A) ≤ M, therefore it is a legal number.
+    return { static_cast<int>(diff) };
+}
+
+/* -------------------------------------------------------------
+   Temur's procedure
+   ------------------------------------------------------------- */
+vector<int> find_partition(vector<int> B, int K) {
+    // K is guaranteed to be 2.
+    int n = (int)B.size();
+    vector<int> P(n);
+
+    long long sum0 = 0, sum1 = 0;      // sums of groups 0 and 1
+
+    // B is sorted non‑decreasingly – iterate from the largest element.
+    for (int i = n - 1; i >= 0; --i) {
+        if (sum0 <= sum1) {            // group 0 is lighter (or equal)
+            sum0 += B[i];
+            P[i] = 0;
+        } else {                       // group 1 is lighter
+            sum1 += B[i];
+            P[i] = 1;
+        }
+    }
+    // By the construction proved above, sum0 == sum1 here.
+    return P;
+}
+```
+
+# Best known solution for Subtask 6 (worth 12 points)
+
+Additional constraints of this subtask: K <= 3
+Source file: `solutions/subtask6_partition.cpp`
+Score this program achieved on Subtask 6: **12 out of 12 -- full marks**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/*---------------------------------------------------------------*/
+/*  Ulug'bek – choose numbers to add (at most K‑1 numbers)       */
+/*---------------------------------------------------------------*/
+vector<int> add_numbers(vector<int> A, int K, int M) {
+    // sort descending
+    sort(A.rbegin(), A.rend());
+
+    vector<long long> load(K, 0);
+    for (int v : A) {
+        int best = 0;
+        for (int i = 1; i < K; ++i)
+            if (load[i] < load[best]) best = i;
+        load[best] += v;
+    }
+
+    long long mx = *max_element(load.begin(), load.end());
+
+    vector<int> added;
+    for (int i = 0; i < K; ++i) {
+        long long diff = mx - load[i];
+        if (diff > 0)               // at most K‑1 such groups
+            added.push_back(static_cast<int>(diff));   // diff ≤ M
+    }
+    return added;
+}
+
+/*---------------------------------------------------------------*/
+/*  Temur – produce a partition of the sorted array B            */
+/*---------------------------------------------------------------*/
+vector<int> find_partition(vector<int> B, int K) {
+    const int n = (int)B.size();
+    long long total = 0;
+    for (int v : B) total += v;
+    long long target = total / K;               // guaranteed integer
+
+    // ---------- 1. initial greedy assignment (LPT) ----------
+    vector<long long> load(K, 0);
+    vector<int> assign(n, -1);                  // group of each element
+    vector< unordered_map<int, vector<int>> > groupMap(K);
+
+    for (int idx = n - 1; idx >= 0; --idx) {    // descending order
+        int best = 0;
+        for (int i = 1; i < K; ++i)
+            if (load[i] < load[best]) best = i;
+
+        int val = B[idx];
+        assign[idx] = best;
+        load[best] += val;
+        groupMap[best][val].push_back(idx);
+    }
+
+    // ---------- 2. correction phase (needed only for K = 3) ----------
+    while (true) {
+        bool balanced = true;
+        for (int i = 0; i < K; ++i)
+            if (load[i] != target) { balanced = false; break; }
+        if (balanced) break;               // finished
+
+        // choose one excess and one deficit group
+        int ex = -1, de = -1;
+        for (int i = 0; i < K; ++i) if (load[i] > target) { ex = i; break; }
+        for (int i = 0; i < K; ++i) if (load[i] < target) { de = i; break; }
+        if (ex == -1 || de == -1) break;   // should not happen
+
+        int need = static_cast<int>(load[ex] - target);   // positive
+
+        bool changed = false;
+
+        /* -------- case a : move a single element equal to need -------- */
+        auto itSingle = groupMap[ex].find(need);
+        if (itSingle != groupMap[ex].end() && !itSingle->second.empty()) {
+            int idx = itSingle->second.back();
+            itSingle->second.pop_back();
+
+            assign[idx] = de;
+            load[ex] -= need;
+            load[de] += need;
+            groupMap[de][need].push_back(idx);
+            changed = true;
+        }
+        if (changed) continue;
+
+        /* -------- case b : swap one element a (ex) with b (de) -------- */
+        for (auto &pr : groupMap[ex]) {
+            int a = pr.first;
+            if (pr.second.empty()) continue;
+            long long bLL = (long long)a - need;
+            if (bLL <= 0 || bLL > INT_MAX) continue;
+            int b = (int)bLL;
+            auto itb = groupMap[de].find(b);
+            if (itb != groupMap[de].end() && !itb->second.empty()) {
+                int idxA = pr.second.back(); pr.second.pop_back();
+                int idxB = itb->second.back(); itb->second.pop_back();
+
+                assign[idxA] = de;
+                assign[idxB] = ex;
+
+                load[ex] = load[ex] - a + b;
+                load[de] = load[de] - b + a;
+
+                groupMap[ex][b].push_back(idxB);
+                groupMap[de][a].push_back(idxA);
+                changed = true;
+                break;
+            }
+        }
+        if (changed) continue;
+
+        /* -------- case c : move two elements from ex, sum = need ----- */
+        for (auto &pr : groupMap[ex]) {
+            int a = pr.first;
+            if (pr.second.empty()) continue;
+            long long bLL = (long long)need - a;
+            if (bLL <= 0 || bLL > INT_MAX) continue;
+            int b = (int)bLL;
+            if (b == a) {
+                if (pr.second.size() >= 2) {
+                    int idx1 = pr.second.back(); pr.second.pop_back();
+                    int idx2 = pr.second.back(); pr.second.pop_back();
+                    assign[idx1] = de; assign[idx2] = de;
+                    load[ex] -= a * 2;
+                    load[de] += a * 2;
+                    groupMap[de][a].push_back(idx1);
+                    groupMap[de][a].push_back(idx2);
+                    changed = true;
+                    break;
+                }
+            } else {
+                auto itb = groupMap[ex].find(b);
+                if (itb != groupMap[ex].end() && !itb->second.empty()) {
+                    int idx1 = pr.second.back(); pr.second.pop_back();
+                    int idx2 = itb->second.back(); itb->second.pop_back();
+                    assign[idx1] = de; assign[idx2] = de;
+                    load[ex] -= a + b;
+                    load[de] += a + b;
+                    groupMap[de][a].push_back(idx1);
+                    groupMap[de][b].push_back(idx2);
+                    changed = true;
+                    break;
+                }
+            }
+        }
+        if (changed) continue;
+
+        /* -------- case d : two from ex, one from de (pair + single) --- */
+        for (auto &prc : groupMap[de]) {
+            int c = prc.first;
+            if (prc.second.empty()) continue;
+            long long targetSum = (long long)need + c;      // a + b must equal this
+
+            bool innerFound = false;
+            for (auto &pra : groupMap[ex]) {
+                int a = pra.first;
+                if (pra.second.empty()) continue;
+                long long bLL = targetSum - a;
+                if (bLL <= 0 || bLL > INT_MAX) continue;
+                int b = (int)bLL;
+
+                if (b == a) {
+                    if (pra.second.size() >= 2) {
+                        int idxA = pra.second.back(); pra.second.pop_back();
+                        int idxB = pra.second.back(); pra.second.pop_back();
+                        int idxC = prc.second.back(); prc.second.pop_back();
+
+                        assign[idxA] = de; assign[idxB] = de; assign[idxC] = ex;
+                        load[ex] = load[ex] - a - b + c;
+                        load[de] = load[de] - c + a + b;
+
+                        groupMap[de][a].push_back(idxA);
+                        groupMap[de][b].push_back(idxB);
+                        groupMap[ex][c].push_back(idxC);
+                        changed = true;
+                        innerFound = true;
+                        break;
+                    }
+                } else {
+                    auto itb = groupMap[ex].find(b);
+                    if (itb != groupMap[ex].end() && !itb->second.empty()) {
+                        int idxA = pra.second.back(); pra.second.pop_back();
+                        int idxB = itb->second.back(); itb->second.pop_back();
+                        int idxC = prc.second.back(); prc.second.pop_back();
+
+                        assign[idxA] = de; assign[idxB] = de; assign[idxC] = ex;
+                        load[ex] = load[ex] - a - b + c;
+                        load[de] = load[de] - c + a + b;
+
+                        groupMap[de][a].push_back(idxA);
+                        groupMap[de][b].push_back(idxB);
+                        groupMap[ex][c].push_back(idxC);
+                        changed = true;
+                        innerFound = true;
+                        break;
+                    }
+                }
+            }
+            if (innerFound) break;
+        }
+        if (changed) continue;
+
+        // According to the statement this situation never occurs.
+        // Break to avoid an infinite loop in the (theoretically) impossible case.
+        break;
+    }
+
+    return assign;
+}
+```
+
+# Best known solution for Subtask 7 (worth 17 points)
+
+Additional constraints of this subtask: K <= 10
+Source file: `solutions/subtask7_partition.cpp`
+Score this program achieved on Subtask 7: **17 out of 17 -- full marks**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/*---------------------------------------------------------------*/
+/*  Ulug'bek – choose at most K‑1 numbers to add                  */
+/*---------------------------------------------------------------*/
+vector<int> add_numbers(vector<int> A, int K, int M) {
+    // Longest Processing Time (LPT) schedule for the original numbers
+    sort(A.rbegin(), A.rend());                     // descending order
+
+    using Node = pair<long long, int>;               // (current sum, group id)
+    priority_queue<Node, vector<Node>, greater<Node>> pq; // min‑heap by sum
+
+    vector<long long> sum(K, 0);
+    for (int i = 0; i < K; ++i) pq.emplace(0LL, i);
+
+    for (int v : A) {
+        Node cur = pq.top(); pq.pop();
+        sum[cur.second] += v;
+        pq.emplace(sum[cur.second], cur.second);
+    }
+
+    long long Lmax = *max_element(sum.begin(), sum.end()); // maximal load
+
+    // For each group we need at most one number (its deficit) to reach Lmax.
+    // Diff = Lmax - sum[i]  (0 ≤ diff ≤ M)
+    vector<int> C;
+    C.reserve(K - 1);
+    for (int i = 0; i < K; ++i) {
+        long long diff = Lmax - sum[i];
+        if (diff > 0) C.push_back(static_cast<int>(diff));
+    }
+    // At least one group has diff = 0, therefore |C| ≤ K‑1.
+    return C;
+}
+
+/*---------------------------------------------------------------*/
+/*  Temur – given the sorted extended array, output a partition   */
+/*---------------------------------------------------------------*/
+static int K_glob;
+static long long target_glob;
+static vector<long long> vals_desc;     // values in descending order
+static vector<int>    idx_desc;         // original indices of those values
+static vector<int>    assign_desc;      // group assigned for each descending element
+static long long rem_cap[10];           // remaining capacity of each group (K ≤ 10)
+static unordered_set<unsigned long long> visited;
+
+/* hash of the sorted remaining capacities */
+static unsigned long long hash_caps() {
+    long long tmp[10];
+    for (int i = 0; i < K_glob; ++i) tmp[i] = rem_cap[i];
+    sort(tmp, tmp + K_glob);
+    unsigned long long h = 1469598103934665603ULL; // FNV-1a 64‑bit offset basis
+    for (int i = 0; i < K_glob; ++i) {
+        h ^= static_cast<unsigned long long>(tmp[i]);
+        h *= 1099511628211ULL;                     // FNV prime
+    }
+    return h;
+}
+
+/* depth‑first search with simple symmetry pruning and memoisation */
+static bool dfs(int pos) {
+    if (pos == (int)vals_desc.size()) return true;   // all numbers placed
+
+    // memoisation – state = (pos, sorted remaining capacities)
+    unsigned long long key = (static_cast<unsigned long long>(pos) << 48) ^ hash_caps();
+    if (visited.find(key) != visited.end()) return false;
+    visited.insert(key);
+
+    long long v = vals_desc[pos];
+
+    // collect candidate groups (those that can still accept v)
+    int cand[10];
+    int cnt = 0;
+    for (int i = 0; i < K_glob; ++i)
+        if (rem_cap[i] >= v) cand[cnt++] = i;
+
+    // sort candidates by remaining capacity descending – try the fullest groups first
+    sort(cand, cand + cnt,
+         [&](int a, int b) { return rem_cap[a] > rem_cap[b]; });
+
+    long long prev_rem = -1;   // skip groups with identical remaining capacity
+    for (int ci = 0; ci < cnt; ++ci) {
+        int g = cand[ci];
+        if (rem_cap[g] == prev_rem) continue;  // symmetric choice already tried
+        prev_rem = rem_cap[g];
+
+        assign_desc[pos] = g;
+        rem_cap[g] -= v;
+        if (dfs(pos + 1)) return true;
+        rem_cap[g] += v;        // backtrack
+    }
+    return false;
+}
+
+vector<int> find_partition(vector<int> B, int K) {
+    K_glob = K;
+    int n = (int)B.size();
+
+    long long total = 0;
+    for (int v : B) total += v;
+    target_glob = total / K;                     // guaranteed integer
+
+    // prepare values in descending order together with their original indices
+    vals_desc.clear();
+    idx_desc.clear();
+    vals_desc.reserve(n);
+    idx_desc.reserve(n);
+    for (int i = n - 1; i >= 0; --i) {
+        vals_desc.push_back(B[i]);
+        idx_desc.push_back(i);
+    }
+
+    assign_desc.assign(n, -1);
+    for (int i = 0; i < K; ++i) rem_cap[i] = target_glob;
+    visited.clear();
+
+    bool ok = dfs(0);
+    (void)ok; // by construction a solution always exists
+
+    // Build the answer in the order of the original (sorted) array B
+    vector<int> P(n);
+    for (int i = 0; i < n; ++i) {
+        int original_idx = idx_desc[i];
+        P[original_idx] = assign_desc[i];
+    }
+    return P;
+}
+```
+
+# Best known solution for Subtask 8 (worth 20 points)
+
+Additional constraints of this subtask: K <= 100
+Source file: `solutions/subtask8_partition.cpp`
+Score this program achieved on Subtask 8: **0 out of 20 -- this program is wrong. No correct program was found for this subtask; this is merely the best of what exists**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/*
+ * Ulug'bek: add at most K-1 numbers (each in [1,M]) so that the
+ * extended array can be split into K groups of equal sum.
+ *
+ * Strategy:
+ *   - Sort the original numbers in non‑increasing order.
+ *   - Greedily assign each number to the group with the current
+ *     smallest sum (first K numbers are given to distinct groups).
+ *   - After all numbers are placed let T be the maximal group sum.
+ *   - For every group i with sum S_i < T we need exactly (T - S_i)
+ *     more sum.  Because of the greedy rule we always have
+ *       T - S_i ≤ M
+ *     and at most K-1 groups need such an addition.  Those differences
+ *     are the numbers we add.
+ */
+vector<int> add_numbers(vector<int> A, int K, int M) {
+    int N = (int)A.size();
+
+    // sort descending – this gives a balanced partition
+    sort(A.rbegin(), A.rend());
+
+    // sums of the K groups
+    vector<long long> sum(K, 0);
+    using Pair = pair<long long,int>;          // (current sum, group id)
+    priority_queue<Pair, vector<Pair>, greater<Pair>> pq;
+
+    // give the first K elements to distinct groups
+    for (int i = 0; i < K; ++i) {
+        sum[i] = A[i];
+        pq.emplace(sum[i], i);
+    }
+
+    // assign the rest to the currently lightest group
+    for (int i = K; i < N; ++i) {
+        auto cur = pq.top(); pq.pop();
+        int g = cur.second;
+        sum[g] += A[i];
+        pq.emplace(sum[g], g);
+    }
+
+    long long max_sum = *max_element(sum.begin(), sum.end());
+
+    // numbers to be added (the deficits)
+    vector<int> C;
+    for (int i = 0; i < K; ++i) {
+        long long diff = max_sum - sum[i];
+        if (diff > 0) {
+            // diff ≤ M is guaranteed by the invariant of the greedy process
+            C.push_back((int)diff);
+        }
+    }
+    // size(C) ≤ K‑1 holds because at least one group has the maximal sum
+    return C;
+}
+
+/*
+ * Temur: given the sorted extended array B, output a partition into K
+ * groups with equal sum.
+ *
+ * Strategy:
+ *   - Let T = (total sum of B) / K .  By construction T is integer.
+ *   - Process the numbers from largest to smallest.
+ *   - Always put the current number into the group with the smallest
+ *     current total (min‑heap).  This is the classic LPT (largest‑first)
+ *     list‑scheduling algorithm.
+ *
+ *   For the multiset generated by add_numbers this algorithm always
+ *   finishes with all groups having exactly sum T, and each group is
+ *   non‑empty (the K largest numbers go to K different groups).
+ */
+vector<int> find_partition(vector<int> B, int K) {
+    int N = (int)B.size();
+    long long total = 0;
+    for (int x : B) total += x;
+    long long T = total / K;               // guaranteed integer
+
+    using Pair = pair<long long,int>;      // (current sum, group id)
+    priority_queue<Pair, vector<Pair>, greater<Pair>> pq;
+    vector<long long> cur_sum(K, 0);
+    for (int i = 0; i < K; ++i) pq.emplace(0LL, i);
+
+    vector<int> P(N);                      // answer
+
+    // traverse B from largest to smallest (B is sorted non‑decreasing)
+    for (int idx = N - 1; idx >= 0; --idx) {
+        long long val = B[idx];
+        auto cur = pq.top(); pq.pop();
+        int g = cur.second;
+        P[idx] = g;
+        cur_sum[g] += val;
+        pq.emplace(cur_sum[g], g);
+    }
+
+    // (optional) verify correctness in debug mode
+    // for (int i = 0; i < K; ++i) assert(cur_sum[i] == T);
+
+    return P;
+}
+```
+
+# Best known solution for Subtask 9 (worth 18 points)
+
+Additional constraints of this subtask: No additional constraints (K up to 100000).
+Source file: `solutions/subtask9_partition.cpp`
+Score this program achieved on Subtask 9: **0 out of 18 -- this program is wrong. No correct program was found for this subtask; this is merely the best of what exists**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/* -------------------------------------------------------------
+   Global data – persists between the two procedure calls.
+   The grader runs add_numbers() first, then find_partition()
+   in the same process, so we can keep the assignment information
+   here.
+   ------------------------------------------------------------- */
+static unordered_map<int, vector<int>> orig_groups;   // value -> list of group ids (original numbers)
+static unordered_map<int, vector<int>> added_groups;  // value -> list of group ids (added numbers)
+
+/* -------------------------------------------------------------
+   Ulug'bek's procedure
+   ------------------------------------------------------------- */
+vector<int> add_numbers(vector<int> A, int K, int M)
+{
+    // reset global containers (for safety, although only one test case)
+    orig_groups.clear();
+    added_groups.clear();
+
+    // sort decreasing – the order does not affect correctness,
+    // only the distribution of numbers to groups.
+    sort(A.begin(), A.end(), greater<int>());
+
+    struct Node {
+        long long sum;
+        int id;
+    };
+    struct Cmp {
+        // min‑heap: smallest sum first, then smaller id
+        bool operator()(const Node& a, const Node& b) const {
+            if (a.sum != b.sum) return a.sum > b.sum;
+            return a.id > b.id;
+        }
+    };
+
+    priority_queue<Node, vector<Node>, Cmp> pq;
+    vector<long long> groupSum(K, 0);
+    for (int i = 0; i < K; ++i) pq.push({0LL, i});
+
+    // greedy distribution of the original numbers
+    for (int v : A) {
+        Node cur = pq.top(); pq.pop();
+        groupSum[cur.id] += v;
+        cur.sum = groupSum[cur.id];
+        pq.push(cur);
+        // remember to which group this original element belongs
+        orig_groups[v].push_back(cur.id);
+    }
+
+    long long maxSum = *max_element(groupSum.begin(), groupSum.end());
+
+    // deficits – numbers Ulug'bek will add
+    vector<int> C;
+    C.reserve(K - 1);
+    for (int i = 0; i < K; ++i) {
+        long long diff = maxSum - groupSum[i];
+        if (diff > 0) {
+            int d = static_cast<int>(diff);          // diff ≤ M, fits in int
+            C.push_back(d);
+            added_groups[d].push_back(i);            // this added number belongs to group i
+        }
+    }
+    return C;            // size ≤ K‑1, each element in [1, M]
+}
+
+/* -------------------------------------------------------------
+   Temur's procedure
+   ------------------------------------------------------------- */
+vector<int> find_partition(vector<int> B, int K)
+{
+    int L = (int)B.size();
+    vector<int> P(L);
+
+    // B is already sorted increasingly.
+    for (int idx = 0; idx < L; ++idx) {
+        int v = B[idx];
+
+        auto itOrig = orig_groups.find(v);
+        if (itOrig != orig_groups.end() && !itOrig->second.empty()) {
+            // this occurrence comes from the original array
+            int gid = itOrig->second.back();
+            itOrig->second.pop_back();
+            P[idx] = gid;
+        } else {
+            // this occurrence is one of the numbers Ulug'bek added
+            auto itAdd = added_groups.find(v);
+            // by construction it must exist and be non‑empty
+            int gid = itAdd->second.back();
+            itAdd->second.pop_back();
+            P[idx] = gid;
+        }
+    }
+    return P;   // each group receives exactly the numbers we prepared,
+                // therefore all group sums are equal.
+}
+```
+
+# Your task
+
+Merge the programs below into a **single submission** that covers every subtask.
+Route between them with `if`/`else` on what the grader actually gives you.
+
+Rules:
+
+1. **Copy each solution verbatim, including every comment, from its first line to
+   its last.** Do not rewrite, re-indent, tidy, shorten, or "improve" any of
+   them, and do not drop a file's header comment. Put each in its own `namespace`
+   so their helpers cannot collide.
+2. The only code you write yourself is the dispatcher, plus any small helper it
+   needs to classify the input. **Do not write a solution of your own.** Every
+   answer the merged file can return must come from one of the programs given to
+   you, unchanged. A new algorithm you invent here has never been judged, so
+   routing to it gambles the whole problem on untested code -- even if you believe
+   it is more general. If you find yourself writing a loop that computes an answer,
+   stop: that belongs to the solutions, not to the dispatcher.
+3. **Every `#include` must sit at the very top of the file, outside every
+   namespace.** A standard header expanded inside a namespace nests the whole of
+   `std` inside it and the file does not compile at all (`isalnum has not been
+   declared in '::'` and hundreds like it). Hoist the includes from each solution
+   to the top, merge the duplicates, and leave a comment where one was removed.
+   `using namespace std;` may stay at global scope.
+4. Functions the grader provides must be declared once, at global scope. A
+   declaration inside a namespace declares a *different* symbol and the program
+   will not link.
+5. Say in a comment where each namespace came from, using the file paths given.
+6. The result must compile as a single translation unit against the grader
+   header, with `-std=gnu++17`. Check this mentally before answering.
+7. **Every solution must be reachable from the dispatcher, or you must justify in
+   a comment why it cannot be.** Do not quietly drop one. If you route a
+   subtask's range to a different subtask's solution, say so and give your reason.
+
+Think about the dispatch conditions carefully.
+
+The grader calls two procedures, once each, and they cannot communicate:
+
+    add_numbers(vector<int> A, int K, int M)   -> the numbers to append
+    find_partition(vector<int> B, int K)       -> the grouping of the extended array
+
+`add_numbers` gets `N`, `K` and `M`; `find_partition` gets only `B` and `K` -- `B`
+has length `N + S` for an unknown `S`, so `N` is not recoverable, and `M` is not
+passed at all. Both procedures must reach the same decision, so a branch is only
+usable if `find_partition` can evaluate it too. That leaves `K` as the one safe
+discriminator among the seven subtasks below.
+
+Subtask 1 is bound by `N`, not `K` -- but note that subtask 1 also satisfies
+`K = 2`'s range (subtask 5's condition), so consider whether an `N`-based
+subtask can still be routed soundly through a `K`-based chain, and say what you
+concluded.
+
+* Subtasks 5, 6, 7, 8 and 9 are bounds on `K` alone (2, <= 3, <= 10, <= 100,
+  unrestricted), so a chain of comparisons on `K` routes those five soundly.
+  Subtask 4 (`N <= 10`) has no `K` condition of its own -- decide, and say
+  plainly, which existing `K` band it is safe to fall into, given that its
+  program was checked only against `N <= 10` and may not be valid at larger `N`.
+* This file is not submitted to subtasks 2 or 3. Do not route anything to them
+  or worry about `M` -- a separate file with its own single program already
+  covers both.
+* The subtask-8 and subtask-9 programs are wrong: they score zero. **Reproduce
+  them anyway.** The file must contain all seven namespaces below, one per
+  program, even where a branch ends up unreachable -- an unreachable namespace
+  costs nothing, whereas omitting one throws away the only known answer for that
+  subtask. If your dispatcher does not call a namespace, keep the code and write
+  a comment saying why. A reply containing fewer than seven namespaces is wrong.
+* Only route a range to a program that is known good on it: a program written
+  for small `K` may not be correct at larger `K`.
+
+Where two subtasks cannot be told apart from what the grader passes you, say
+which one you gave the range to and why. Do not pretend a branch is reachable
+when it is not.
+
+Reply with the complete merged file in one ```cpp block.

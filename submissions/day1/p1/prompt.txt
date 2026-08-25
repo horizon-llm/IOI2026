@@ -1,0 +1,724 @@
+You are an expert competitive programmer. Below is an IOI 2026 problem, followed
+by four C++ solutions -- one per subtask -- each of which was written for that
+subtask alone and scored what is noted.
+
+# Problem statement
+
+You are an expert competitive programmer. You will be given a problem statement, constraints, and example test cases. Please reason step by step about the solution, then provide a complete implementation in C++17.
+
+Please solve the problem exactly according to the requirements in the problem statement. Follow the input/output format, function signatures, implementation details, and any special requirements specified in the problem itself. If the problem requires standard input/output, include a complete program with `main`. If the problem requires implementing specific routines/classes without `main`, only implement what is requested.
+
+Assume your code will be run on the OFFICIAL grader, and do not add a main function, a sample grader, or any other functionality unless it has been explicitly requested.
+
+Put your final solution within a single code block:
+
+
+```cpp
+// your code here
+```
+
+# [IOI 2026] Day 1. Ball Machine
+
+**Time limit:** 3.5 seconds &nbsp;&nbsp; **Memory limit:** 2048 megabytes
+
+# Ball Machine
+
+Madina has invented a ball machine to entertain the participants of the IOI. The internal structure of the machine is as follows:
+
+- The machine consists of $N$ nodes, indexed from $0$ to $N-1$. Node $N-1$ is called the **root**.
+- For each node $u$ with $0 \le u < N-1$, the **parent** of node $u$ is a node $P[u]$ with $P[u] > u$, and node $u$ is a **child** of $P[u]$. The root has no parent. A node with no children is called a **leaf**.
+
+You do not know $N$ or the parent $P[u]$ of any node $u$. Instead, Madina tells you $M$, the number of leaves, and that the indices of the leaves are $0, 1, \ldots, M-1$. Your task is to determine the internal structure of the machine by operating it.
+
+Each node of the machine can hold at most one ball, and each ball has a **value** which is a non-negative integer. We say that a node has value $x$ if it holds a ball with value $x$. A node is **occupied** if it contains a ball; otherwise, it is **free**. Initially, every node is free.
+
+You can perform two kinds of operations:
+
+- $\texttt{insert}(U, X)$: attempt to insert a new ball with value $X$ at leaf $U$.
+    - If leaf $U$ is occupied, the operation returns `false` without inserting the ball.
+    - If leaf $U$ is free, the ball is placed at node $U$. Then the ball repeatedly moves to the parent of its current node as long as that parent is free. The movement stops when the ball reaches the root or a node whose parent is occupied. The operation returns `true`.
+- $\texttt{collect}()$: if the root is free (which means the machine is empty), `collect` returns an empty array. Otherwise, the recursive procedure `traverse` described below gathers the values of all balls that are currently in the machine into an array $S$. Initially, the array $S$ is empty and `traverse(N - 1)` is called.
+
+```
+traverse(u):
+  append the value of the ball at node u to the end of S
+  let c[u] be the list of the occupied children of u
+  sort c[u] in non-decreasing order according to the values
+    of the balls at those nodes (if multiple nodes have the
+    same value, they can appear in any order)
+  for each v in c[u]:
+    traverse(v)
+```
+
+After this procedure completes, all balls are removed from the machine, and `collect` returns $S$.
+
+For example, consider a machine with $N = 7$ nodes and parent array $P = [4, 6, 5, 5, 6, 6]$. The picture on the left displays the empty machine with node indices, while the picture on the right shows a possible configuration of balls after some sequence of `insert` operations (this sequence is given in the Example section).
+
+![The empty machine with node indices (left) and a possible configuration of balls (right).](/images/statements/ioi2026/ballmachine/fig1.png)
+
+> **Figure 1, in text form.**
+>
+> *Left picture — the empty machine.* A rooted tree with $N = 7$ nodes, root $6$. Its edges, written as `parent -> child`:
+>
+> ```
+> root = 6
+> 6 -> 4
+> 6 -> 1
+> 6 -> 5
+> 4 -> 0
+> 5 -> 2
+> 5 -> 3
+> ```
+>
+> This is exactly the parent array $P = [4, 6, 5, 5, 6, 6]$. The leaves (drawn with thick outlines) are $0, 1, 2, 3$, so $M = 4$. Every node is free.
+>
+> *Right picture — a possible configuration of balls.* The same tree, after the sequence of `insert` operations listed in the Example section. Occupied nodes and the values of the balls they hold:
+>
+> ```
+> node 6 (root): value 0
+> node 4:        value 20
+> node 1:        value 10
+> node 5:        value 20
+> node 2:        value 30
+> ```
+>
+> Nodes $0$ and $3$ are free.
+
+When `collect()` is called, the root (node $6$) is occupied, so $S$ is initialized as $S = []$ and `traverse(6)` is called.
+
+- `traverse(6)`: node $6$ has value $0$; appending it to $S$ gives $S = [0]$. The children of node $6$ are $4$, $1$, and $5$, all of which are occupied. Their values are $20$, $10$, and $20$, respectively. Sorting in non-decreasing order yields $c[6] = [1, 5, 4]$ (note that $c[6] = [1, 4, 5]$ would also be valid, since nodes $4$ and $5$ have the same value). The procedure then calls `traverse` on each node in $c[6]$ in that order.
+    - `traverse(1)`: node $1$ has value $10$; appending it to $S$ gives $S = [0, 10]$. Node $1$ has no occupied children, so this call ends.
+    - `traverse(5)`: node $5$ has value $20$; appending it to $S$ gives $S = [0, 10, 20]$. Node $5$ has one occupied child, node $2$, so $c[5] = [2]$ and the procedure calls `traverse(2)`.
+        - `traverse(2)`: node $2$ has value $30$; appending it to $S$ gives $S = [0, 10, 20, 30]$. Node $2$ has no occupied children, so this call ends.
+        - The execution returns to `traverse(5)` which has processed all children in $c[5]$, so its call ends.
+    - `traverse(4)`: node $4$ has value $20$; appending it to $S$ gives $S = [0, 10, 20, 30, 20]$. Node $4$ has no occupied children, so this call ends.
+
+All calls have completed and there are no more nodes to process. Finally, every ball is removed from the machine and `collect` returns the array $S = [0, 10, 20, 30, 20]$.
+
+Your task is to determine the number of nodes $N$ and report an array of parents $R = [R[0], R[1], \ldots, R[N-2]]$ that describes the structure of the machine, but with a potentially different labeling of the nodes that are not leaves and not the root. Formally, a reported array $R$ is considered correct if it is possible to assign a distinct label $L[u]$ with $0 \le L[u] < N$ to each node $u$ of the machine such that:
+
+- $L[u] = u$ for all $0 \le u < M$ and $u = N-1$, and
+- $L[P[u]] = R[L[u]]$ for all $0 \le u < N-1$.
+
+It is not required that $R[u] > u$. The machine must be empty when you report your solution.
+
+Let $K$ be the number of `collect` operations performed, and $B$ be the maximum value of any ball across all `insert` calls. Let $C = K + B$. Then $C$ must not exceed $1000$. Your score in some subtasks depends on the value of $C$.
+
+## Implementation Details
+
+You should implement the following procedure.
+
+```cpp
+std::vector<int> find_structure(int M)
+```
+
+- $M$: the number of leaves in the machine.
+- The procedure is called exactly once for each test case.
+- The procedure must return an array $R = [R[0], R[1], \ldots, R[N-2]]$ of length $N-1$, a correct array of parents.
+
+To interact with the machine, your procedure can call the following two procedures.
+
+The first procedure is:
+
+```cpp
+bool insert(int U, int X)
+```
+
+- $U$: the index of the leaf where the ball should be inserted. The condition $0 \le U < M$ must be met.
+- $X$: the integer value of the ball. The condition $0 \le X \le 1000$ must be met.
+- This procedure returns `true` if the ball was successfully inserted, or `false` if leaf $U$ was already occupied.
+- This procedure can be called at most $500\,000$ times.
+
+The second procedure is:
+
+```cpp
+std::vector<int> collect()
+```
+
+- Collects the values on all inserted balls, empties the machine, and returns the collected array $S$.
+
+If at any point during the execution of your program the value of $C$ exceeds $1000$, your solution will receive the verdict `Output isn't correct: Too many resources used`.
+
+The structure of the machine is fixed before `find_structure` is called. The grader is deterministic in the sense that if you run it twice and both runs perform the same sequence of operations, the calls to `collect` will return the same arrays.
+
+## Constraints
+
+- $2 \le N \le 1000$
+- $1 \le M \le 200$
+- $M < N$
+
+## Subtasks
+
+| Subtask | Score | Additional Constraints |
+|---------|-------|------------------------|
+| 1 | 5 | The root has exactly $M$ children. |
+| 2 | 10 | $M \le 3$ |
+| 3 | 25 | $N \le 200$, $M \le 45$ |
+| 4 | 60 | No additional constraints. |
+
+In subtasks 3 and 4, your score depends on the value of $C$ as follows.
+
+**Subtask 3 (25 points)**
+
+| Limits | Score |
+|--------|-------|
+| $1000 < C$ | $0$ |
+| $45 < C \le 1000$ | $13$ |
+| $C \le 45$ | $25$ |
+
+**Subtask 4 (60 points)**
+
+| Limits | Score |
+|--------|-------|
+| $1000 < C$ | $0$ |
+| $200 < C \le 1000$ | $7$ |
+| $71 < C \le 200$ | $47 - \dfrac{C}{5}$ |
+| $44 < C \le 71$ | $104 - C$ |
+| $C \le 44$ | $60$ |
+
+## Example
+
+Consider the same machine as in the task description, so $N = 7$, $M = 4$, and $P = [4, 6, 5, 5, 6, 6]$. The machine is again shown in the following figure:
+
+![The empty machine with node indices.](/images/statements/ioi2026/ballmachine/fig2.png)
+
+> **Figure 2, in text form.** The empty machine, identical to the left picture of Figure 1:
+>
+> ```
+> root = 6
+> 6 -> 4
+> 6 -> 1
+> 6 -> 5
+> 4 -> 0
+> 5 -> 2
+> 5 -> 3
+> ```
+>
+> Leaves: $0, 1, 2, 3$. Every node is free.
+
+The grader makes the following call:
+
+```
+find_structure(4)
+```
+
+The procedure can make the following sequence of calls:
+
+1. `insert(0, 0)`: leaf $0$ is free, so a ball with value $0$ is placed at leaf $0$. Node $P[0] = 4$ is free, so the ball moves to node $4$. Node $P[4] = 6$ is free, so the ball moves to node $6$. Since node $6$ is the root, the movement stops. The call returns `true`.
+2. `insert(3, 20)`: leaf $3$ is free, so a ball with value $20$ is placed at leaf $3$. Node $P[3] = 5$ is free, so the ball moves to node $5$. Since $P[5] = 6$ is occupied, the movement stops. The call returns `true`.
+3. `insert(1, 10)`: leaf $1$ is free, so a ball with value $10$ is placed at leaf $1$. Since $P[1] = 6$ is occupied, the ball stays at node $1$. The call returns `true`.
+4. `insert(2, 30)`: leaf $2$ is free, so a ball with value $30$ is placed at leaf $2$. Since $P[2] = 5$ is occupied, the ball stays at node $2$. The call returns `true`.
+5. `insert(1, 25)`: leaf $1$ is occupied, so the ball is not placed at leaf $1$. The call return `false`.
+6. `insert(0, 20)`: leaf $0$ is free, so a ball with value $20$ is placed at leaf $0$. Node $P[0] = 4$ is free, so the ball moves to node $4$. Since $P[4] = 6$ is occupied, the movement stops. The call returns `true`.
+
+The resulting configuration of balls was already displayed in the task description.
+
+Next, the procedure can call:
+
+```
+collect()
+```
+
+The execution of this call was already explained in the task description, so this call returns $S = [0, 10, 20, 30, 20]$. Afterwards, the machine is once again empty.
+
+Next, the procedure can call `insert(2, 25)`. Leaf $2$ is free, so a ball with value $25$ is placed at leaf $2$. This ball then moves to node $5$, and then to node $6$, where it stops. The call returns `true`. The resulting configuration of balls is shown in the following figure.
+
+![The configuration of balls after insert(2, 25).](/images/statements/ioi2026/ballmachine/fig3.png)
+
+> **Figure 3, in text form.** The same tree (`root = 6`; `6 -> 4`, `6 -> 1`, `6 -> 5`, `4 -> 0`, `5 -> 2`, `5 -> 3`) holding a single ball:
+>
+> ```
+> node 6 (root): value 25
+> ```
+>
+> Nodes $0, 1, 2, 3, 4, 5$ are all free.
+
+Finally, the procedure can call `collect()` which returns $S = [25]$ and empties the machine.
+
+There are two correct parent arrays that `find_structure` can return: $R = P = [4, 6, 5, 5, 6, 6]$ (which corresponds to the labeling $L = [0, 1, 2, 3, 4, 5, 6]$), and $R = [5, 6, 4, 4, 6, 6]$ (which corresponds to the labeling $L = [0, 1, 2, 3, 5, 4, 6]$). In this example, $K = 2$ and $B = 30$, so $C = 32$.
+
+
+# Best known solution for Subtask 1 (worth 5 points)
+
+Additional constraints of this subtask: The root has exactly M children.
+Source file: `solutions/subtask1_ballmachine.cpp`
+Score this program achieved on Subtask 1: **5 out of 5 -- full marks**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+//--- the grader provides these functions ---------------------------------
+extern bool insert(int U, int X);          // try to insert a ball
+extern vector<int> collect();              // collect and empty the machine
+//-------------------------------------------------------------------------
+
+vector<int> find_structure(int M) {
+    const int BALL_VALUE = 0;               // any non‑negative value, 0 is enough
+    vector<int> depth(M, 0);
+
+    // 1. determine the depth of every leaf
+    for (int leaf = 0; leaf < M; ++leaf) {
+        int successes = 0;
+        while (insert(leaf, BALL_VALUE))   // true → ball was inserted
+            ++successes;
+        // leaf is now occupied; next insert would return false
+        depth[leaf] = successes - 1;        // true depth
+        collect();                          // empty the machine for the next leaf
+    }
+
+    // 2. compute total number of nodes
+    long long sumDepth = 0;
+    for (int d : depth) sumDepth += d;
+    int N = static_cast<int>(sumDepth) + 1; // total nodes, root = N-1
+
+    // 3. build a suitable parent array
+    vector<int> parent(N - 1, -1);           // R[0 … N-2]
+    int nextId = M;                         // first free index for internal nodes
+
+    for (int leaf = 0; leaf < M; ++leaf) {
+        int d = depth[leaf];
+        if (d == 1) {
+            // leaf is a direct child of the root
+            parent[leaf] = N - 1;
+        } else {
+            // create a private chain of (d-1) internal nodes
+            int first = nextId;              // node directly above the leaf
+            parent[leaf] = first;            // leaf → first internal node
+            for (int i = 0; i < d - 1; ++i) {
+                int cur = first + i;
+                if (i == d - 2) {            // last node of the chain
+                    parent[cur] = N - 1;      // connects to the root
+                } else {
+                    parent[cur] = cur + 1;    // points to the next node upwards
+                }
+            }
+            nextId += d - 1;                 // reserve those indices
+        }
+    }
+    return parent;
+}
+```
+
+# Best known solution for Subtask 2 (worth 10 points)
+
+Additional constraints of this subtask: M <= 3
+Source file: `solutions/subtask2_ballmachine.cpp`
+Score this program achieved on Subtask 2: **10 out of 10 -- full marks**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/*  The grader provides the following two functions:
+    bool insert(int leaf, int value);
+    vector<int> collect();
+    They are linked when the program is run.
+*/
+
+bool insert(int leaf, int value);          // provided by the grader
+vector<int> collect();                     // provided by the grader
+
+vector<int> find_structure(int M) {
+    // ------------------------------------------------------------
+    // 1. leaf depths
+    vector<int> depth(M, 0);
+    for (int i = 0; i < M; ++i) {
+        int cnt = 0;
+        while (insert(i, 0)) ++cnt;        // count successful insertions
+        depth[i] = cnt - 1;                 // depth = successes - 1
+        collect();                          // empty the machine
+    }
+
+    // ------------------------------------------------------------
+    // 2. pairwise LCA depths
+    vector<vector<int>> L(M, vector<int>(M, -1));
+    for (int i = 0; i < M; ++i) {
+        for (int j = i + 1; j < M; ++j) {
+            // fill leaf i completely
+            while (insert(i, 0)) {}
+            // now insert leaf j and count successes
+            int cnt = 0;
+            while (insert(j, 0)) ++cnt;
+            L[i][j] = depth[j] - cnt;       // Lemma 2
+            L[j][i] = L[i][j];
+            collect();                      // empty for the next round
+        }
+    }
+
+    // ------------------------------------------------------------
+    // 3. rebuild the tree (old identifiers)
+    int nextId = 0;
+    int rootId = nextId++;                  // id 0 is the root
+    vector<vector<int>> node(M);            // node[i][d] = id of leaf i at depth d
+    for (int i = 0; i < M; ++i) {
+        node[i].assign(depth[i] + 1, -1);
+        node[i][0] = rootId;                // root is shared
+    }
+
+    for (int i = 0; i < M; ++i) {
+        for (int d = 1; d <= depth[i]; ++d) {
+            int shared = -1;
+            for (int j = 0; j < i; ++j) {
+                if (L[i][j] >= d) {        // this depth is already present
+                    shared = node[j][d];
+                    break;
+                }
+            }
+            if (shared != -1) node[i][d] = shared;
+            else               node[i][d] = nextId++;
+        }
+    }
+
+    int N = nextId;                         // total number of vertices
+
+    // parent in the old numbering
+    vector<int> parentOld(N, -1);
+    for (int i = 0; i < M; ++i) {
+        for (int d = 1; d <= depth[i]; ++d) {
+            int child = node[i][d];
+            int par   = node[i][d - 1];
+            parentOld[child] = par;
+        }
+    }
+
+    // adjacency list (children)
+    vector<vector<int>> children(N);
+    for (int v = 0; v < N; ++v) {
+        int p = parentOld[v];
+        if (p != -1) children[p].push_back(v);
+    }
+
+    // leaf nodes in old numbering
+    vector<int> leafOld(M);
+    for (int i = 0; i < M; ++i) leafOld[i] = node[i][depth[i]];
+
+    // ------------------------------------------------------------
+    // 4. new labeling (0..M-1 for leaves, N-1 for root)
+    vector<int> newLabel(N, -1);
+    for (int i = 0; i < M; ++i) newLabel[leafOld[i]] = i;   // fixed leaf labels
+
+    int cur = M;                                   // next free label
+    function<void(int)> dfs = [&](int u) {
+        for (int v : children[u]) dfs(v);
+        if (newLabel[u] == -1) newLabel[u] = cur++;
+    };
+    dfs(rootId);                                   // root gets the last label N-1
+
+    // ------------------------------------------------------------
+    // 5. build the answer array R
+    vector<int> R(N - 1, -1);                      // R[child] = parent
+    for (int v = 0; v < N; ++v) {
+        int p = parentOld[v];
+        if (p == -1) continue;                     // root
+        int childLabel  = newLabel[v];
+        int parentLabel = newLabel[p];
+        R[childLabel] = parentLabel;
+    }
+    return R;
+}
+```
+
+# Best known solution for Subtask 3 (worth 25 points)
+
+Additional constraints of this subtask: N <= 200, M <= 45
+Source file: `solutions/subtask3_ballmachine.cpp`
+Score this program achieved on Subtask 3: **13 out of 25 -- partial; by the table above this means 45 < C <= 1000**.
+
+```cpp
+//  Ball Machine – reconstruction, IOI 2026 Subtask 3
+//  ------------------------------------------------
+//  The grader supplies the two functions:
+//
+//  bool insert(int U, int X);
+//  std::vector<int> collect();
+//
+//  The required function is find_structure(int M) which returns the
+//  parent array R as described in the statement.
+
+#include <bits/stdc++.h>
+using namespace std;
+
+// forward declarations – the grader supplies the definitions
+extern bool insert(int U, int X);
+extern std::vector<int> collect();
+
+std::vector<int> find_structure(int M) {
+    const int MAX_VAL = 999;                     // B = 999, K = 1  →  C = 1000
+    int cur = MAX_VAL;
+
+    // leafValue[i] – final value of the ball that stays on leaf i
+    vector<int> leafValue(M, -1);
+
+    // -----------------------------------------------------------------
+    // 1) fill the whole tree, always using a smaller value for every success
+    while (true) {
+        bool anySuccess = false;
+        for (int leaf = 0; leaf < M; ++leaf) {
+            bool ok = insert(leaf, cur);
+            if (ok) {
+                leafValue[leaf] = cur;   // remember the value we just placed
+                --cur;                    // next successful ball gets a smaller value
+                anySuccess = true;
+            }
+        }
+        if (!anySuccess) break;          // no leaf was free → whole tree is occupied
+    }
+
+    // -----------------------------------------------------------------
+    // 2) obtain the preorder list of all values
+    vector<int> preorder = collect();     // K = 1
+    int N = (int)preorder.size();         // total number of nodes ( = successes )
+
+    // map leaf values → leaf index
+    unordered_map<int,int> leafValToIdx;
+    for (int i = 0; i < M; ++i) leafValToIdx[leafValue[i]] = i;
+
+    // -----------------------------------------------------------------
+    // 3) reconstruct the tree from the preorder list
+    // node IDs:   leaves 0..M-1, internal nodes M, M+1, ...
+    vector<int> nodeValue;                // value of each node (by ID)
+    nodeValue.reserve(N);
+    nodeValue.resize(M);                  // placeholders for leaves
+
+    // fill leaf values
+    for (int i = 0; i < M; ++i) nodeValue[i] = leafValue[i];
+
+    vector<int> parentOld;                // parent of each node (old IDs)
+    parentOld.reserve(N);
+    parentOld.resize(M, -1);              // leaves will get their parent later
+
+    unordered_map<int,int> internalValToId;   // value → internal node ID
+
+    vector<int> stack;                    // stack of node IDs (current ancestors)
+
+    int rootOld = -1;                     // old ID of the root
+
+    for (int v : preorder) {
+        int id;
+        auto itLeaf = leafValToIdx.find(v);
+        if (itLeaf != leafValToIdx.end()) {
+            // a leaf
+            id = itLeaf->second;          // leaf index is its ID
+        } else {
+            auto itInt = internalValToId.find(v);
+            if (itInt == internalValToId.end()) {
+                id = (int)nodeValue.size();   // next free ID
+                internalValToId[v] = id;
+                nodeValue.push_back(v);
+                parentOld.push_back(-1);
+            } else {
+                id = itInt->second;
+            }
+        }
+
+        // pop finished subtrees
+        while (!stack.empty() && nodeValue[stack.back()] < v) {
+            stack.pop_back();
+        }
+        if (!stack.empty()) {
+            parentOld[id] = stack.back();
+        } else {
+            rootOld = id;                 // this node has no parent → the root
+        }
+        stack.push_back(id);
+    }
+
+    // ---------------------------------------------------------------
+    // 4) relabel internal nodes: leaves keep their numbers,
+    //    the root gets label N-1, the remaining internals get M … N-2
+    int totalNodes = (int)nodeValue.size();   // should be N
+    vector<int> oldToNew(totalNodes, -1);
+    for (int i = 0; i < M; ++i) oldToNew[i] = i;   // leaves unchanged
+
+    int nextLabel = M;
+    for (int old = M; old < totalNodes; ++old) {
+        if (old == rootOld) continue;
+        oldToNew[old] = nextLabel++;
+    }
+    oldToNew[rootOld] = totalNodes - 1;    // root = N-1
+
+    // ---------------------------------------------------------------
+    // 5) build the required array R[0 … N-2]
+    vector<int> R(totalNodes - 1, -1);
+    for (int old = 0; old < totalNodes; ++old) {
+        int newId = oldToNew[old];
+        if (newId == totalNodes - 1) continue; // root – no entry in R
+        int oldPar = parentOld[old];
+        int newPar = (oldPar == -1 ? -1 : oldToNew[oldPar]);
+        R[newId] = newPar;
+    }
+
+    return R;
+}
+```
+
+# Best known solution for Subtask 4 (worth 60 points)
+
+Additional constraints of this subtask: No additional constraints.
+Source file: `solutions/subtask4_ballmachine.cpp`
+Score this program achieved on Subtask 4: **7 out of 60 -- partial; by the table above this means 200 < C <= 1000**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/*  the grader supplies these two functions  */
+extern bool insert(int U, int X);          // try to insert a ball
+extern vector<int> collect();              // collect all balls, empty machine
+
+/*--------------------------------------------------------------
+  find_structure
+  --------------------------------------------------------------*/
+vector<int> find_structure(int M)
+{
+    const int MAX_VAL = 999;               // allowed ball values are 0..1000
+    int cur = MAX_VAL;                     // current value for the next ball
+
+    // leafValue[u] – the value of the ball that finally stays at leaf u
+    vector<int> leafValue(M, -1);
+
+    /* ---------------------------------------------------------
+       1) Fill the whole machine.
+          We try all leaves repeatedly, inserting decreasing values.
+          When insert succeeds we remember the value for that leaf.
+       --------------------------------------------------------- */
+    while (true) {
+        bool any = false;
+        for (int leaf = 0; leaf < M; ++leaf) {
+            if (cur < 0) break;            // no more admissible values
+            if (insert(leaf, cur)) {       // a new vertex became occupied
+                leafValue[leaf] = cur;     // remember the ball's value
+                any = true;
+                --cur;                     // next value will be smaller
+            }
+        }
+        if (!any) break;                   // no vertex was newly occupied → done
+    }
+
+    /* ---------------------------------------------------------
+       2) Obtain the traversal sequence S.
+       --------------------------------------------------------- */
+    vector<int> seq = collect();            // S – values of all N balls
+    int N = (int)seq.size();                // number of vertices
+
+    /* ---------------------------------------------------------
+       3) Reconstruct the tree from the preorder sequence.
+          The values satisfy the heap property:
+          parent value > all values in its subtree.
+          Hence a monotone decreasing stack works.
+       --------------------------------------------------------- */
+    vector<int> parentIdx(N, -1);            // parent index in the reconstructed tree
+    vector<vector<int>> children(N);
+    vector<int> st;                         // stack of vertex indices (indices in seq)
+    int rootIdx = -1;
+
+    for (int i = 0; i < N; ++i) {
+        int v = seq[i];
+        while (!st.empty() && seq[st.back()] < v)   // finish subtrees of smaller values
+            st.pop_back();
+
+        if (!st.empty()) {
+            int p = st.back();
+            parentIdx[i] = p;
+            children[p].push_back(i);
+        } else {
+            parentIdx[i] = -1;               // this is the root
+            rootIdx = i;
+        }
+        st.push_back(i);
+    }
+
+    /* ---------------------------------------------------------
+       4) Build a map: value of a leaf -> leaf index (0..M-1).
+       --------------------------------------------------------- */
+    unordered_map<int,int> leafIdByValue;
+    leafIdByValue.reserve(M * 2);
+    for (int u = 0; u < M; ++u) {
+        // each leaf is finally occupied, leafValue[u] must be set
+        leafIdByValue[ leafValue[u] ] = u;
+    }
+
+    /* ---------------------------------------------------------
+       5) Assign new labels.
+           - leaves keep their original indices 0..M-1
+           - internal vertices (except root) get M .. N-2
+           - root gets N-1
+       --------------------------------------------------------- */
+    vector<int> newId(N, -1);
+
+    // leaves: use the original leaf numbers obtained from leafValue mapping
+    for (int i = 0; i < N; ++i) {
+        if (children[i].empty()) {                  // a leaf in the real tree
+            int val = seq[i];
+            auto it = leafIdByValue.find(val);
+            // it must exist because leaf values are distinct
+            newId[i] = it->second;                  // leaf number 0..M-1
+        }
+    }
+
+    // internal vertices (except root)
+    int nextId = M;                                 // start after leaves
+    for (int i = 0; i < N; ++i) {
+        if (i == rootIdx) continue;
+        if (!children[i].empty()) {                 // internal node
+            newId[i] = nextId++;
+        }
+    }
+    newId[rootIdx] = N - 1;                         // root label
+
+    /* ---------------------------------------------------------
+       6) Build the answer array R[0 .. N-2].
+       --------------------------------------------------------- */
+    vector<int> R(N - 1, -1);
+    for (int i = 0; i < N; ++i) {
+        if (i == rootIdx) continue;                 // root has no entry
+        int child = newId[i];
+        int par   = newId[parentIdx[i]];
+        R[child] = par;
+    }
+    return R;
+}
+```
+
+# Your task
+
+Merge the four programs below into a **single submission** that covers all four
+subtasks. Route between them with `if`/`else` on what the grader actually gives
+you.
+
+Rules:
+
+1. **Copy each solution verbatim.** Keep its comments. Do not rewrite, tidy, or
+   "improve" any of them. Put each in its own `namespace` so their helpers cannot
+   collide.
+2. The only code you write yourself is the dispatcher `find_structure(int M)`
+   that decides which namespace to call.
+3. `insert` and `collect` are provided by the grader. Declare them once, at
+   global scope. A declaration inside a namespace declares a *different* symbol
+   and the program will not link.
+4. Say in a comment where each namespace came from, using the file paths given.
+5. The result must compile as a single translation unit against the grader
+   header, with `-std=gnu++17`.
+
+6. **Every one of the four solutions must be reachable from the dispatcher, or
+   you must justify in a comment why it cannot be.** Do not quietly drop one. If
+   you route a subtask's range to a different subtask's solution, say so and give
+   your reason.
+
+Think about the dispatch condition carefully, and note what the scores above do
+and do not tell you:
+
+* Subtask 3's solution earned 13 of 25 and subtask 4's earned 7 of 60. Both of
+  those bands correspond to `C <= 1000`, so the two programs make a comparable
+  number of `collect` calls. Nothing here shows that either is stronger than the
+  other on the other's tests. In particular it is **not** established that the
+  subtask-4 program would score subtask 3's 13 points, nor that the subtask-3
+  program would fail subtask 4. If you send subtask 3's range to the subtask-4
+  solution you are gambling points on an assumption the evidence does not
+  support; prefer using each subtask's own solution on its own range.
+* The grader passes only `M`. Two subtasks whose `M` ranges coincide cannot be
+  told apart by a branch on `M`. Where that happens, say which one you gave the
+  range to and why. Do not pretend a branch is reachable when it is not.
+
+Reply with the complete merged file in one ```cpp block.

@@ -1,0 +1,782 @@
+<reasoning>
+We need to merge the three solutions into single code.
+
+We have to implement two functions with the exact signatures: process_step and determine_steps; the dispatcher must route based on N, M.
+
+Satisfy constraints: Subtask 1 (M == 1) solution uses code from subtask1_classroom.cpp. Subtask 2 (N == 2) solution uses code from subtask2_classroom.cpp. Subtask 3 (general case with permutation identity) uses code from subtask3_classroom.cpp.
+
+But we need to think about subtask 2: It also might have M >=1 (any M). However subtask 1 has M==1 which might also have N==2 (if N is 2). When both conditions satisfied, we can choose either approach. Both are correct? Let's confirm.
+
+Subtask 1 solution: It's based on encoding each non-raised student's index in its paper. This works only because M=1 (only one step). Actually the solution works for any M? Let's examine: At step 0 the teacher encodes the index for all non-raise students. Because there is only one step. After teacher leaves and papers permute (unknown P), headmaster then sees each paper: For non-raise student expected to have an array with the original index (for that student). Actually if a student raised, its paper unchanged (empty). So after final exchange, each non-raised student's original index will be present somewhere (maybe not at the same student). But headmaster must output D[i] = -1 if never raised else 0. But they test: they reconstruct "not_raised" based on arrays containing an index. They interpret any index inside any non-empty array as a student who never raised. But this may also encode the same index for more than one non-raised student? Actually each non-raise student writes its own index; after permutes, the array index could be anywhere. So headmaster uses the set of indices that appear in arrays to mark not raised. That works for any N (since each non-raise student writes own index). For raised students, they were not allowed to modify the paper; initially empty, they remain empty (since initially all papers empty). So the headmaster decodes: array empty -> the student raised. So subtask1 solution is correct for M=1, but for M>1 would cause conflict because there are multiple steps and teachers may need to preserve info across steps. So it's only valid for subtask1 with M==1. Fine.
+
+Subtask2 solution: It's designed for N==2, works for any M (any number of steps). Let's see its logic: They maintain an array length 2 per paper that holds step values of each raiser (??). Implementation details: For each step, only one student raises? Actually on each step it expects exactly one raise (if T not empty). But subtask2 condition is that each student raises at most once; there could be zero raised; also at each step at least one student does not raise. In N=2, it's possible both raise at different steps, or one per step. The solution uses vector size 2 read from B[other] and updates values accordingly: encode step numbers of each raiser in certain positions.
+
+But subtask2 solution expects exactly one student raises each step (if T not empty). However the constraints also guarantee that at each step at least one student does not raise, but not guarantee that at each step exactly one raises. Could be 0 raisers. If T empty they leave B unchanged. That's ok. Their encoding uses sentinel=63 for never raised. After many steps, each paper holds positions [v0, v1] where v0 is step when student0 raised or sentinel; v1 for student1. Implementation: They get other student = 1 - raiser. Then they retrieve v0 and v1 from B[other] (the mutable student's paper). So they store step numbers in the alternating other other's paper? Let's examine:
+
+- teacher has B copy of A. If not T.empty, exactly one student raised: raiser = T[0]; other = 1 - raiser; Then v0,v1 = sentinel values default if B[other] size<2 else read existing values.
+
+- store step for the raiser:
+    if raiser == 0: v0 = R;
+    else: v1 = R;
+- set B[other] = {v0, v1}.
+- B[raiser] unchanged.
+
+Thus after each step, the mutable paper (the one belonging to the student who didn't raise in this step) holds an array of two values representing the step numbers at which each student raised (if they have). Even though after permutation each step the papers are permuted. They rely on the unchanged paper (asked for the raiser) maybe contain something like sentinel values but they never modify. However after each step, the papers get permuted; in next step, some student may raise (including possibly the one who previously held the array that contains info). The teacher can't modify the raised student's paper, but if that student holds the information (the array) they can't modify it; however they previously stored step numbers for both students in the other student's paper, which could then be transported randomly, but that's okay because each teacher can read the array on the paper of the not-raise student (the one they can modify). However, after permutation, the teacher may not be able to locate the array with step info because the array may now be with a different student; but they always have a copy of A: they get the current arrays on each student. If the student raising is either of the two, the teacher can see whatever arrays exist. Let's hopefully trust that solution works.
+
+Their decode in determine_steps: For each i from 0 to N-1 (0,1), arr = A[i], and they test arr.size() >= 2; then they expect arr[0] corresponds to student0, arr[1] to student1. But after many permutations, the arrays will get shuffled: The array always is stored on the student who didn't raise at the step when they wrote it, but later may be moved. However, in the final state after all steps and final permutation, there presumably is exactly one paper (maybe multiple) that contains the vector of length 2: containing step numbers for each student (or sentinel), while the other paper may be empty (the raisers last step's paper unchanged). Since they look at all papers and for each arr size >= 2 they assign arr[0] to D[0], arr[1] to D[1]. That presumably works.
+
+Thus subtask2 algorithm works for N==2.
+
+Now subtask3 algorithm works for arbitrary N and M, but requires permutation identity (P[i] = i). The teacher's algorithm is adding a value (R+1) each step to each non-raising student's encoded integer sum. At final, each student i's paper holds encode of sum of added values for all steps where i didn't raise. Since each student raises at most once, the total sum of added values for each student equals total sum of all add values (which is sum_{k=0}^{M-1} (k+1) = M*(M+1)/2) except possibly missing the add of the step when they raised; if they never raised, they'd have total sum. Then decode yields cur = total - missingAdd? Actually they add for each step when student didn't raise. So for a student who raised step j, they missed addition (j+1). So cur = total - (j+1). Then they decode cur, compare to total. In determine_steps: if cur == total => never raised, else D[i] = total - cur - 1 = missingAdd - 1 = j (since missingAdd = j+1). This yields correct step.
+
+Thus this algorithm works when P is identity, since the teacher writes to each student's own paper (must know which student didn't raise). However with unknown permutation, teacher would not know which paper belongs to which student after prior steps; but the condition ensures P identity always, so it's fine.
+
+Now we need to embed the three solutions as separate namespaces, preserve comments exactly. We also need to include "#include <bits/stdc++.h>" only once at top; comment about removed duplicates.
+
+We need to define the functions process_step and determine_steps globally, dispatching to appropriate solution. The dispatcher must know that both calls (process_step and determine_steps) must be routed consistently. So we must have a global static variable to store which subtask mode is active? Or we can decide each call based on N and M like described: If M == 1, use subtask1; else if N == 2, use subtask2; else subtask3.
+
+But consider scenario where N == 2 and M == 1. Both conditions hold. The algorithm subtask1 works for M==1 and any N (including N=2). Subtask2 also works for N==2 and any M. Either is fine; just need consistency between process_step and determine_steps. The dispatcher picks one rule to be offline. Our dispatch condition picks M == 1 first, then subtask2. That's fine.
+
+But there is nuance: The implementer may not have a global variable to recall which subtask we used for processing steps because the planner must produce same decode for determine_steps after all M steps. Since our dispatch condition uses N and M which are the same arguments to both functions, it's deterministic, so both will route to same solution. So we don't need global state.
+
+Potential edge cases: For subtask2, the solution expects M maybe up to 63, N==2 indeed. If M==1 also triggers subtask1, fine. If M>1, triggers subtask2 (since M!=1). Good.
+
+For subtask3, we need to ensure that when N!=2 and M!=1, we route to subtask3 solution. That matches original intended universal algorithm for general case but only works if P=identity. The problem states subtask3 has P[i]==i. In general hidden tests for subtask3 will indeed have identity permutation. For other subtasks, permutation may be arbitrary (like subtask1 and subtask2 probably allow arbitrary P). So dispatch to subtask3 only when identity is guaranteed; in tasks we can't detect P; but the grader for subtask3 will have identity, while for other subtasks it will not. So how to ensure we don't accidentally route a game from subtask1 or subtask2 to subtask3? We route based on N and M; subtask3 is when N != 2 and M != 1 ? Not exactly: Subtask3 has no constraints on N and M besides the given ranges, but we may have other combos where N>2, M==1 (i.e., subtask1 but N>2). That's subtask1; M==1 condition triggers subtask1 (fine). Subtask3 includes M>1 maybe, but also M==1? Wait M == 1 is already subtask1, but subtask3 can also have M==1 condition because P identity? The subtask1 is a specialized case where M==1 but any N (2..63). Typically subtask1 includes any N. However subtask3 includes also cases with M==1 (and P identity). But we prefer subtask1's solution for M==1, which is also fine for identity permutation; but does subtask1 solution work for arbitrary P. So safe.
+
+Thus for any task where M==1 we route to subtask1; else if N==2 route to subtask2; else route to subtask3.
+
+Now we must ensure we don't break memory limit or time limit; but each solution works with small constraints.
+
+We must preserve the code exactly as given for each solution, but need to adjust any includes such that they are at top. The three source files each use #include <bits/stdc++.h> and using namespace std; They also may define static constants etc. We'll need to wrap each in its own namespace and rename any functions if necessary to avoid conflicts.
+
+We need to preserve comments exactly; including original file header comments. So for each solution, we need to copy its entire content (including comments) exactly, but rename the functions? Actually the dispatcher will call the appropriate functions inside the namespaces. The global functions process_step and determine_steps must invoke those methods accordingly. So we need to avoid name collisions: each solution defines functions process_step and determine_steps within its namespace. That would cause multiple definitions of same functions at global scope (but we are wrapping them inside namespace, so they become namespaced functions: namespace subtask1 { vector<vector<int>> process_step(...); vector<int> determine_steps(...); } etc. That is okay.
+
+But the original code's comments contain references to "process_step" etc, but that's ok.
+
+We must make sure types and using namespace std inside each namespace (global using namespace std is allowed but we can also keep inside). The code includes `using namespace std;` at global scope ( from each solution). When we merge, we should have a single global `using namespace std;`. In each namespace we may keep that? In C++ each namespace can also have `using namespace std;`. However that introduces us to duplicate `using` statements, but that's okay. Not causing errors. But the requirement says "Every #include must sit at the very top outside every namespace". So we need to remove any #include lines and treat them as we only have one at top. There are three solutions each with "#include <bits/stdc++.h>" and "using namespace std;". We will keep a single include at top, then "using namespace std;". We'll delete duplicate include and maybe duplicate "using namespace std;" lines; but they said to leave a comment where one was removed. But we should keep at least one "using namespace std;". Since we have only one at global scope, it's fine.
+
+Thus the merging steps:
+
+- At top we will have:
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+```
+Potential comment: // Merged includes from subtask solutions (duplicates removed).
+
+Then we will have namespace subtask1 { // from solutions/subtask1_classroom.cpp
+
+... code of subtask1 solution but without includes and using statements.
+
+Similarly, namespace subtask2 { ... code of subtask2 solution, but adjust when needed: static const int SENTINEL = 63 line... etc. It uses no includes, just vector and such, which is in std.
+
+Same for subtask3.
+
+Now we need to implement global process_step and determine_steps, which dispatch.
+
+Implementation detail: The problem is that process_step receives R (current step number). The subtask's process_step prototype matches exactly same signature (int N, int M, int R, vector<int> T, vector<vector<int>> A). So we can call subtask1::process_step(N, M, R, T, A) etc. Ensure types consistent (std::vector). Also note subtask2's process_step returns vector<vector<int>>: may use sentinel, but fine.
+
+Now we need to decide which subtask algorithm to use in each call. The condition M == 1 -> subtask1. Else if N == 2 -> subtask2. Else -> subtask3. For correctness we also need to consider cases where M == 1 and N == 2; according to our order M==1 first leads to subtask1. That will produce correct answer for subtask2's tasks as well, because subtask1 solution works when M==1. However subtask2 may also be invoked for M==1 cases, but fine to use subtask1.
+
+Now what about scenario where M>1, N != 2 but subtask3 condition fails (i.e., P not identity). But those testcases would belong to subtask4 or subtask5 (which are not part of this merged file). So in subtask3 (score 9), we guarantee that P identity; otherwise the answer would be wrong. Since this is only for subtask3 passes, fine.
+
+Now need to ensure that process_step is invoked multiple times per game, but the dispatcher will call the same algorithm each time based on N and M (which won't change). That is consistent.
+
+Now about any static data within the subtask solutions: subtask2's process_step uses static const int SENTINEL = 63; static variable maybe fine. No other static global variables.
+
+Potential pitfalls: The subtask3 code uses encode/decode functions defined as static functions inside the global scope, but we need to move them into namespace subtask3. They are static functions currently given at top-level of its file. We'll preserve them but inside the namespace. In code: they are static int decode(const vector<int>& v) { ... } and static vector<int> encode(int x) { ... }. In a namespace static functions have internal linkage and not conflict with other namespaces. Acceptable.
+
+However, because we have the same names decode and encode inside subtask1 and subtask2? No: they don't have those functions; only subtask3. So fine.
+
+Now we need to check for potential name collisions in the global namespace: each solution's code originally declares `using namespace std;` and defines functions `process_step` and `determine_steps`. In our version, we rename them to be inside namespaces; we will remove those definitions from the global scope; provide our own global functions.
+
+Hence we need to modify each solution's code to drop the top-level includes and any global using, but keep everything else inside the namespace. We also need to ensure the code doesn't have stray declarations to global scope that conflict.
+
+The subtask1 code:
+
+```cpp
+/*
+ * Teacher's procedure.
+ * N – number of students
+ * M – number of steps (in this subtask M == 1)
+ * R – current step number (0‑based)
+ * T – sorted list of students that raise their hand in this step
+ * A – papers at the beginning of the step
+ *
+ * The teacher may modify papers of students not in T.
+ * We write a single integer equal to the student's own index on each
+ * such paper.  The integer fits into the allowed range (0…63) because
+ * N ≤ 63.
+ */
+vector<vector<int>> process_step(int N, int M, int R,
+                                 vector<int> T,
+                                 vector<vector<int>> A) {
+...
+}
+
+/*
+ * Headmaster's procedure.
+ * A – papers after the final exchange.
+ *
+ * The teacher encoded each non‑raising student i by the single integer i.
+ * Hence the set of indices appearing in non‑empty arrays is exactly the set
+ * of students that never raised their hand.  All other students raised
+ * (step number 0).  We reconstruct this information.
+ */
+vector<int> determine_steps(int N, int M, vector<vector<int>> A) {
+...
+}
+```
+
+We need to embed this into namespace subtask1. Ensure comments remain as is. The comment includes Unicode hyphens and maybe weird symbols; we will preserve.
+
+Similarly for subtask2:
+
+Has comments and static const SENTINEL, then two functions. We'll put inside namespace subtask2.
+
+Subtask3: includes helper functions decode, encode, teacher's procedure, headmaster's procedure.
+
+Now ensure we have to include stub for subtask1 and 2 and 3 use top-level #include <bits/stdc++.h> already exists.
+
+Now implement dispatch functions.
+
+Potential code:
+
+```cpp
+vector<vector<int>> process_step(int N, int M, int R,
+                                 vector<int> T,
+                                 vector<vector<int>> A) {
+    if (M == 1) {
+        return subtask1::process_step(N, M, R, T, A);
+    } else if (N == 2) {
+        return subtask2::process_step(N, M, R, T, A);
+    } else {
+        return subtask3::process_step(N, M, R, T, A);
+    }
+}
+```
+
+Similarly for determine_steps.
+
+One nuance: M could be 0? No, M>=1. So M==1 detection works.
+
+Now about the sentinel used for subtask2 for never raised: 63 - sentinel. In final output, D[i] = -1 before overwritten in some loops; they set D[i] = arr[i] step only if arr[i] != SENTINEL; else remains -1 => never raised. Ensure that works even if arr[0] and arr[1] are sentinel initially; they will start as vector of length maybe 0 or something else. But on first step, they might not have sentinel. However solution works.
+
+Now check that the return type of process_step: vector<vector<int>> (by value). Subtask3's process_step returns B; fine.
+
+Edge Cases and performance: constraints small.
+
+Now we need to ensure that each function call expected signature matches exactly. The outputs must be valid: each array size <= 63, each integer 0..63. Subtask1 solution writes single integer i (0..62). Subtask2 writes sentinel and step values (0..M-1). Both within 0..63 (since M-1 <=62). So fine. Subtask3 writes base-64 digits 0..63 due to encode, fine.
+
+Now check that final output from subtask3's determine_steps returns D[i] = -1 for never raised else step j. Implementation returns D[i] = total - cur - 1; for never raised cur=total, they set D[i] = -1. Good.
+
+Now we must ensure that subtask3's encode returns empty vector for zero (since while loop only runs if x>0; leaving empty indicates 0). That's okay, but after many steps they add values and encode cur; cur may become 0? Only if total missing all adds? Not possible; they always add positive values; but no concerns.
+
+Now compile.
+
+Potential issues: In subtask1's determine_steps they treat empty arrays as raised; what about a student who never raised but got encoded from another non-raised student? Actually all non-raised students encode themselves on their own paper; but after permutation, the papers could be moved. But the headmaster only sees array to decode. If a student never raised then there will be some array optionally containing some index; they mark that index's student as never raised. If there is a student who never raised but its array happens to be empty? That can't happen because they wrote index there. So fine.
+
+Now concerning sentinel for subtask2: The teacher uses sentinel = 63 meaning never raised. Ensure sentinel fits in range. It's allowed.
+
+Now we need to add comments indicating each namespace source file.
+
+We also need to comment about duplicate include removal. Provide comments.
+
+Now final code.
+
+Potential conflict: In subtask2 code they defined static const int SENTINEL = 63 at namespace scope. That's fine.
+
+Potential conflict of vector type inclusion: No issues.
+
+Potential conflict with C++17: using static functions with vector param defined after they are used via subtask3::encode. They must be declared before being used, but they are defined before process_step in code. In original file they are placed before process_step; we maintain same order.
+
+Thus final code:
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+// Merged includes from subtask solutions (duplicates removed)
+
+// Subtask 1 solution (solutions/subtask1_classroom.cpp)
+namespace subtask1 {
+    /*
+     * Teacher's procedure.
+     * N – number of students
+     * M – number of steps (in this subtask M == 1)
+     * R – current step number (0‑based)
+     * T – sorted list of students that raise their hand in this step
+     * A – papers at the beginning of the step
+     *
+     * The teacher may modify papers of students not in T.
+     * We write a single integer equal to the student's own index on each
+     * such paper.  The integer fits into the allowed range (0…63) because
+     * N ≤ 63.
+     */
+    vector<vector<int>> process_step(int N, int M, int R,
+                                     vector<int> T,
+                                     vector<vector<int>> A) {
+        vector<char> raised(N, 0);
+        for (int i : T) raised[i] = 1;
+
+        vector<vector<int>> B = A;
+        for (int i = 0; i < N; ++i) {
+            if (!raised[i]) {
+                // Encode the original index i.
+                B[i] = {i};
+            } else {
+                // Must keep the paper unchanged.
+                B[i] = A[i];
+            }
+        }
+        return B;
+    }
+
+    /*
+     * Headmaster's procedure.
+     * A – papers after the final exchange.
+     *
+     * The teacher encoded each non‑raising student i by the single integer i.
+     * Hence the set of indices appearing in non‑empty arrays is exactly the set
+     * of students that never raised their hand.  All other students raised
+     * (step number 0).  We reconstruct this information.
+     */
+    vector<int> determine_steps(int N, int M, vector<vector<int>> A) {
+        vector<char> not_raised(N, 0);
+        for (const auto& v : A) {
+            if (!v.empty()) {
+                int idx = v[0];               // the encoded original index
+                if (0 <= idx && idx < N) {
+                    not_raised[idx] = 1;
+                }
+            }
+        }
+
+        vector<int> D(N);
+        for (int i = 0; i < N; ++i) {
+            D[i] = not_raised[i] ? -1 : 0;    // 0 → raised in step 0, -1 → never raised
+        }
+        return D;
+    }
+}
+
+// Subtask 2 solution (solutions/subtask2_classroom.cpp)
+namespace subtask2 {
+    static const int SENTINEL = 63;          // value meaning “never raised”
+
+    // ------------------------------------------------------------------
+    // Teacher side
+    // ------------------------------------------------------------------
+    vector<vector<int>> process_step(int N, int M, int R,
+                                     vector<int> T,
+                                     vector<vector<int>> A)
+    {
+        // start with a copy of the received papers
+        vector<vector<int>> B = A;
+
+        if (!T.empty())                     // exactly one student raised
+        {
+            int raiser = T[0];               // 0 or 1 (N == 2)
+            int other  = 1 - raiser;         // the other student
+
+            // current contents of the paper we are allowed to change
+            int v0 = SENTINEL, v1 = SENTINEL;
+            if (B[other].size() >= 2) {
+                v0 = B[other][0];
+                v1 = B[other][1];
+            }
+            // store the step for the raiser
+            if (raiser == 0) v0 = R;
+            else             v1 = R;
+
+            B[other] = {v0, v1};             // always length 2
+            // B[raiser] stays unchanged (required by the statement)
+        }
+        // when T is empty we leave B unchanged
+
+        return B;
+    }
+
+    // ------------------------------------------------------------------
+    // Headmaster side
+    // ------------------------------------------------------------------
+    vector<int> determine_steps(int N, int M, vector<vector<int>> A)
+    {
+        vector<int> D(N, -1);               // default: never raised
+
+        for (int i = 0; i < N; ++i) {
+            const vector<int> &arr = A[i];
+            if (arr.size() >= 2) {
+                // arr[0] belongs to student 0, arr[1] to student 1
+                if (arr[0] != SENTINEL) D[0] = arr[0];
+                if (arr[1] != SENTINEL) D[1] = arr[1];
+            }
+        }
+        return D;
+    }
+}
+
+// Subtask 3 solution (solutions/subtask3_classroom.cpp)
+namespace subtask3 {
+    /* ----- helper: base‑64 encode / decode ----- */
+    static int decode(const vector<int>& v) {
+        int x = 0;
+        int mult = 1;                     // 64^position
+        for (int d : v) {
+            x += d * mult;
+            mult <<= 6;                   // multiply by 64
+        }
+        return x;
+    }
+
+    static vector<int> encode(int x) {
+        vector<int> v;
+        while (x > 0) {
+            v.push_back(x & 63);          // x % 64
+            x >>= 6;                      // x /= 64
+        }
+        return v;                         // empty vector represents 0
+    }
+
+    /* -------------------------------------------------------------
+       Teacher's procedure
+       ------------------------------------------------------------- */
+    vector<vector<int>> process_step(int N, int M, int R,
+                                     vector<int> T,
+                                     vector<vector<int>> A) {
+        vector<char> raises(N, 0);
+        for (int idx : T) raises[idx] = 1;
+
+        int add = R + 1;                  // value added this step
+        vector<vector<int>> B(N);
+
+        for (int i = 0; i < N; ++i) {
+            if (raises[i]) {
+                B[i] = A[i];              // cannot modify
+            } else {
+                int cur = decode(A[i]);
+                cur += add;
+                B[i] = encode(cur);
+            }
+        }
+        return B;
+    }
+
+    /* -------------------------------------------------------------
+       Headmaster's procedure
+       ------------------------------------------------------------- */
+    vector<int> determine_steps(int N, int M,
+                                vector<vector<int>> A) {
+        vector<int> D(N);
+        int total = M * (M + 1) / 2;      // sum 1 … M
+
+        for (int i = 0; i < N; ++i) {
+            int cur = decode(A[i]);
+            if (cur == total) {
+                D[i] = -1;                // never raised
+            } else {
+                D[i] = total - cur - 1;   // missing step
+            }
+        }
+        return D;
+    }
+}
+
+// Global dispatcher
+vector<vector<int>> process_step(int N, int M, int R,
+                                 vector<int> T,
+                                 vector<vector<int>> A) {
+    if (M == 1) {
+        // Subtask 1 (M == 1) has priority
+        return subtask1::process_step(N, M, R, T, A);
+    } else if (N == 2) {
+        // Subtask 2 (N == 2) when M > 1
+        return subtask2::process_step(N, M, R, T, A);
+    } else {
+        // Remaining cases belong to Subtask 3 (P is identity)
+        return subtask3::process_step(N, M, R, T, A);
+    }
+}
+
+vector<int> determine_steps(int N, int M,
+                            vector<vector<int>> A) {
+    if (M == 1) {
+        return subtask1::determine_steps(N, M, A);
+    } else if (N == 2) {
+        return subtask2::determine_steps(N, M, A);
+    } else {
+        return subtask3::determine_steps(N, M, A);
+    }
+}
+```
+
+Now we must check for any missing includes or using declarations. All functions rely on vector, etc. Provided.
+
+Potential issues: In subtask1 and subtask3 they have functions that take by value vector<int> T and vector<vector<int>> A; we copying maybe okay.
+
+Potential cause: The subtask2's process_step uses static const int SENTINEL = 63; but sentinel is same name across subtask2 and other namespaces maybe also static const int? Only subtask2 defines SENTINEL, not others. Even if other solutions also have encode() functions static, etc. No conflict.
+
+Now about naming: The global functions are named process_step and determine_steps, which must be defined exactly as per problem statement. They will be used by grader. The solution file expects only these two functions at global scope, no main.
+
+Now check if there are any extra non-namespace functions left, like decode, encode defined as static int decode(...). They are inside namespace subtask3 only, so fine.
+
+Potential warnings: static functions inside namespace are allowed: static gives internal linkage; if defined inside a namespace they have internal linkage but it's okay.
+
+Now final code compile.
+
+One more nuance: In subtask1's teacher function, they accept M and R but they ignore them. That is fine.
+
+Now confirm that we didn't inadvertently predeclare the functions again. There's no duplicate definitions.
+
+Now check that code fits the memory/time limit: yes.
+
+Now test with example given in problem: N=4, M=2, P unknown. This example would be in subtask3? Actually M=2 => M>1, N=4 => N!=2 => subtask3 path. But subtask3 assumes identity permutation, which is not true in example (P = [0,3,1,2] non-identity). So on this test case, subtask3 algorithm would produce wrong answer. But the example is not a test case in a subtask; they just illustrate. Since subtask3 is limited to identity permutation condition, the example wouldn't be in subtask3.
+
+Thus correct.
+
+Make sure that the dispatcher for process_step uses M == 1 condition first: because in subtask1 M==1 maybe primed case even if N==2 and M==1. That will choose subtask1 solution.
+
+Now subtask2: If M>1 and N==2, we will dispatch subtask2 solution. That may also work for M==1 but we didn't reach because earlier condition M==1 triggers subtask1. However it's acceptable.
+
+Now verify correctness on typical scenarios:
+
+Let's test manually some small cases.
+
+Case 1: N=2, M=3, perhaps permutation identity or not. Use subtask2 solution.
+
+Simulate scenario: Suppose step 0: T = [0] (student0 raises). Step 1: T = [1] (student1 raises). Step 2: T = []. Each student raises at most once.
+
+Our process: initial A start all empty.
+
+Step0: T= [0]; other=1; B[other] = {v0,v1} but B[other] currently empty so v0=v1=SENTINEL; raiser==0 => v0=0 (R=0). So B[1] set to {0, SENTINEL} length 2. B[0] unchanged empty.
+
+Permutation unknown; after exchange, they are permuted arbitrarily; but suppose identity for simplicity. Then A after step0: A[0] empty, A[1] = {0, SENTINEL}.
+
+Step1: T = [1]; other = 0; B[0] copy of A[0] (empty). v0,v1 extracted from B[0] (size<2) => sentinel. R=1, raiser==1 -> v1=1. Then B[0] = {SENTINEL, 1}. B[1] unchanged ( = {0,SENTINEL} ). After permutation, ... step2, T empty => B unchanged.
+
+Finally after 3 steps, A contains two arrays of length 2: whichever they end up in after permutations. However the headmaster uses each arr size>=2 to decode: assign arr[0] to D[0], arr[1] to D[1]. If arrays are swapped among students due to permutations, still each arr[0] and arr[1] will correctly contain step for that respective student. Because the array's slots correspond to student 0 and 1, not to the holder. Good.
+
+Now headmaster's algorithm: D[0] default -1; D[1] default -1. Loop for i = 0..1 (both students). For each arr A[i] that has size >=2, they check arr[0] and arr[1]. If arr[0] != sentinel (=63), D[0]=arr[0]; else stays -1 if sentinel. Similarly for D[1]. However there can be duplicate arrays; suppose one arr is {SENTINEL, 1} (others hold original array). The other arr is {0, SENTINEL}. So after loop they'll see both arrays, and assign D[0]=0 (from arr[0] in second array) and D[1]=1 (from arr[1] in first array). That matches correct steps.
+
+If a student never raised, sentinel remains side, D stays -1.
+
+Thus subtask2 works.
+
+Now subtask3: Test identity permutation case: N=3, M=3.
+
+Suppose step0: T = [1]; others: 0,2. For each non-raiser we add 1 to encode. For step1: T = [2]; add 2 to others (0 and1). So each student will have sum of adds except missing their own step. Let's compute:
+
+Values: step j addition = j+1.
+
+Total addition = 1+2+3 = 6.
+
+Student0: didn't raise any step; receives adds at step0 (since didn't raise) add1? Wait step0 T=[1]; not raiser includes 0, so add1. Step1 T=[2]; not raiser includes 0 => add2. Step2 maybe T empty? Actually we need each student can raise at most once, but could be none; suppose none else: step2 T empty => all students allowed, add3 to all. So Student0 receives add1+2+3=6; So cur=6. total=6; D[0] = -1.
+
+Student1 raised step0; missed add1; receives add2 at step1 and add3 at step2 =5. cur=5; total - cur - 1 =6-5-1=0? Wait if missing step0 (j=0), then D[1] = -? Should be 0. Compute total=6, cur=5. total - cur -1 = 0 => step0. Good.
+
+Student2 raised step1; missed add2; receives add1 and add3 =4. cur=4; total - cur -1 =6-4-1=1 (step1). Works.
+
+Thus subtask3 algorithm works.
+
+Now ensure encode/decode can handle numbers up to total = M*(M+1)/2 <= 63*64/2=2016. That's less than 64^3 = 262144, so encoded digits up to maybe 2016 < 2^11. So at most 3 digits in base 64? Let's compute max total = 2016 decimal. In base64, 64^2=4096 >2016, so need at most 2 digits (since 64^2 = 4096 > 2016). Actually 64^2=4096, so representation can be up to 2 digits (including maybe 0). But they'd encode with while (x>0); thus results length up to 2. So maximum length of array B[i] is 2, which is <=2, giving highest score.
+
+Thus C <=2 for subtask3 too, achieving full subtask3 score. Actually subtask3 condition for scoring: maximum length C's of any array returned by process_step across all steps. For subtask3 algorithm we use length exactly 1 (when encode returns 0? Actually encode for non-zero values returns vector of digits; encoding of cur after step 0? At step 0 maybe cur is small. For each student they store encode(cur) which may have length 1 or 2. So max length is <=2. So subtask3 also obtains max score.
+
+Now we need to satisfy rule: "Copy each solution verbatim, including every comment, from its first line to its last." We have included the comments as is, but have we omitted any leading comment characters at the top of file? For each solution we have the comment block at the very beginning of file (like /* teacher's procedure...). In source file they perhaps have a header comment at top? Let's see subtask1 source file: It starts with:
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/*
+ * Teacher's procedure.
+...
+ */
+vector<vector<int>> process_step...
+```
+
+Thus the first line after includes is a comment block. In our internal namespace we have the same comment block. However we omitted the file's header. The file had no extra header beyond includes and using. So copying from first line after includes is okay.
+
+But the problem statement says: "Copy each solution verbatim, including every comment, from its first line to its last." There's some nuance: Should we include the #include and using lines as part of the solution? The instruction says "Every #include must sit at the very top of the file, outside every namespace. A standard header expanded inside a namespace nests the whole of std inside it and the file does not compile." So they explicitly want us to remove includes and possibly using directive from each solution and place them globally. This counts as a modification, but they may allow us to remove duplicates and comment where removal occurred. This is allowed per rule 3. So okay.
+
+Thus we have adhered.
+
+Now we need to ensure no stray `static` function definitions conflict across namespaces: In subtask1 there are no static variables; subtask2 has static const int; subtask3 has static int decode, static vector<int> encode. All fine.
+
+Potential overlapping of `static` across translation unit: static at namespace scope gives internal linkage per translation unit. Since both static const SENTINEL and static functions don't collide naming across namespaces, because internal linkage is per translation unit, but name `static int decode` exists only in subtask3 namespace; but static at namespace scope with name decode may conflict if also elsewhere (outside namespace) they have static decode; but it is inside namespace subtask3; the name is subtask3::decode, not global decode. So no conflict.
+
+Thus compile successfully.
+
+Now final code output must be inside a single ```cpp block.
+
+Now check if any using directive needed inside each namespace: originally each solution used `using namespace std;` after includes. Since we add global using std, all internal code can use std types directly. In inner namespaces, they still have access.
+
+Potential ambiguous name `vector`, etc. It's fine.
+
+Now the file will compile as single translation unit.
+
+One more subtlety: In subtask2's determine_steps they use arr[0] and arr[1] to index D[0], D[1] respectively, regardless of which student the array belongs to. Since D is size N (2). Good.
+
+Now will the dispatcher for determine_steps also need M and N to decide which subtask? Yes using same conditions.
+
+Edge case: In subtask2, N==2 could also be M==1. We used else if N==2 after M==1. If M==1, subtask1 will be used for both flags. That's acceptable. However subtask2's determine_steps when M==1 but we use subtask1's; subtask1 will produce correct answer for M==1 even if any permutation; since subtask1 algorithm outputs D[i] = 0 for raised else -1. But for M==1 only one step j=0; if a student raised step zero, D[i]=0; others -1. This matches expected output. So fine.
+
+Now check scenario where M==1, N==2 but T empty. Subtask1: teacher writes index i for all non-raise (i.e., both students). So D[i] = -1 for all. In reality if T empty, no student raised; and subtask1 sets D[i] = not_raised[i] ? -1 : 0: they treat empty array as "raised"? Actually they set not_raised based on presence of index in any array. Since teacher writes index i for each non-raiser, we get both arrays non-empty (they contain i for each). So not_raised marks both students as not raised => D[i] = -1. Good.
+
+Now confirm that subtask1's teacher writes index for all non-raisers, but they also keep raised students unchanged, which remain empty if never raised earlier (they are empty initial). That's fine.
+
+Now confirm subtask1's headmaster marks "not_raised[i]" as true for indices that appear in any array, but they might also map index incorrectly? E.g., Suppose a student never raised but its paper got overwritten later by being passed to a raised student (who doesn't modify it) and later that raised student's step could have its paper unchanged each step (empty) but that's okay: A raised student never gets changed, but his paper could have an array from some other student originally written. If that raised student's paper originally empty is later overwritten by some other student's index due to permutation? Wait: In subtask1, at step0 (only step), teacher writes indices to all non-raised students (including those raising). Actually teacher cannot modify raised student's own paper. Since there is only one step, T contains any number of raised (maybe some). In subtask1, after writing indices to non-raised students, they permute. Then headmaster sees final arrangement. Students who raised had empty papers (original empty) unchanged, but they might have received a paper which contains an index from some non-raiser because of permutation. Indeed when permutation takes place, all papers, including those of students who raised (empty) are exchanged; thus a raised student's final paper could be a non-empty array (the index of some other non-raised student). However teacher1's headmaster view: they iterate over all paper vectors finishing state; they consider each non-empty array's first element as encoded student ID of the original non-raised student. So they identify the student that never raised using the indices present. Since every non-raised student wrote its own index onto its own paper before exchange, these indices will appear somewhere in final array of papers (maybe not at same index). Thus final detection is correct.
+
+Thus subtask1 solution works with arbitrary permutation.
+
+Now subtask2 solution's headmaster uses sentinel detection. It scans all final arr size >=2; each such arr contains data for both students. Works regardless of permutation.
+
+Thus dispatcher use of subtask2 works for any permutation.
+
+Now subtask3 solution requires permutation to be identity; the problem says only subtask3 has that condition. So safe.
+
+Now moving aside from the three subtasks, we might be missing subtask4 and 5 solutions, but problem indicates we should only merge these three. The instructions mention we shouldn't try to route to subtask4 and subtask5. So we obey.
+
+Now final code posted.
+
+But we need to verify that the code includes comment about removed duplicate includes (the include was included 3 times originally). Already added comment.
+
+Potential minor error: In subtask1's teacher function we used B[i] = A[i]; for raised we assign B[i] = A[i]; but this is redundant as B was copy of A, but okay.
+
+Now compile in mind: some warnings about missing return statement? No, each function returns B.
+
+Potential unreachable code: In subtask2::process_step they used `if (!T.empty())` but omitted else clause; fine.
+
+Now confirm that subtask2's process_step returns B for steps where T empty; It doesn't modify B; correct.
+
+Now check that subtask2's definitions of static constants and functions inside namespace subtask2 compile: static const int SENTINEL = 63; should be fine; no further includes required.
+
+Now final code compile.
+
+One more detail: Need to ensure that we didn't mistakenly have duplicated definitions of process_step within global dispatcher. We have global process_step defined after namespaces. That likely matches expected signature exactly; the internal namespace functions not used externally.
+
+All good.
+
+Now final answer: Provide code block.
+
+
+</reasoning>
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+// Merged includes from subtask solutions (duplicates removed)
+
+// Subtask 1 solution (solutions/subtask1_classroom.cpp)
+namespace subtask1 {
+    /*
+     * Teacher's procedure.
+     * N – number of students
+     * M – number of steps (in this subtask M == 1)
+     * R – current step number (0‑based)
+     * T – sorted list of students that raise their hand in this step
+     * A – papers at the beginning of the step
+     *
+     * The teacher may modify papers of students not in T.
+     * We write a single integer equal to the student's own index on each
+     * such paper.  The integer fits into the allowed range (0…63) because
+     * N ≤ 63.
+     */
+    vector<vector<int>> process_step(int N, int M, int R,
+                                     vector<int> T,
+                                     vector<vector<int>> A) {
+        vector<char> raised(N, 0);
+        for (int i : T) raised[i] = 1;
+
+        vector<vector<int>> B = A;
+        for (int i = 0; i < N; ++i) {
+            if (!raised[i]) {
+                // Encode the original index i.
+                B[i] = {i};
+            } else {
+                // Must keep the paper unchanged.
+                B[i] = A[i];
+            }
+        }
+        return B;
+    }
+
+    /*
+     * Headmaster's procedure.
+     * A – papers after the final exchange.
+     *
+     * The teacher encoded each non‑raising student i by the single integer i.
+     * Hence the set of indices appearing in non‑empty arrays is exactly the set
+     * of students that never raised their hand.  All other students raised
+     * (step number 0).  We reconstruct this information.
+     */
+    vector<int> determine_steps(int N, int M, vector<vector<int>> A) {
+        vector<char> not_raised(N, 0);
+        for (const auto& v : A) {
+            if (!v.empty()) {
+                int idx = v[0];               // the encoded original index
+                if (0 <= idx && idx < N) {
+                    not_raised[idx] = 1;
+                }
+            }
+        }
+
+        vector<int> D(N);
+        for (int i = 0; i < N; ++i) {
+            D[i] = not_raised[i] ? -1 : 0;    // 0 → raised in step 0, -1 → never raised
+        }
+        return D;
+    }
+}
+
+// Subtask 2 solution (solutions/subtask2_classroom.cpp)
+namespace subtask2 {
+    static const int SENTINEL = 63;          // value meaning “never raised”
+
+    // ------------------------------------------------------------------
+    // Teacher side
+    // ------------------------------------------------------------------
+    vector<vector<int>> process_step(int N, int M, int R,
+                                     vector<int> T,
+                                     vector<vector<int>> A)
+    {
+        // start with a copy of the received papers
+        vector<vector<int>> B = A;
+
+        if (!T.empty())                     // exactly one student raised
+        {
+            int raiser = T[0];               // 0 or 1 (N == 2)
+            int other  = 1 - raiser;         // the other student
+
+            // current contents of the paper we are allowed to change
+            int v0 = SENTINEL, v1 = SENTINEL;
+            if (B[other].size() >= 2) {
+                v0 = B[other][0];
+                v1 = B[other][1];
+            }
+            // store the step for the raiser
+            if (raiser == 0) v0 = R;
+            else             v1 = R;
+
+            B[other] = {v0, v1};             // always length 2
+            // B[raiser] stays unchanged (required by the statement)
+        }
+        // when T is empty we leave B unchanged
+
+        return B;
+    }
+
+    // ------------------------------------------------------------------
+    // Headmaster side
+    // ------------------------------------------------------------------
+    vector<int> determine_steps(int N, int M, vector<vector<int>> A)
+    {
+        vector<int> D(N, -1);               // default: never raised
+
+        for (int i = 0; i < N; ++i) {
+            const vector<int> &arr = A[i];
+            if (arr.size() >= 2) {
+                // arr[0] belongs to student 0, arr[1] to student 1
+                if (arr[0] != SENTINEL) D[0] = arr[0];
+                if (arr[1] != SENTINEL) D[1] = arr[1];
+            }
+        }
+        return D;
+    }
+}
+
+// Subtask 3 solution (solutions/subtask3_classroom.cpp)
+namespace subtask3 {
+    /* ----- helper: base‑64 encode / decode ----- */
+    static int decode(const vector<int>& v) {
+        int x = 0;
+        int mult = 1;                     // 64^position
+        for (int d : v) {
+            x += d * mult;
+            mult <<= 6;                   // multiply by 64
+        }
+        return x;
+    }
+
+    static vector<int> encode(int x) {
+        vector<int> v;
+        while (x > 0) {
+            v.push_back(x & 63);          // x % 64
+            x >>= 6;                      // x /= 64
+        }
+        return v;                         // empty vector represents 0
+    }
+
+    /* -------------------------------------------------------------
+       Teacher's procedure
+       ------------------------------------------------------------- */
+    vector<vector<int>> process_step(int N, int M, int R,
+                                     vector<int> T,
+                                     vector<vector<int>> A) {
+        vector<char> raises(N, 0);
+        for (int idx : T) raises[idx] = 1;
+
+        int add = R + 1;                  // value added this step
+        vector<vector<int>> B(N);
+
+        for (int i = 0; i < N; ++i) {
+            if (raises[i]) {
+                B[i] = A[i];              // cannot modify
+            } else {
+                int cur = decode(A[i]);
+                cur += add;
+                B[i] = encode(cur);
+            }
+        }
+        return B;
+    }
+
+    /* -------------------------------------------------------------
+       Headmaster's procedure
+       ------------------------------------------------------------- */
+    vector<int> determine_steps(int N, int M,
+                                vector<vector<int>> A) {
+        vector<int> D(N);
+        int total = M * (M + 1) / 2;      // sum 1 … M
+
+        for (int i = 0; i < N; ++i) {
+            int cur = decode(A[i]);
+            if (cur == total) {
+                D[i] = -1;                // never raised
+            } else {
+                D[i] = total - cur - 1;   // missing step
+            }
+        }
+        return D;
+    }
+}
+
+// Global dispatcher
+vector<vector<int>> process_step(int N, int M, int R,
+                                 vector<int> T,
+                                 vector<vector<int>> A) {
+    if (M == 1) {
+        // Subtask 1 (M == 1) has priority
+        return subtask1::process_step(N, M, R, T, A);
+    } else if (N == 2) {
+        // Subtask 2 (N == 2) when M > 1
+        return subtask2::process_step(N, M, R, T, A);
+    } else {
+        // Remaining cases belong to Subtask 3 (P is identity)
+        return subtask3::process_step(N, M, R, T, A);
+    }
+}
+
+vector<int> determine_steps(int N, int M,
+                            vector<vector<int>> A) {
+    if (M == 1) {
+        return subtask1::determine_steps(N, M, A);
+    } else if (N == 2) {
+        return subtask2::determine_steps(N, M, A);
+    } else {
+        return subtask3::determine_steps(N, M, A);
+    }
+}
+```

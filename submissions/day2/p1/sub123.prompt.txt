@@ -1,0 +1,421 @@
+You are an expert competitive programmer. Below is an IOI 2026 problem, followed
+by the best known C++ solution for each of its subtasks. Each was written for one
+subtask alone, and the score it achieved there is stated.
+
+# Problem statement
+
+You are an expert competitive programmer. You will be given a problem statement, constraints, and example test cases. Please reason step by step about the solution, then provide a complete implementation in C++17.
+
+Please solve the problem exactly according to the requirements in the problem statement. Follow the input/output format, function signatures, implementation details, and any special requirements specified in the problem itself. If the problem requires standard input/output, include a complete program with `main`. If the problem requires implementing specific routines/classes without `main`, only implement what is requested.
+
+Assume your code will be run on the OFFICIAL grader, and do not add a main function, a sample grader, or any other functionality unless it has been explicitly requested.
+
+Put your final solution within a single code block:
+
+
+```cpp
+// your code here
+```
+
+# [IOI 2026] Day 2. Classroom Game
+
+**Time limit:** 0.5 seconds &nbsp;&nbsp; **Memory limit:** 2048 megabytes
+
+# Classroom Game
+
+A prominent high school in Tashkent celebrates its anniversary by hosting a game between students and teachers. There are $N$ students sitting in the classroom, numbered from $0$ to $N-1$. Each student holds a piece of paper that contains an array of integers. Initially, each paper is blank, so it contains an empty array.
+
+The students are playing the game with $M$ teachers, numbered from $0$ to $M-1$, and the headmaster. The game is played in $M$ steps, also numbered from $0$ to $M-1$. In step $j$, teacher $j$ enters the classroom and the following events take place:
+
+- Some (possibly zero) students raise their hand. It is guaranteed that in every step at least one student does **not** raise their hand, and each student may raise their hand **at most once** during the entire game.
+- The teacher looks at the papers the students currently hold, and may modify the papers held by the students that did **not** raise their hand in this step. For each such student, the teacher can replace the contents of their paper with a new (possibly empty) array of integers. Each integer must be between $0$ and $63$, inclusive, and the array can have at most $63$ elements.
+- After these modifications, teacher $j$ leaves and the students exchange their papers according to a secret permutation $P$. That is, each student $i$ ($0 \le i < N$) gives their paper to student $P[i]$, where $P[0], P[1], \ldots, P[N-1]$ are $N$ distinct integers between $0$ and $N-1$, inclusive. The values of $P$ are fixed during all steps of the game, but the teachers and the headmaster do not know them.
+
+Once all $M$ steps have finished and the last exchange according to $P$ has been performed, the headmaster enters. Looking only at the papers held by the students, the headmaster must determine, for every student $i$ ($0 \le i < N$), the step number $j$ in which student $i$ raised their hand, or conclude that student $i$ never raised their hand.
+
+The teachers cannot communicate with other teachers or the headmaster, except through the arrays of integers written on the papers. Each teacher knows the step at which they enter the classroom.
+
+Your task is to devise and implement a strategy for the teachers and the headmaster that correctly identifies whether and when each student raised their hand. Your score will depend on the maximum length of any array written on a paper: a shorter maximum length yields a higher or equal score.
+
+## Implementation Details
+
+You need to implement two procedures, one for the teachers and one for the headmaster.
+
+The procedure you should implement for the teachers is:
+
+```cpp
+std::vector<std::vector<int>> process_step(
+    int N, int M, int R,
+    std::vector<int> T,
+    std::vector<std::vector<int>> A)
+```
+
+- $N$: the number of students.
+- $M$: the number of steps, and also the number of teachers.
+- $R$: the current step number (from $0$ to $M-1$).
+- $T$: a (possibly empty) array consisting of the indices of the students who raise their hand in this step, sorted in increasing order.
+- $A$: an array of length $N$ describing the papers, where $A[i]$ ($0 \le i < N$) is the array of integers on the paper held by student $i$ at the beginning of the step.
+- This procedure is called exactly $M$ times per game, in the order $R = 0, 1, \ldots, M-1$.
+- The procedure should return an array $B$ of length $N$, representing the papers after the teacher's modifications, in the same format as $A$.
+    - For every student $i$ that raised their hand (that is, $i$ appears in $T$), the paper must not be changed, so $B[i] = A[i]$.
+    - For each $i$ such that $0 \le i < N$, the length of $B[i]$ must not exceed $63$, and every integer in $B[i]$ must be between $0$ and $63$, inclusive.
+
+The procedure you should implement for the headmaster is:
+
+```cpp
+std::vector<int> determine_steps(
+    int N, int M, std::vector<std::vector<int>> A)
+```
+
+- $N$, $M$: the same as above.
+- $A$: an array of length $N$, where $A[i]$ is the array of integers on the paper held by student $i$ after all $M$ steps.
+- This procedure is called exactly once per game, after the final call to `process_step`.
+- The procedure must return an array $D$ of length $N$. For each $i$ such that $0 \le i < N$, it must hold that
+    - $D[i] = j$ if student $i$ raised their hand during step $j$, or
+    - $D[i] = -1$ if student $i$ never raised their hand during the entire game.
+
+Your program is **not allowed** to store or transmit any information from one call to `process_step` to another, except through the return value of `process_step`. If your program attempts to do this, your score in CMS may be incorrect and may be reduced after the end of the contest. Note that the grader may execute multiple instances of your program simultaneously. This means that calls to `process_step` and `determine_steps` from the same game may be executed in different instances, and calls to `process_step` and `determine_steps` from different games may be executed in the same instance. Each test case includes up to $5$ games.
+
+## Constraints
+
+- $2 \le N \le 63$
+- $1 \le M \le 63$
+- Each student raises their hand at most once during the entire game. In other words, for every student $i$, there is at most one step $j$ in which $i$ raises their hand.
+- At each step, at least one student does not raise their hand.
+
+## Subtasks and Scoring
+
+| Subtask | Score | Additional Constraints |
+|---------|-------|------------------------|
+| 1 | 4 | $M = 1$ |
+| 2 | 6 | $N = 2$ |
+| 3 | 9 | $P[i] = i$ for all $0 \le i \le N-1$. |
+| 4 | 25 | At most one student raises their hand at each step. |
+| 5 | 56 | No additional constraints. |
+
+For each test case, your score is $0$ (reported as `Output isn't correct`) if the return value of any call to procedure `process_step` is invalid or if the return value of any call to procedure `determine_steps` is incorrect.
+
+Otherwise, let $C$ be the maximum length of any array in any $B$ returned by `process_step`. Then, the score for a test case in a subtask with score $S$ is calculated as $S \cdot X$, where $X$ depends on $C$ according to the following table:
+
+| Condition | $X$ |
+|-----------|-----|
+| $C \le 2$ | $1.00$ |
+| $C = 3$ | $0.75$ |
+| $C = 4$ | $0.55$ |
+| $5 \le C \le 13$ | $0.50 - 0.03 \cdot (C - 5)$ |
+| $14 \le C \le 63$ | $0.19 \cdot \dfrac{64 - C}{64 - 14} + 0.04$ |
+
+## Example
+
+Consider a scenario with $N = 4$ students, $M = 2$ teachers, and permutation $P = [0, 3, 1, 2]$. Initially, all papers are empty.
+
+The grader first calls:
+
+```
+process_step(4, 2, 0, [1], [[], [], [], []])
+```
+
+Student $1$ has raised their hand, so their paper cannot be modified. Teacher $0$ may decide to write $[10]$ on the paper of student $0$, write $[1, 63, 4]$ on the paper of student $3$, and leave student $2$'s paper empty. To do this, the procedure must return $B = [[10], [], [], [1, 63, 4]]$.
+
+After teacher $0$ leaves, the students exchange their papers according to $P$. After the exchange, the papers are $A = [[10], [], [1, 63, 4], []]$.
+
+The grader now calls:
+
+```
+process_step(4, 2, 1, [0,3], [[10], [], [1,63,4], []])
+```
+
+Students $0$ and $3$ have raised their hand, so their papers cannot be modified. Teacher $1$ may decide to write $[0, 40]$ on the paper of student $1$ and write $[1, 50]$ on the paper of student $2$. To do this, the procedure must return $B = [[10], [0, 40], [1, 50], []]$.
+
+After teacher $1$ leaves, the papers are again exchanged according to $P$. After the exchange, the papers are $A = [[10], [1, 50], [], [0, 40]]$.
+
+Finally, the grader calls:
+
+```
+determine_steps(4, 2, [[10], [1,50], [], [0,40]])
+```
+
+This procedure must return the array $D = [1, 0, -1, 1]$ since students $0$ and $3$ raised their hand in step $1$, student $1$ raised their hand in step $0$, and student $2$ never raised their hand. In this example, $C = 3$.
+
+
+
+# Best known solution for Subtask 1 (worth 4 points)
+
+Additional constraints of this subtask: M = 1
+Source file: `solutions/subtask1_classroom.cpp`
+Score this program achieved on Subtask 1: **4 out of 4 -- full marks**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/*
+ * Teacher's procedure.
+ * N  – number of students
+ * M  – number of steps (in this subtask M == 1)
+ * R  – current step number (0‑based)
+ * T  – sorted list of students that raise their hand in this step
+ * A  – papers at the beginning of the step
+ *
+ * The teacher may modify papers of students not in T.
+ * We write a single integer equal to the student's own index on each
+ * such paper.  The integer fits into the allowed range (0…63) because
+ * N ≤ 63.
+ */
+vector<vector<int>> process_step(int N, int M, int R,
+                                 vector<int> T,
+                                 vector<vector<int>> A) {
+    vector<char> raised(N, 0);
+    for (int i : T) raised[i] = 1;
+
+    vector<vector<int>> B = A;
+    for (int i = 0; i < N; ++i) {
+        if (!raised[i]) {
+            // Encode the original index i.
+            B[i] = {i};
+        } else {
+            // Must keep the paper unchanged.
+            B[i] = A[i];
+        }
+    }
+    return B;
+}
+
+/*
+ * Headmaster's procedure.
+ * A – papers after the final exchange.
+ *
+ * The teacher encoded each non‑raising student i by the single integer i.
+ * Hence the set of indices appearing in non‑empty arrays is exactly the set
+ * of students that never raised their hand.  All other students raised
+ * (step number 0).  We reconstruct this information.
+ */
+vector<int> determine_steps(int N, int M, vector<vector<int>> A) {
+    vector<char> not_raised(N, 0);
+    for (const auto& v : A) {
+        if (!v.empty()) {
+            int idx = v[0];               // the encoded original index
+            if (0 <= idx && idx < N) {
+                not_raised[idx] = 1;
+            }
+        }
+    }
+
+    vector<int> D(N);
+    for (int i = 0; i < N; ++i) {
+        D[i] = not_raised[i] ? -1 : 0;    // 0 → raised in step 0, -1 → never raised
+    }
+    return D;
+}
+```
+
+# Best known solution for Subtask 2 (worth 6 points)
+
+Additional constraints of this subtask: N = 2
+Source file: `solutions/subtask2_classroom.cpp`
+Score this program achieved on Subtask 2: **6 out of 6 -- full marks**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+static const int SENTINEL = 63;          // value meaning “never raised”
+
+// ------------------------------------------------------------------
+// Teacher side
+// ------------------------------------------------------------------
+vector<vector<int>> process_step(int N, int M, int R,
+                                 vector<int> T,
+                                 vector<vector<int>> A)
+{
+    // start with a copy of the received papers
+    vector<vector<int>> B = A;
+
+    if (!T.empty())                     // exactly one student raised
+    {
+        int raiser = T[0];               // 0 or 1 (N == 2)
+        int other  = 1 - raiser;         // the other student
+
+        // current contents of the paper we are allowed to change
+        int v0 = SENTINEL, v1 = SENTINEL;
+        if (B[other].size() >= 2) {
+            v0 = B[other][0];
+            v1 = B[other][1];
+        }
+        // store the step for the raiser
+        if (raiser == 0) v0 = R;
+        else             v1 = R;
+
+        B[other] = {v0, v1};             // always length 2
+        // B[raiser] stays unchanged (required by the statement)
+    }
+    // when T is empty we leave B unchanged
+
+    return B;
+}
+
+// ------------------------------------------------------------------
+// Headmaster side
+// ------------------------------------------------------------------
+vector<int> determine_steps(int N, int M, vector<vector<int>> A)
+{
+    vector<int> D(N, -1);               // default: never raised
+
+    for (int i = 0; i < N; ++i) {
+        const vector<int> &arr = A[i];
+        if (arr.size() >= 2) {
+            // arr[0] belongs to student 0, arr[1] to student 1
+            if (arr[0] != SENTINEL) D[0] = arr[0];
+            if (arr[1] != SENTINEL) D[1] = arr[1];
+        }
+    }
+    return D;
+}
+```
+
+# Best known solution for Subtask 3 (worth 9 points)
+
+Additional constraints of this subtask: P[i] = i for all i (the papers are not permuted).
+Source file: `solutions/subtask3_classroom.cpp`
+Score this program achieved on Subtask 3: **9 out of 9 -- full marks**.
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+/* ----- helper: base‑64 encode / decode ----- */
+static int decode(const vector<int>& v) {
+    int x = 0;
+    int mult = 1;                     // 64^position
+    for (int d : v) {
+        x += d * mult;
+        mult <<= 6;                   // multiply by 64
+    }
+    return x;
+}
+
+static vector<int> encode(int x) {
+    vector<int> v;
+    while (x > 0) {
+        v.push_back(x & 63);          // x % 64
+        x >>= 6;                      // x /= 64
+    }
+    return v;                         // empty vector represents 0
+}
+
+/* -------------------------------------------------------------
+   Teacher's procedure
+   ------------------------------------------------------------- */
+vector<vector<int>> process_step(int N, int M, int R,
+                                 vector<int> T,
+                                 vector<vector<int>> A) {
+    vector<char> raises(N, 0);
+    for (int idx : T) raises[idx] = 1;
+
+    int add = R + 1;                  // value added this step
+    vector<vector<int>> B(N);
+
+    for (int i = 0; i < N; ++i) {
+        if (raises[i]) {
+            B[i] = A[i];              // cannot modify
+        } else {
+            int cur = decode(A[i]);
+            cur += add;
+            B[i] = encode(cur);
+        }
+    }
+    return B;
+}
+
+/* -------------------------------------------------------------
+   Headmaster's procedure
+   ------------------------------------------------------------- */
+vector<int> determine_steps(int N, int M,
+                            vector<vector<int>> A) {
+    vector<int> D(N);
+    int total = M * (M + 1) / 2;      // sum 1 … M
+
+    for (int i = 0; i < N; ++i) {
+        int cur = decode(A[i]);
+        if (cur == total) {
+            D[i] = -1;                // never raised
+        } else {
+            D[i] = total - cur - 1;   // missing step
+        }
+    }
+    return D;
+}
+```
+
+# Your task
+
+Merge the programs below into a **single submission** that covers every subtask.
+Route between them with `if`/`else` on what the grader actually gives you.
+
+Rules:
+
+1. **Copy each solution verbatim, including every comment, from its first line to
+   its last.** Do not rewrite, re-indent, tidy, shorten, or "improve" any of
+   them, and do not drop a file's header comment. Put each in its own `namespace`
+   so their helpers cannot collide.
+2. The only code you write yourself is the dispatcher, plus any small helper it
+   needs to classify the input. **Do not write a solution of your own.** Every
+   answer the merged file can return must come from one of the programs given to
+   you, unchanged. A new algorithm you invent here has never been judged, so
+   routing to it gambles the whole problem on untested code -- even if you believe
+   it is more general. If you find yourself writing a loop that computes an answer,
+   stop: that belongs to the solutions, not to the dispatcher.
+3. **Every `#include` must sit at the very top of the file, outside every
+   namespace.** A standard header expanded inside a namespace nests the whole of
+   `std` inside it and the file does not compile at all (`isalnum has not been
+   declared in '::'` and hundreds like it). Hoist the includes from each solution
+   to the top, merge the duplicates, and leave a comment where one was removed.
+   `using namespace std;` may stay at global scope.
+4. Functions the grader provides must be declared once, at global scope. A
+   declaration inside a namespace declares a *different* symbol and the program
+   will not link.
+5. Say in a comment where each namespace came from, using the file paths given.
+6. The result must compile as a single translation unit against the grader
+   header, with `-std=gnu++17`. Check this mentally before answering.
+7. **Every solution must be reachable from the dispatcher, or you must justify in
+   a comment why it cannot be.** Do not quietly drop one. If you route a
+   subtask's range to a different subtask's solution, say so and give your reason.
+
+Think about the dispatch conditions carefully.
+
+The grader calls two procedures:
+
+    process_step(int N, int M, int R, vector<int> T, vector<vector<int>> A)
+    determine_steps(int N, int M, vector<vector<int>> A)
+
+so a branch can read `N` and `M` directly, and can inspect `T` (who raised a hand
+this step) and `A` (what is written on the papers).
+
+Only three subtasks are in play here, and both of their conditions are visible at
+once: `M == 1` and `N == 2` are arguments, decidable in every call. (Subtask 3's
+own condition, `P[i] = i`, concerns the secret permutation and is never passed to
+you -- it cannot be tested, so whatever is neither subtask 1 nor subtask 2 must
+fall to subtask 3's solution by elimination, not by checking its condition
+directly.)
+
+Both procedures must agree on which strategy is in play: `determine_steps` has to
+decode what `process_step` encoded. If they disagree the answer is wrong.
+
+* All three programs score full marks on their own subtask, so nothing here is a
+  fallback -- each is known good on its own range.
+* Test `M == 1` first, then `N == 2`, then fall through to subtask 3. An input
+  satisfying both `M == 1` and `N == 2` is answered correctly by either subtask
+  1's or subtask 2's program (each was checked on such inputs), so the order
+  between those two costs nothing.
+* This merge is only submitted to subtasks 1, 2 and 3. Subtasks 4 and 5 are
+  submitted separately by a different file and are not your concern here --
+  do not try to route anything to them or account for their inputs.
+* Only branch on something you can evaluate at the moment you must decide, and
+  remember that `determine_steps` must reach the same decision as the
+  `process_step` calls that produced the papers it is reading.
+
+Where two subtasks cannot be told apart from what the grader passes you, say
+which one you gave the range to and why. Do not pretend a branch is reachable
+when it is not.
+
+Reply with the complete merged file in one ```cpp block.
