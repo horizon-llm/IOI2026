@@ -13,7 +13,6 @@ const columns = [
   { key: 'name', label: 'Model name', className: 'model-cell' },
   { key: 'contextTokens', label: 'Max tokens' },
   { key: 'k', label: 'k' },
-  { key: 'status', label: 'Status' },
   { key: 'score', label: 'Score', title: 'Observed total: sum of best scores on each subtask. See result details for the evaluation setup.' },
   { key: 'scoreAt1', label: 'Score@1', title: 'Average score across single attempts, when reported. This is not the expected contest score.' },
   { key: 'passAtK', label: 'Pass@k' },
@@ -28,7 +27,6 @@ function scoreHtml(score, average) {
 function metricHtml(entry, key, max) {
   const value = entry[key];
   if (key === 'name') return `<button type="button" class="model-name" data-entry="${escape(entry.id)}">${escape(entry.name)}</button>${entry.configuration ? `<span class="model-caption">${escape(entry.configuration)}</span>` : ''}`;
-  if (key === 'status') return `<span class="badge">${escape(value || '—')}</span>`;
   if (key === 'score') return `<span class="score-value" title="${entry.scoreKind === 'sampled' ? 'Score@k' : 'Observed contest score'}">${formatNumber(value)}</span><span class="score-secondary">${isNumber(value) ? `${formatNumber(value / max * 100, 1)}%` : '—'}</span>`;
   if (key === 'contextTokens' || key === 'avgThinkTokens') return formatTokens(value);
   if (key === 'passAtK' || key === 'passAt1') return isNumber(value) ? `${formatNumber(value)}%` : '—';
@@ -48,7 +46,7 @@ function render() {
   const rows = selectEntries(data.entries, $('#search').value, sortKey, direction);
   const ranks = rankEntries(data.entries);
   const max = sum(data.problems.map(problem => problem.maxScore));
-  const visibleColumns = columns.filter(column => ['name', 'status', 'score'].includes(column.key) || data.entries.some(entry => isNumber(entry[column.key])));
+  const visibleColumns = columns.filter(column => ['name', 'score'].includes(column.key) || data.entries.some(entry => isNumber(entry[column.key])));
   let head = '<tr><th scope="col" class="rank-cell" rowspan="2">#</th>';
   head += visibleColumns.map(column => sortHeader(column.key, column.label, column.className, 'rowspan="2"', column.title)).join('');
   head += data.problems.map(problem => `<th scope="colgroup" colspan="${problem.weights.length + 1}" title="${escape(problem.name)}">${escape(problem.label)} <span class="score-secondary">${escape(problem.name)} · ${problem.maxScore} pts</span></th>`).join('');
@@ -139,7 +137,7 @@ $('#leaderboard').addEventListener('click', event => {
   const sort = event.target.closest('[data-sort]');
   if (sort) {
     const key = sort.dataset.sort;
-    direction = key === sortKey ? direction === 'desc' ? 'asc' : 'desc' : key === 'name' || key === 'status' ? 'asc' : 'desc';
+    direction = key === sortKey ? direction === 'desc' ? 'asc' : 'desc' : key === 'name' ? 'asc' : 'desc';
     sortKey = key;
     render();
     [...document.querySelectorAll('[data-sort]')].find(button => button.dataset.sort === key)?.focus({ preventScroll: true });
