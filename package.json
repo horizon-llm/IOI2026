@@ -1,0 +1,11 @@
+{
+  "name": "ioi2026-leaderboard",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "preview": "python3 -m http.server 4173 --bind 127.0.0.1",
+    "publish:leaderboard": "bash scripts/publish-leaderboard.sh"
+  },
+  "engines": { "node": ">=20" }
+}

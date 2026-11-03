@@ -13,6 +13,8 @@ This repository contains the C++ programs submitted for all six problems, byte f
 
 ## Results
 
+The interactive [IOI 2026 leaderboard](https://horizon-llm.github.io/IOI2026/leaderboard/?board=ioi2026subtasks) is maintained on the `leaderboard` branch. See [LEADERBOARD.md](LEADERBOARD.md) for local preview, the data format, and publishing instructions.
+
 | # | Problem | Program | Subtasks | Score | Submission |
 |:--|:--|:--|:--|--:|:--|
 | **1** | Ball Machine | [`merged.cpp`](submissions/day1/p1/merged.cpp) | S1–S4 | **35.00** | [link](https://qoj.ac/submission/2809712) |
