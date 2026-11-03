@@ -3,7 +3,6 @@ import { formatNumber, formatTokens, heatClass, isNumber, rankEntries, safeUrl, 
 const $ = selector => document.querySelector(selector);
 const escape = value => String(value ?? '').replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 let data = null;
-let paused = false;
 let loading = false;
 let lastChecked = null;
 let lastError = false;
@@ -76,20 +75,17 @@ function render() {
 }
 
 function updateStatus() {
-  $('.status-dot').dataset.status = lastError ? 'error' : paused ? 'paused' : 'ready';
+  $('.status-dot').dataset.status = lastError ? 'error' : 'ready';
   const time = lastChecked?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
   const publication = data?.updatedAt ? ` · Data updated ${new Date(data.updatedAt).toLocaleDateString()}` : ' · Published snapshot';
   $('#refresh-status').textContent = lastError
-    ? data ? `Refresh failed · Showing last loaded results (${time})` : 'Unable to load results. Select Refresh now to retry.'
-    : `${paused ? 'Paused' : 'Checked'}${time ? ` ${time}` : ''}${data ? publication : ''}`;
-  $('#pause').textContent = paused ? 'Resume' : 'Pause';
-  $('#pause').setAttribute('aria-pressed', String(paused));
+    ? data ? `Refresh failed · Showing last loaded results (${time})` : 'Unable to load results. Retrying automatically.'
+    : `Checked${time ? ` ${time}` : ''}${data ? publication : ''}`;
 }
 
 async function refresh() {
   if (loading) return;
   loading = true;
-  $('#refresh').disabled = true;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 10000);
   try {
@@ -105,14 +101,13 @@ async function refresh() {
     console.error('Could not load leaderboard data:', error);
     lastError = true;
     if (!data) {
-      $('#empty-state').textContent = 'Results could not be loaded. Check your connection and try again.';
+      $('#empty-state').textContent = 'Results could not be loaded. Check your connection; updates will retry automatically.';
       $('#empty-state').hidden = false;
       $('#result-count').textContent = 'Results unavailable';
     }
   } finally {
     clearTimeout(timeout);
     loading = false;
-    $('#refresh').disabled = false;
     updateStatus();
   }
 }
@@ -147,8 +142,6 @@ $('#leaderboard').addEventListener('click', event => {
 });
 $('#search').addEventListener('input', render);
 $('#close-dialog').addEventListener('click', () => $('#detail-dialog').close());
-$('#pause').addEventListener('click', () => { paused = !paused; updateStatus(); if (!paused) refresh(); });
-$('#refresh').addEventListener('click', refresh);
 $('#export').addEventListener('click', () => {
   const csv = toCsv(data, selectEntries(data.entries, $('#search').value, sortKey, direction));
   const url = URL.createObjectURL(new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8' }));
@@ -158,6 +151,6 @@ $('#export').addEventListener('click', () => {
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 });
-setInterval(() => { if (!paused && !document.hidden) refresh(); }, 15000);
+setInterval(() => { if (!document.hidden) refresh(); }, 15000);
 render();
 refresh();
