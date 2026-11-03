@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="IOI 2026 subtask leaderboard with published model scores.">
+  <meta name="theme-color" content="#28583e">
+  <title>IOI 2026 (Subtasks)</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./app.js"></script>
+</head>
+<body>
+  <a class="sr-only skip-link" href="#main">Skip to leaderboard</a>
+  <header class="site-header">
+    <a class="brand" href="https://horizon-llm.github.io/IOI2026/" aria-label="IOI 2026 project home">
+      <span class="brand-mark" aria-hidden="true">ioi<span>26</span></span>
+      <span class="brand-title">HORIZON</span>
+    </a>
+    <nav class="header-links" aria-label="Project"><a href="https://horizon-llm.github.io/IOI2026/">Research ↗</a><a href="https://github.com/horizon-llm/IOI2026/tree/leaderboard">GitHub ↗</a></nav>
+  </header>
+  <main id="main">
+    <div class="page-heading">
+      <h1>IOI 2026 <span>(Subtasks)</span></h1>
+    </div>
+    <section aria-label="Leaderboard">
+      <div class="toolbar">
+        <span class="board-meta" id="board-meta">6 problems · 41 subtask groups · 600 points</span>
+        <label class="search-field"><span class="sr-only">Search models</span><span aria-hidden="true">⌕</span><input id="search" type="search" placeholder="Search models…" autocomplete="off"></label>
+        <div class="toolbar-actions"><button type="button" id="export" disabled>Export CSV ↓</button></div>
+      </div>
+      <div class="refresh-bar">
+        <span class="status-dot" aria-hidden="true"></span><span id="refresh-status" role="status">Loading published results…</span>
+        <span class="refresh-controls"><span>Checks every 15s</span><button type="button" class="text-button" id="pause" aria-pressed="false">Pause</button><button type="button" class="text-button" id="refresh">Refresh now</button></span>
+      </div>
+      <div class="board-shell" tabindex="0" role="region" aria-label="Scores, scroll horizontally for all subtasks">
+        <table id="leaderboard"><caption class="sr-only">IOI 2026 scores. Select a model for sources and details. Column buttons change sort order.</caption><thead></thead><tbody></tbody></table>
+        <div class="empty-state" id="empty-state" hidden></div>
+      </div>
+      <div class="board-caption"><span id="result-count">Loading…</span><span>Click a model for details · Scroll for all subtasks →</span></div>
+      <div class="legend" aria-label="Subtask score legend"><span class="legend-label">SCORE KEY</span><span><i class="legend-swatch heat-full"></i>Full score</span><span><i class="legend-swatch heat-partial"></i>Partial score</span><span><i class="legend-swatch heat-zero"></i>Zero</span><span><i class="legend-swatch heat-unknown"></i>Not reported</span><span>Large: best · Small: average, when available</span></div>
+    </section>
+    <p class="board-note">Published results only. Evaluation methods and sources are in each model’s details. <a id="source-link" href="https://github.com/horizon-llm/IOI2026">Score evidence ↗</a></p>
+  </main>
+  <footer class="site-footer"><span>Horizon · IOI 2026</span><a href="./data.json">Download data ↗</a></footer>
+  <dialog id="detail-dialog" aria-labelledby="detail-title"><div class="dialog-header"><div><p class="eyebrow">RESULT DETAILS</p><h2 id="detail-title"></h2></div><button type="button" class="icon-button" id="close-dialog" aria-label="Close result details">×</button></div><div id="detail-body"></div></dialog>
+  <noscript><p class="empty-state">Enable JavaScript to explore the leaderboard, or <a href="./data.json">download the published results</a>.</p></noscript>
+</body>
+</html>

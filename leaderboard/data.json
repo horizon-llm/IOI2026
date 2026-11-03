@@ -1,0 +1,380 @@
+{
+  "schemaVersion": 1,
+  "board": "ioi2026subtasks",
+  "title": "IOI 2026",
+  "updatedAt": null,
+  "source": {
+    "label": "Published IOI 2026 results",
+    "url": "https://github.com/horizon-llm/IOI2026/blob/875316eb380c609c0c9681d7cf2b3dfe67fc212f/README.md"
+  },
+  "problems": [
+    {
+      "id": "p1",
+      "label": "P1",
+      "name": "Ball Machine",
+      "day": 1,
+      "maxScore": 100,
+      "weights": [
+        5,
+        10,
+        25,
+        60
+      ]
+    },
+    {
+      "id": "p2",
+      "label": "P2",
+      "name": "Monuments",
+      "day": 1,
+      "maxScore": 100,
+      "weights": [
+        3,
+        4,
+        5,
+        6,
+        5,
+        5,
+        13,
+        17,
+        13,
+        29
+      ]
+    },
+    {
+      "id": "p3",
+      "label": "P3",
+      "name": "Tiling Game",
+      "day": 1,
+      "maxScore": 100,
+      "weights": [
+        6,
+        16,
+        10,
+        29,
+        39
+      ]
+    },
+    {
+      "id": "p4",
+      "label": "P4",
+      "name": "Classroom Game",
+      "day": 2,
+      "maxScore": 100,
+      "weights": [
+        4,
+        6,
+        9,
+        25,
+        56
+      ]
+    },
+    {
+      "id": "p5",
+      "label": "P5",
+      "name": "Magic City",
+      "day": 2,
+      "maxScore": 100,
+      "weights": [
+        1,
+        8,
+        9,
+        9,
+        9,
+        20,
+        6,
+        38
+      ]
+    },
+    {
+      "id": "p6",
+      "label": "P6",
+      "name": "Partition",
+      "day": 2,
+      "maxScore": 100,
+      "weights": [
+        5,
+        4,
+        7,
+        10,
+        7,
+        12,
+        17,
+        20,
+        18
+      ]
+    }
+  ],
+  "entries": [
+    {
+      "id": "gpt-oss-120b-arbiter",
+      "name": "GPT-OSS-120B",
+      "description": "Arbiter verifier-guided refinement",
+      "contextTokens": null,
+      "k": null,
+      "status": "Published",
+      "score": 390.2028,
+      "expectedScore": 385.46,
+      "scoreAt1": null,
+      "passAtK": null,
+      "passAt1": null,
+      "avgThinkTokens": null,
+      "sourceNote": "The observed QOJ submissions total 390.2028 points (390.20 rounded); 385.46 is the expected contest score after allocating the 50-submission-per-problem budget. These are different measures. Score@1, pass rates, average thinking tokens, context limit, and a comparable k were not published and are shown as unavailable. P1 and P2 have published problem totals but no per-subtask breakdown here. P3 and P5 earned full marks. P4 and P6 use the best published result for each subtask across their submissions. Magic City has 50 official subtasks grouped into eight for this view: S1–S5, S6–S10, S11–S12, and S13–S50. Group weights follow the public gh-pages data at commit 87721e18218449546ba5ada98205020e707dbd91.",
+      "problems": [
+        {
+          "id": "p1",
+          "score": 35,
+          "average": null,
+          "subtasks": [
+            {
+              "score": null,
+              "average": null
+            },
+            {
+              "score": null,
+              "average": null
+            },
+            {
+              "score": null,
+              "average": null
+            },
+            {
+              "score": null,
+              "average": null
+            }
+          ],
+          "submissions": [
+            {
+              "label": "merged.cpp",
+              "url": "https://qoj.ac/submission/2809712"
+            }
+          ]
+        },
+        {
+          "id": "p2",
+          "score": 58,
+          "average": null,
+          "subtasks": [
+            {
+              "score": null,
+              "average": null
+            },
+            {
+              "score": null,
+              "average": null
+            },
+            {
+              "score": null,
+              "average": null
+            },
+            {
+              "score": null,
+              "average": null
+            },
+            {
+              "score": null,
+              "average": null
+            },
+            {
+              "score": null,
+              "average": null
+            },
+            {
+              "score": null,
+              "average": null
+            },
+            {
+              "score": null,
+              "average": null
+            },
+            {
+              "score": null,
+              "average": null
+            },
+            {
+              "score": null,
+              "average": null
+            }
+          ],
+          "submissions": [
+            {
+              "label": "merged.cpp",
+              "url": "https://qoj.ac/submission/2809714"
+            }
+          ]
+        },
+        {
+          "id": "p3",
+          "score": 100,
+          "average": null,
+          "subtasks": [
+            {
+              "score": 6,
+              "average": null
+            },
+            {
+              "score": 16,
+              "average": null
+            },
+            {
+              "score": 10,
+              "average": null
+            },
+            {
+              "score": 29,
+              "average": null
+            },
+            {
+              "score": 39,
+              "average": null
+            }
+          ],
+          "submissions": [
+            {
+              "label": "merged.cpp",
+              "url": "https://qoj.ac/submission/2809728"
+            }
+          ]
+        },
+        {
+          "id": "p4",
+          "score": 35.2028,
+          "average": null,
+          "subtasks": [
+            {
+              "score": 4,
+              "average": null
+            },
+            {
+              "score": 6,
+              "average": null
+            },
+            {
+              "score": 9,
+              "average": null
+            },
+            {
+              "score": 13.75,
+              "average": null
+            },
+            {
+              "score": 2.4528,
+              "average": null
+            }
+          ],
+          "submissions": [
+            {
+              "label": "sub123.cpp",
+              "url": "https://qoj.ac/submission/2809772"
+            },
+            {
+              "label": "sub4.cpp",
+              "url": "https://qoj.ac/submission/2810116"
+            },
+            {
+              "label": "sub5.cpp",
+              "url": "https://qoj.ac/submission/2810256"
+            }
+          ]
+        },
+        {
+          "id": "p5",
+          "score": 100,
+          "average": null,
+          "subtasks": [
+            {
+              "score": 1,
+              "average": null
+            },
+            {
+              "score": 8,
+              "average": null
+            },
+            {
+              "score": 9,
+              "average": null
+            },
+            {
+              "score": 9,
+              "average": null
+            },
+            {
+              "score": 9,
+              "average": null
+            },
+            {
+              "score": 20,
+              "average": null
+            },
+            {
+              "score": 6,
+              "average": null
+            },
+            {
+              "score": 38,
+              "average": null
+            }
+          ],
+          "submissions": [
+            {
+              "label": "merged.cpp",
+              "url": "https://qoj.ac/submission/2810479"
+            }
+          ]
+        },
+        {
+          "id": "p6",
+          "score": 62,
+          "average": null,
+          "subtasks": [
+            {
+              "score": 5,
+              "average": null
+            },
+            {
+              "score": 4,
+              "average": null
+            },
+            {
+              "score": 7,
+              "average": null
+            },
+            {
+              "score": 10,
+              "average": null
+            },
+            {
+              "score": 7,
+              "average": null
+            },
+            {
+              "score": 12,
+              "average": null
+            },
+            {
+              "score": 17,
+              "average": null
+            },
+            {
+              "score": 0,
+              "average": null
+            },
+            {
+              "score": 0,
+              "average": null
+            }
+          ],
+          "submissions": [
+            {
+              "label": "sub1456789.cpp",
+              "url": "https://qoj.ac/submission/2810568"
+            },
+            {
+              "label": "sub23.cpp",
+              "url": "https://qoj.ac/submission/2810611"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
