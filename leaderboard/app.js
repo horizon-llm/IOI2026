@@ -27,9 +27,9 @@ function scoreHtml(score, average) {
 
 function metricHtml(entry, key, max) {
   const value = entry[key];
-  if (key === 'name') return `<button type="button" class="model-name" data-entry="${escape(entry.id)}">${escape(entry.name)}</button>`;
+  if (key === 'name') return `<button type="button" class="model-name" data-entry="${escape(entry.id)}">${escape(entry.name)}</button>${entry.configuration ? `<span class="model-caption">${escape(entry.configuration)}</span>` : ''}`;
   if (key === 'status') return `<span class="badge">${escape(value || '—')}</span>`;
-  if (key === 'score') return `<span class="score-value">${formatNumber(value)}</span><span class="score-secondary">${isNumber(value) ? `${formatNumber(value / max * 100, 1)}%` : '—'}</span>`;
+  if (key === 'score') return `<span class="score-value" title="${entry.scoreKind === 'sampled' ? 'Score@k' : 'Observed contest score'}">${formatNumber(value)}</span><span class="score-secondary">${isNumber(value) ? `${formatNumber(value / max * 100, 1)}%` : '—'}</span>`;
   if (key === 'contextTokens' || key === 'avgThinkTokens') return formatTokens(value);
   if (key === 'passAtK' || key === 'passAt1') return isNumber(value) ? `${formatNumber(value)}%` : '—';
   return formatNumber(value);
@@ -67,7 +67,7 @@ function render() {
   }).join('');
   $('#empty-state').hidden = rows.length > 0;
   $('#empty-state').textContent = data.entries.length ? 'No models match your search. Try a different name.' : 'No results have been published yet.';
-  $('#result-count').textContent = `Showing ${rows.length} of ${data.entries.length} published ${data.entries.length === 1 ? 'entry' : 'entries'}`;
+  $('#result-count').textContent = `Showing ${rows.length} of ${data.entries.length} model ${data.entries.length === 1 ? 'run' : 'runs'}`;
   $('#board-meta').textContent = `${data.problems.length} problems · ${sum(data.problems.map(problem => problem.weights.length))} subtask groups · ${max} points`;
   $('#source-link').href = safeUrl(data.source.url);
   $('#export').disabled = rows.length === 0;
@@ -123,7 +123,12 @@ function openDetails(id) {
   const entry = data.entries.find(item => item.id === id);
   if (!entry) return;
   $('#detail-title').textContent = entry.description ? `${entry.name} · ${entry.description}` : entry.name;
-  $('#detail-body').innerHTML = `<div class="detail-summary"><div><span>Observed score</span><strong>${formatNumber(entry.score, 4)} / ${sum(data.problems.map(problem => problem.maxScore))}</strong></div><div><span>Expected contest score</span><strong>${formatNumber(entry.expectedScore)} / ${sum(data.problems.map(problem => problem.maxScore))}</strong></div></div><p class="detail-note">${escape(entry.sourceNote || entry.description || '')}</p><div class="detail-grid">${data.problems.map(problem => {
+  const maxScore = sum(data.problems.map(problem => problem.maxScore));
+  const summary = [{ label: entry.scoreKind === 'sampled' ? 'Score@k' : 'Observed score', value: entry.score },
+    { label: 'Score@1', value: entry.scoreAt1 }, { label: 'Expected contest score', value: entry.expectedScore }]
+    .filter(metric => isNumber(metric.value)).map(metric => `<div><span>${metric.label}</span><strong>${formatNumber(metric.value, 4)} / ${maxScore}</strong></div>`).join('');
+  const run = entry.sourceRun ? `<p class="detail-note">Run: <code>${escape(entry.sourceRun)}</code></p>` : '';
+  $('#detail-body').innerHTML = `<div class="detail-summary">${summary}</div>${run}<p class="detail-note">${escape(entry.sourceNote || entry.description || '')}</p><div class="detail-grid">${data.problems.map(problem => {
     const result = entry.problems.find(item => item.id === problem.id);
     return `<section class="detail-problem"><h3>${escape(problem.label)} · ${escape(problem.name)}</h3><p><strong>${formatNumber(result.score, 4)}</strong> / ${problem.maxScore} points</p><div class="detail-subtasks">${result.subtasks.map((subtask, index) => `<span class="${heatClass(subtask.score, problem.weights[index])}" title="${escape(problem.label)} S${index + 1}"><small>S${index + 1}</small><strong>${formatNumber(subtask.score, 4)}</strong><small>/ ${problem.weights[index]}</small></span>`).join('')}</div><ul class="submission-list">${result.submissions.map(submission => `<li><a href="${escape(safeUrl(submission.url))}" target="_blank" rel="noopener noreferrer">${escape(submission.label)} · QOJ ↗</a></li>`).join('')}</ul></section>`;
   }).join('')}</div>`;

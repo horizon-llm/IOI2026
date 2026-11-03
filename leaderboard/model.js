@@ -75,7 +75,7 @@ export function metricValue(entry, key) {
 
 export function selectEntries(entries, query = '', key = 'score', direction = 'desc') {
   const needle = query.trim().toLocaleLowerCase();
-  return entries.filter(entry => `${entry.name} ${entry.description || ''}`.toLocaleLowerCase().includes(needle))
+  return entries.filter(entry => `${entry.name} ${entry.description || ''} ${entry.configuration || ''} ${entry.sourceRun || ''}`.toLocaleLowerCase().includes(needle))
     .sort((a, b) => {
       const left = metricValue(a, key), right = metricValue(b, key);
       if (left === null || right === null) return left === right ? a.name.localeCompare(b.name) : left === null ? 1 : -1;
@@ -91,11 +91,12 @@ export function rankEntries(entries) {
 }
 
 export function toCsv(data, entries) {
-  const header = ['Model', 'Description', 'Context tokens', 'k', 'Status', 'Observed score', 'Expected contest score', 'Score@1', 'Pass@k (%)', 'Pass@1 (%)', 'Average thinking tokens'];
+  const header = ['Model', 'Description', 'Context tokens', 'k', 'Status', 'Score', 'Expected contest score', 'Score@1', 'Pass@k (%)', 'Pass@1 (%)', 'Average thinking tokens'];
   for (const problem of data.problems) {
     header.push(`${problem.label} score`, `${problem.label} average`);
     problem.weights.forEach((_, index) => header.push(`${problem.label} S${index + 1} best`, `${problem.label} S${index + 1} average`));
   }
+  header.push('Configuration', 'Source run', 'Score kind');
   const rows = entries.map(entry => {
     const row = [entry.name, entry.description, entry.contextTokens, entry.k, entry.status, entry.score, entry.expectedScore, entry.scoreAt1, entry.passAtK, entry.passAt1, entry.avgThinkTokens];
     for (const problem of data.problems) {
@@ -103,6 +104,7 @@ export function toCsv(data, entries) {
       row.push(result.score, result.average);
       result.subtasks.forEach(item => row.push(item.score, item.average));
     }
+    row.push(entry.configuration, entry.sourceRun, entry.scoreKind);
     return row;
   });
   const escape = value => {
