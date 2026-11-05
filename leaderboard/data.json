@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "board": "ioi2026subtasks",
   "title": "IOI 2026",
-  "updatedAt": "2026-11-03T02:43:49.901Z",
+  "updatedAt": "2026-11-05T06:24:38.744Z",
   "source": {
     "label": "Leaderboard data",
     "url": "https://github.com/horizon-llm/IOI2026/blob/leaderboard/leaderboard/data.json"
@@ -121,7 +121,7 @@
       "passAtK": 100,
       "passAt1": 96.65,
       "avgThinkTokens": 7800,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
@@ -338,6 +338,238 @@
       ]
     },
     {
+      "id": "gpt-6-1-sol-xhigh-128k-pass-8",
+      "name": "GPT-6.1 Sol",
+      "configuration": "xhigh",
+      "sourceRun": "GPT_6_1_Sol_xhigh_128K_pass_8",
+      "description": "Sampling · xhigh",
+      "contextTokens": 128000,
+      "k": 8,
+      "status": "100% judged",
+      "scoreKind": "sampled",
+      "score": 586,
+      "expectedScore": null,
+      "scoreAt1": 558.25,
+      "passAtK": 97.56,
+      "passAt1": 93.9,
+      "avgThinkTokens": null,
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "problems": [
+        {
+          "id": "p1",
+          "score": 100,
+          "average": 97.3,
+          "subtasks": [
+            {
+              "score": 5,
+              "average": 5
+            },
+            {
+              "score": 10,
+              "average": 10
+            },
+            {
+              "score": 25,
+              "average": 25
+            },
+            {
+              "score": 60,
+              "average": 57.3
+            }
+          ],
+          "submissions": []
+        },
+        {
+          "id": "p2",
+          "score": 100,
+          "average": 100,
+          "subtasks": [
+            {
+              "score": 3,
+              "average": 3
+            },
+            {
+              "score": 4,
+              "average": 4
+            },
+            {
+              "score": 5,
+              "average": 5
+            },
+            {
+              "score": 6,
+              "average": 6
+            },
+            {
+              "score": 5,
+              "average": 5
+            },
+            {
+              "score": 5,
+              "average": 5
+            },
+            {
+              "score": 13,
+              "average": 13
+            },
+            {
+              "score": 17,
+              "average": 17
+            },
+            {
+              "score": 13,
+              "average": 13
+            },
+            {
+              "score": 29,
+              "average": 29
+            }
+          ],
+          "submissions": []
+        },
+        {
+          "id": "p3",
+          "score": 100,
+          "average": 100,
+          "subtasks": [
+            {
+              "score": 6,
+              "average": 6
+            },
+            {
+              "score": 16,
+              "average": 16
+            },
+            {
+              "score": 10,
+              "average": 10
+            },
+            {
+              "score": 29,
+              "average": 29
+            },
+            {
+              "score": 39,
+              "average": 39
+            }
+          ],
+          "submissions": []
+        },
+        {
+          "id": "p4",
+          "score": 86,
+          "average": 79.8,
+          "subtasks": [
+            {
+              "score": 4,
+              "average": 4
+            },
+            {
+              "score": 6,
+              "average": 6
+            },
+            {
+              "score": 9,
+              "average": 9
+            },
+            {
+              "score": 25,
+              "average": 18.8
+            },
+            {
+              "score": 42,
+              "average": 42
+            }
+          ],
+          "submissions": []
+        },
+        {
+          "id": "p5",
+          "score": 100,
+          "average": 100,
+          "subtasks": [
+            {
+              "score": 1,
+              "average": 1
+            },
+            {
+              "score": 8,
+              "average": 8
+            },
+            {
+              "score": 9,
+              "average": 9
+            },
+            {
+              "score": 9,
+              "average": 9
+            },
+            {
+              "score": 9,
+              "average": 9
+            },
+            {
+              "score": 20,
+              "average": 20
+            },
+            {
+              "score": 6,
+              "average": 6
+            },
+            {
+              "score": 38,
+              "average": 38
+            }
+          ],
+          "submissions": []
+        },
+        {
+          "id": "p6",
+          "score": 100,
+          "average": 81.3,
+          "subtasks": [
+            {
+              "score": 5,
+              "average": 5
+            },
+            {
+              "score": 4,
+              "average": 4
+            },
+            {
+              "score": 7,
+              "average": 7
+            },
+            {
+              "score": 10,
+              "average": 10
+            },
+            {
+              "score": 7,
+              "average": 7
+            },
+            {
+              "score": 12,
+              "average": 12
+            },
+            {
+              "score": 17,
+              "average": 17
+            },
+            {
+              "score": 20,
+              "average": 12.5
+            },
+            {
+              "score": 18,
+              "average": 6.8
+            }
+          ],
+          "submissions": []
+        }
+      ]
+    },
+    {
       "id": "claude-opus-5-5-xhigh-128k-pass-8",
       "name": "Claude Opus 5.5",
       "configuration": "xhigh",
@@ -353,7 +585,7 @@
       "passAtK": 97.56,
       "passAt1": 89.63,
       "avgThinkTokens": 2700,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
@@ -570,6 +802,238 @@
       ]
     },
     {
+      "id": "gpt-6-1-terra-xhigh-128k-pass-8",
+      "name": "GPT-6.1 Terra",
+      "configuration": "xhigh",
+      "sourceRun": "GPT_6_1_Terra_xhigh_128K_pass_8",
+      "description": "Sampling · xhigh",
+      "contextTokens": 128000,
+      "k": 8,
+      "status": "100% judged",
+      "scoreKind": "sampled",
+      "score": 520,
+      "expectedScore": null,
+      "scoreAt1": 496.75,
+      "passAtK": 87.8,
+      "passAt1": 85.67,
+      "avgThinkTokens": null,
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "problems": [
+        {
+          "id": "p1",
+          "score": 89,
+          "average": 78.9,
+          "subtasks": [
+            {
+              "score": 5,
+              "average": 5
+            },
+            {
+              "score": 10,
+              "average": 10
+            },
+            {
+              "score": 25,
+              "average": 25
+            },
+            {
+              "score": 49,
+              "average": 38.9
+            }
+          ],
+          "submissions": []
+        },
+        {
+          "id": "p2",
+          "score": 100,
+          "average": 97.6,
+          "subtasks": [
+            {
+              "score": 3,
+              "average": 3
+            },
+            {
+              "score": 4,
+              "average": 4
+            },
+            {
+              "score": 5,
+              "average": 5
+            },
+            {
+              "score": 6,
+              "average": 5.3
+            },
+            {
+              "score": 5,
+              "average": 5
+            },
+            {
+              "score": 5,
+              "average": 5
+            },
+            {
+              "score": 13,
+              "average": 13
+            },
+            {
+              "score": 17,
+              "average": 17
+            },
+            {
+              "score": 13,
+              "average": 11.4
+            },
+            {
+              "score": 29,
+              "average": 29
+            }
+          ],
+          "submissions": []
+        },
+        {
+          "id": "p3",
+          "score": 100,
+          "average": 100,
+          "subtasks": [
+            {
+              "score": 6,
+              "average": 6
+            },
+            {
+              "score": 16,
+              "average": 16
+            },
+            {
+              "score": 10,
+              "average": 10
+            },
+            {
+              "score": 29,
+              "average": 29
+            },
+            {
+              "score": 39,
+              "average": 39
+            }
+          ],
+          "submissions": []
+        },
+        {
+          "id": "p4",
+          "score": 86,
+          "average": 79.8,
+          "subtasks": [
+            {
+              "score": 4,
+              "average": 4
+            },
+            {
+              "score": 6,
+              "average": 6
+            },
+            {
+              "score": 9,
+              "average": 9
+            },
+            {
+              "score": 25,
+              "average": 18.8
+            },
+            {
+              "score": 42,
+              "average": 42
+            }
+          ],
+          "submissions": []
+        },
+        {
+          "id": "p5",
+          "score": 100,
+          "average": 100,
+          "subtasks": [
+            {
+              "score": 1,
+              "average": 1
+            },
+            {
+              "score": 8,
+              "average": 8
+            },
+            {
+              "score": 9,
+              "average": 9
+            },
+            {
+              "score": 9,
+              "average": 9
+            },
+            {
+              "score": 9,
+              "average": 9
+            },
+            {
+              "score": 20,
+              "average": 20
+            },
+            {
+              "score": 6,
+              "average": 6
+            },
+            {
+              "score": 38,
+              "average": 38
+            }
+          ],
+          "submissions": []
+        },
+        {
+          "id": "p6",
+          "score": 45,
+          "average": 40.5,
+          "subtasks": [
+            {
+              "score": 5,
+              "average": 5
+            },
+            {
+              "score": 4,
+              "average": 4
+            },
+            {
+              "score": 7,
+              "average": 7
+            },
+            {
+              "score": 10,
+              "average": 10
+            },
+            {
+              "score": 7,
+              "average": 7
+            },
+            {
+              "score": 12,
+              "average": 7.5
+            },
+            {
+              "score": 0,
+              "average": 0
+            },
+            {
+              "score": 0,
+              "average": 0
+            },
+            {
+              "score": 0,
+              "average": 0
+            }
+          ],
+          "submissions": []
+        }
+      ]
+    },
+    {
       "id": "claude-haiku-5-5-xhigh-384k-pass-8",
       "name": "Claude Haiku 5.5",
       "configuration": "xhigh",
@@ -585,7 +1049,7 @@
       "passAtK": 90.24,
       "passAt1": 82.62,
       "avgThinkTokens": null,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
@@ -817,7 +1281,7 @@
       "passAtK": 85.37,
       "passAt1": 76.22,
       "avgThinkTokens": 14900,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
@@ -1049,7 +1513,7 @@
       "passAtK": 82.93,
       "passAt1": 47.87,
       "avgThinkTokens": null,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
@@ -1281,7 +1745,7 @@
       "passAtK": 73.17,
       "passAt1": 55.49,
       "avgThinkTokens": 18800,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
@@ -1513,7 +1977,7 @@
       "passAtK": 80.49,
       "passAt1": 33.28,
       "avgThinkTokens": null,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
@@ -2018,7 +2482,7 @@
       "passAtK": 82.93,
       "passAt1": 72.56,
       "avgThinkTokens": null,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
@@ -2250,7 +2714,7 @@
       "passAtK": 78.05,
       "passAt1": 33.45,
       "avgThinkTokens": null,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
@@ -2482,7 +2946,7 @@
       "passAtK": 78.05,
       "passAt1": 31.61,
       "avgThinkTokens": 51500,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
@@ -2714,7 +3178,7 @@
       "passAtK": 75.61,
       "passAt1": 29.27,
       "avgThinkTokens": 26200,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
@@ -2946,7 +3410,7 @@
       "passAtK": 70.73,
       "passAt1": 31.59,
       "avgThinkTokens": 47500,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
@@ -3178,7 +3642,7 @@
       "passAtK": 65.85,
       "passAt1": 31.54,
       "avgThinkTokens": 47400,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
@@ -3410,7 +3874,7 @@
       "passAtK": 63.41,
       "passAt1": 33.85,
       "avgThinkTokens": 46400,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
@@ -3642,7 +4106,7 @@
       "passAtK": 63.41,
       "passAt1": 30.34,
       "avgThinkTokens": 47400,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
@@ -3874,7 +4338,7 @@
       "passAtK": 58.54,
       "passAt1": 32.01,
       "avgThinkTokens": 6100,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
@@ -4106,7 +4570,7 @@
       "passAtK": 63.41,
       "passAt1": 34.76,
       "avgThinkTokens": 46300,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
@@ -4338,7 +4802,7 @@
       "passAtK": 51.22,
       "passAt1": 33.54,
       "avgThinkTokens": 47700,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
@@ -4555,6 +5019,238 @@
       ]
     },
     {
+      "id": "kimi-k2-5-high-128k-pass-8",
+      "name": "Kimi K2.5",
+      "configuration": "high",
+      "sourceRun": "Kimi_K2_5_high_128K_pass_8",
+      "description": "Sampling · high",
+      "contextTokens": 128000,
+      "k": 8,
+      "status": "100% judged",
+      "scoreKind": "sampled",
+      "score": 179,
+      "expectedScore": null,
+      "scoreAt1": 124.63,
+      "passAtK": 58.54,
+      "passAt1": 43.9,
+      "avgThinkTokens": null,
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "problems": [
+        {
+          "id": "p1",
+          "score": 15,
+          "average": 3.8,
+          "subtasks": [
+            {
+              "score": 5,
+              "average": 1.3
+            },
+            {
+              "score": 10,
+              "average": 2.5
+            },
+            {
+              "score": 0,
+              "average": 0
+            },
+            {
+              "score": 0,
+              "average": 0
+            }
+          ],
+          "submissions": []
+        },
+        {
+          "id": "p2",
+          "score": 23,
+          "average": 17.5,
+          "subtasks": [
+            {
+              "score": 3,
+              "average": 2.6
+            },
+            {
+              "score": 4,
+              "average": 4
+            },
+            {
+              "score": 0,
+              "average": 0
+            },
+            {
+              "score": 6,
+              "average": 5.3
+            },
+            {
+              "score": 5,
+              "average": 4.4
+            },
+            {
+              "score": 5,
+              "average": 1.3
+            },
+            {
+              "score": 0,
+              "average": 0
+            },
+            {
+              "score": 0,
+              "average": 0
+            },
+            {
+              "score": 0,
+              "average": 0
+            },
+            {
+              "score": 0,
+              "average": 0
+            }
+          ],
+          "submissions": []
+        },
+        {
+          "id": "p3",
+          "score": 32,
+          "average": 25.5,
+          "subtasks": [
+            {
+              "score": 6,
+              "average": 4.5
+            },
+            {
+              "score": 16,
+              "average": 16
+            },
+            {
+              "score": 10,
+              "average": 5
+            },
+            {
+              "score": 0,
+              "average": 0
+            },
+            {
+              "score": 0,
+              "average": 0
+            }
+          ],
+          "submissions": []
+        },
+        {
+          "id": "p4",
+          "score": 34,
+          "average": 18.5,
+          "subtasks": [
+            {
+              "score": 4,
+              "average": 3.5
+            },
+            {
+              "score": 6,
+              "average": 4.5
+            },
+            {
+              "score": 9,
+              "average": 7.9
+            },
+            {
+              "score": 13,
+              "average": 1.9
+            },
+            {
+              "score": 2,
+              "average": 0.8
+            }
+          ],
+          "submissions": []
+        },
+        {
+          "id": "p5",
+          "score": 42,
+          "average": 29.4,
+          "subtasks": [
+            {
+              "score": 1,
+              "average": 1
+            },
+            {
+              "score": 8,
+              "average": 8
+            },
+            {
+              "score": 9,
+              "average": 9
+            },
+            {
+              "score": 9,
+              "average": 7.9
+            },
+            {
+              "score": 9,
+              "average": 2.8
+            },
+            {
+              "score": 0,
+              "average": 0
+            },
+            {
+              "score": 6,
+              "average": 0.8
+            },
+            {
+              "score": 0,
+              "average": 0
+            }
+          ],
+          "submissions": []
+        },
+        {
+          "id": "p6",
+          "score": 33,
+          "average": 30,
+          "subtasks": [
+            {
+              "score": 5,
+              "average": 5
+            },
+            {
+              "score": 4,
+              "average": 4
+            },
+            {
+              "score": 7,
+              "average": 6.1
+            },
+            {
+              "score": 10,
+              "average": 8.8
+            },
+            {
+              "score": 7,
+              "average": 6.1
+            },
+            {
+              "score": 0,
+              "average": 0
+            },
+            {
+              "score": 0,
+              "average": 0
+            },
+            {
+              "score": 0,
+              "average": 0
+            },
+            {
+              "score": 0,
+              "average": 0
+            }
+          ],
+          "submissions": []
+        }
+      ]
+    },
+    {
       "id": "qwen3-6-35b-a3b-131k-pass-8",
       "name": "Qwen3.6-35B-A3B",
       "configuration": "",
@@ -4570,7 +5266,7 @@
       "passAtK": 51.22,
       "passAt1": 28.66,
       "avgThinkTokens": 51900,
-      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-03T02:43:49.901Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
+      "sourceNote": "IOI 2026 subtask scoreboard snapshot captured 2026-11-05T06:24:38.744Z. Score is the source Score@k; Score@1 is its average single-attempt score. Subtask and problem averages retain the source tooltip precision. Token counts retain the source display precision (K = 1,000).",
       "problems": [
         {
           "id": "p1",
